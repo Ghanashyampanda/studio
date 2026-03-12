@@ -7,9 +7,31 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+
+const COUNTRY_CODES = [
+  { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
+  { name: "United Kingdom", dial_code: "+44", code: "GB", flag: "🇬🇧" },
+  { name: "Canada", dial_code: "+1", code: "CA", flag: "🇨🇦" },
+  { name: "Australia", dial_code: "+61", code: "AU", flag: "🇦🇺" },
+  { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
+  { name: "Germany", dial_code: "+49", code: "DE", flag: "🇩🇪" },
+  { name: "France", dial_code: "+33", code: "FR", flag: "🇫🇷" },
+  { name: "Japan", dial_code: "+81", code: "JP", flag: "🇯🇵" },
+  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧🇷" },
+  { name: "China", dial_code: "+86", code: "CN", flag: "🇨🇳" },
+  { name: "South Africa", dial_code: "+27", code: "ZA", flag: "🇿🇦" },
+  { name: "Mexico", dial_code: "+52", code: "MX", flag: "🇲🇽" },
+  { name: "Spain", dial_code: "+34", code: "ES", flag: "🇪🇸" },
+  { name: "Italy", dial_code: "+39", code: "IT", flag: "🇮🇹" },
+  { name: "Russia", dial_code: "+7", code: "RU", flag: "🇷🇺" },
+  { name: "South Korea", dial_code: "+82", code: "KR", flag: "🇰🇷" },
+  { name: "Singapore", dial_code: "+65", code: "SG", flag: "🇸🇬" },
+  { name: "UAE", dial_code: "+971", code: "AE", flag: "🇦🇪" },
+];
 
 export function SOSPanel() {
   const { user } = useUser();
@@ -18,6 +40,7 @@ export function SOSPanel() {
   const [newName, setNewName] = useState('');
   const [newContact, setNewContact] = useState('');
   const [newType, setNewType] = useState<'phone' | 'email'>('phone');
+  const [countryCode, setCountryCode] = useState('+1');
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -33,12 +56,14 @@ export function SOSPanel() {
     }
     if (!newName || !newContact) return;
 
+    const formattedContact = newType === 'phone' ? `${countryCode}${newContact.replace(/^\+/, '')}` : newContact;
+
     const contactsRef = collection(db, 'users', user.uid, 'emergencyContacts');
     addDocumentNonBlocking(contactsRef, {
       userId: user.uid,
       name: newName,
-      phoneNumber: newType === 'phone' ? newContact : '',
-      email: newType === 'email' ? newContact : '',
+      phoneNumber: newType === 'phone' ? formattedContact : '',
+      email: newType === 'email' ? formattedContact : '',
       isPrimary: (contacts?.length || 0) === 0,
       enabledForAlerts: true,
       dateAdded: new Date().toISOString()
@@ -105,7 +130,30 @@ export function SOSPanel() {
             <div className="space-y-1.5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Address</Label>
               <div className="flex gap-2">
-                <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newContact} onChange={e => setNewContact(e.target.value)} placeholder={newType === 'phone' ? '+1...' : 'email@...'} />
+                {newType === 'phone' && (
+                  <Select value={countryCode} onValueChange={setCountryCode}>
+                    <SelectTrigger className="w-[120px] h-11 bg-muted/30 border-border rounded-xl text-xs font-bold">
+                      <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRY_CODES.map(c => (
+                        <SelectItem key={`${c.code}-${c.dial_code}`} value={c.dial_code}>
+                          <span className="flex items-center gap-2">
+                            <span>{c.flag}</span>
+                            <span>{c.dial_code}</span>
+                            <span className="text-[10px] opacity-50">({c.code})</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Input 
+                  className="h-11 bg-muted/30 border-border rounded-xl text-sm flex-1" 
+                  value={newContact} 
+                  onChange={e => setNewContact(e.target.value)} 
+                  placeholder={newType === 'phone' ? 'Phone Number' : 'email@...'} 
+                />
                 <Button size="icon" className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-md shadow-primary/10" onClick={handleAdd} disabled={!newName || !newContact}>
                   <PlusCircle className="h-5 w-5" />
                 </Button>
