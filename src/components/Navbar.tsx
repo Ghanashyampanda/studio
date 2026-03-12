@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -8,11 +9,9 @@ import {
   Sun, 
   LayoutDashboard, 
   Users, 
-  AlertTriangle, 
   Home,
   ChevronRight,
   Moon,
-  LogIn,
   MapPin,
   History,
   Sparkles,
@@ -62,6 +61,7 @@ export function Navbar() {
     { label: 'Home', href: '/', icon: Home },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Monitor', href: '/monitor', icon: Activity },
+    { label: 'Location', href: '/location', icon: MapPin },
     { label: 'Contacts', href: '/contacts', icon: Users },
     { label: 'History', href: '/alerts', icon: History },
     { label: 'Tips', href: '/tips', icon: Sparkles },
