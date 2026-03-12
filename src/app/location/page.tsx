@@ -46,6 +46,7 @@ const NEARBY_HOSPITALS = [
 
 const MAP_LAYERS = [
   { id: 'mapnik', name: 'Standard', icon: MapIcon },
+  { id: 'satellite', name: 'Satellite', icon: Globe },
   { id: 'cyclemap', name: 'Cycling', icon: Activity },
   { id: 'transportmap', name: 'Transport', icon: Navigation },
   { id: 'hot', name: 'Humanitarian', icon: Globe },
@@ -61,7 +62,7 @@ export default function LocationPage() {
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [currentLayer, setCurrentLayer] = useState('mapnik');
-  const [isTacticalMode, setIsTacticalMode] = useState(true);
+  const [isTacticalMode, setIsTacticalMode] = useState(false);
 
   // Attempt to get real-time location
   const findMe = () => {
@@ -111,7 +112,16 @@ export default function LocationPage() {
         title: "Telemetry Broadcast Active",
         description: "Your live coordinates have been shared with your emergency network.",
       });
-    }, 15000);
+    }, 5000);
+  };
+
+  const getMapSrc = () => {
+    if (currentLayer === 'satellite') {
+      // Use Google Maps for Satellite View as requested
+      return `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
+    }
+    // Use OSM for other layers
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.005}%2C${coords.lat-0.005}%2C${coords.lng+0.005}%2C${coords.lat+0.005}&layer=${currentLayer}&marker=${coords.lat}%2C${coords.lng}`;
   };
 
   if (isUserLoading) return null;
@@ -228,7 +238,7 @@ export default function LocationPage() {
           scrolling="no" 
           marginHeight={0} 
           marginWidth={0} 
-          src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.01}%2C${coords.lat-0.01}%2C${coords.lng+0.01}%2C${coords.lat+0.01}&layer=${currentLayer}&marker=${coords.lat}%2C${coords.lng}`}
+          src={getMapSrc()}
           className={cn(
             "absolute inset-0 transition-all duration-700",
             isTacticalMode && "grayscale contrast-125 opacity-70"
