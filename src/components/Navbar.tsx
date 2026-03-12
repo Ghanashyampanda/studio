@@ -14,7 +14,8 @@ import {
   Moon,
   LogIn,
   MapPin,
-  History
+  History,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -58,6 +59,7 @@ export function Navbar() {
     { label: 'Home', href: '/' },
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Map', href: '/location' },
+    { label: 'Tips', href: '/tips' },
     { label: 'Contacts', href: '/contacts' },
     { label: 'History', href: '/alerts' },
   ];
@@ -66,6 +68,7 @@ export function Navbar() {
     { label: 'Home', href: '/', icon: Home },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Live Map', href: '/location', icon: MapPin },
+    { label: 'Health Tips', href: '/tips', icon: Sparkles },
     { label: 'Contacts', href: '/contacts', icon: Users },
     { label: 'Alert History', href: '/alerts', icon: History },
     { label: 'Alert Protocol', href: '/alert-sim', icon: AlertTriangle },
