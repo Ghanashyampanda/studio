@@ -1,0 +1,465 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the SunGuard application, holding core identification and account management data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, used for identification and communication.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's preferred display name."
+        },
+        "dateCreated": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "Timestamp indicating the user's last login.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "displayName",
+        "dateCreated"
+      ]
+    },
+    "UserSetting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserSetting",
+      "type": "object",
+      "description": "Stores personalized health parameters and notification preferences for a specific user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserSetting entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User associated with these settings. (Relationship: User 1:N UserSetting)"
+        },
+        "maxBodyTemperatureThresholdC": {
+          "type": "number",
+          "description": "User-defined maximum safe body temperature in Celsius before a warning is triggered."
+        },
+        "maxHeartRateThresholdBPM": {
+          "type": "number",
+          "description": "User-defined maximum safe heart rate in Beats Per Minute before a warning is triggered."
+        },
+        "minHeartRateThresholdBPM": {
+          "type": "number",
+          "description": "User-defined minimum safe heart rate in Beats Per Minute before a warning is triggered."
+        },
+        "notificationSensitivity": {
+          "type": "string",
+          "description": "User's preferred notification sensitivity level (e.g., 'low', 'medium', 'high')."
+        },
+        "enableAutomatedAlerts": {
+          "type": "boolean",
+          "description": "Boolean flag indicating whether automated SOS alerts are enabled for the user."
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "Timestamp indicating when these settings were last modified.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "maxBodyTemperatureThresholdC",
+        "maxHeartRateThresholdBPM",
+        "minHeartRateThresholdBPM",
+        "notificationSensitivity",
+        "enableAutomatedAlerts",
+        "lastUpdated"
+      ]
+    },
+    "EmergencyContact": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "EmergencyContact",
+      "type": "object",
+      "description": "Details for an emergency contact designated by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the EmergencyContact entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who added this emergency contact. (Relationship: User 1:N EmergencyContact)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the emergency contact."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The phone number of the emergency contact."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the emergency contact.",
+          "format": "email"
+        },
+        "isPrimary": {
+          "type": "boolean",
+          "description": "Boolean flag indicating if this is the user's primary emergency contact."
+        },
+        "enabledForAlerts": {
+          "type": "boolean",
+          "description": "Boolean flag indicating whether this contact should receive automated alerts."
+        },
+        "dateAdded": {
+          "type": "string",
+          "description": "Timestamp indicating when this emergency contact was added.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "phoneNumber",
+        "isPrimary",
+        "enabledForAlerts",
+        "dateAdded"
+      ]
+    },
+    "VitalsReading": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VitalsReading",
+      "type": "object",
+      "description": "Records a snapshot of a user's biometric and environmental data at a specific point in time.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the VitalsReading entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User whose vitals were recorded. (Relationship: User 1:N VitalsReading)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp indicating when the vital signs and environmental data were recorded.",
+          "format": "date-time"
+        },
+        "bodyTemperatureC": {
+          "type": "number",
+          "description": "The user's body temperature in Celsius."
+        },
+        "heartRateBPM": {
+          "type": "number",
+          "description": "The user's heart rate in Beats Per Minute."
+        },
+        "activityLevel": {
+          "type": "string",
+          "description": "The user's current activity level (e.g., 'resting', 'light', 'moderate', 'intense')."
+        },
+        "outsideTemperatureC": {
+          "type": "number",
+          "description": "The ambient outside temperature in Celsius."
+        },
+        "humidityPercentage": {
+          "type": "number",
+          "description": "The relative humidity percentage in the environment."
+        },
+        "heatIndexC": {
+          "type": "number",
+          "description": "The calculated heat index in Celsius, based on temperature and humidity."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "The user's geographical latitude at the time of the reading."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "The user's geographical longitude at the time of the reading."
+        },
+        "deviceType": {
+          "type": "string",
+          "description": "The type of device or input method used to record the vitals (e.g., 'Apple Watch', 'Fitbit', 'Manual Input')."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "timestamp",
+        "bodyTemperatureC",
+        "heartRateBPM",
+        "activityLevel",
+        "outsideTemperatureC",
+        "humidityPercentage",
+        "heatIndexC",
+        "latitude",
+        "longitude",
+        "deviceType"
+      ]
+    },
+    "RiskAssessment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RiskAssessment",
+      "type": "object",
+      "description": "Stores the AI's analysis and risk prediction based on a specific VitalsReading.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the RiskAssessment entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User for whom the assessment was made. (Relationship: User 1:N RiskAssessment)"
+        },
+        "vitalsReadingId": {
+          "type": "string",
+          "description": "Reference to the VitalsReading that this assessment is based on. (Relationship: VitalsReading 1:N RiskAssessment)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp indicating when this risk assessment was generated.",
+          "format": "date-time"
+        },
+        "riskLevel": {
+          "type": "string",
+          "description": "The AI-calculated risk level (e.g., 'low', 'moderate', 'high', 'critical')."
+        },
+        "riskScore": {
+          "type": "number",
+          "description": "A numerical representation of the calculated risk, typically between 0 and 100."
+        },
+        "isSunstrokeDetected": {
+          "type": "boolean",
+          "description": "Boolean flag indicating if the AI has detected a sunstroke condition."
+        },
+        "recommendations": {
+          "type": "array",
+          "description": "An array of AI-generated actionable advice or first-aid steps.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "vitalsReadingId",
+        "timestamp",
+        "riskLevel",
+        "riskScore",
+        "isSunstrokeDetected",
+        "recommendations"
+      ]
+    },
+    "Alert": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Alert",
+      "type": "object",
+      "description": "Records details of an emergency alert triggered by the system, including its status and recipients.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Alert entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User for whom the alert was triggered. (Relationship: User 1:N Alert)"
+        },
+        "riskAssessmentId": {
+          "type": "string",
+          "description": "Reference to the RiskAssessment that prompted this alert. (Relationship: RiskAssessment 1:N Alert)"
+        },
+        "triggerTimestamp": {
+          "type": "string",
+          "description": "Timestamp indicating when the alert was initially triggered.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the alert (e.g., 'pending', 'sent', 'cancelled', 'failed')."
+        },
+        "alertType": {
+          "type": "string",
+          "description": "The specific type of health condition that triggered the alert (e.g., 'sunstroke', 'highTemperature', 'highHeartRate')."
+        },
+        "locationAtTriggerLatitude": {
+          "type": "number",
+          "description": "The user's geographical latitude at the moment the alert was triggered."
+        },
+        "locationAtTriggerLongitude": {
+          "type": "number",
+          "description": "The user's geographical longitude at the moment the alert was triggered."
+        },
+        "messageContent": {
+          "type": "string",
+          "description": "The content of the message sent to emergency contacts."
+        },
+        "recipients": {
+          "type": "array",
+          "description": "An array of EmergencyContact IDs who were sent or were intended to be sent this alert. (Relationship: Alert N:N EmergencyContact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sentAttempts": {
+          "type": "number",
+          "description": "The number of times the system has attempted to send this alert."
+        },
+        "cancelTimestamp": {
+          "type": "string",
+          "description": "Timestamp indicating when the alert was cancelled by the user, if applicable.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "riskAssessmentId",
+        "triggerTimestamp",
+        "status",
+        "alertType",
+        "locationAtTriggerLatitude",
+        "locationAtTriggerLongitude",
+        "messageContent",
+        "recipients",
+        "sentAttempts"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores core user profile information. Access is restricted to the authenticated user matching the {userId}.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, corresponding to `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/settings/preferences",
+        "definition": {
+          "entityName": "UserSetting",
+          "schema": {
+            "$ref": "#/backend/entities/UserSetting"
+          },
+          "description": "Stores personalized health parameters and notification preferences for a specific user. There is one 'preferences' document per user. Access is restricted to the owner matching the {userId} in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns these settings."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/emergencyContacts/{contactId}",
+        "definition": {
+          "entityName": "EmergencyContact",
+          "schema": {
+            "$ref": "#/backend/entities/EmergencyContact"
+          },
+          "description": "Manages a user's emergency contacts. Access is restricted to the owner matching the {userId} in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who added this emergency contact."
+            },
+            {
+              "name": "contactId",
+              "description": "The unique identifier for the emergency contact document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/vitalsReadings/{readingId}",
+        "definition": {
+          "entityName": "VitalsReading",
+          "schema": {
+            "$ref": "#/backend/entities/VitalsReading"
+          },
+          "description": "Records time-series biometric and environmental data for a user. Includes denormalized 'userId' for data integrity and explicit ownership. Access is restricted to the owner matching the {userId} in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user whose vitals were recorded."
+            },
+            {
+              "name": "readingId",
+              "description": "The unique identifier for the vitals reading document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/riskAssessments/{assessmentId}",
+        "definition": {
+          "entityName": "RiskAssessment",
+          "schema": {
+            "$ref": "#/backend/entities/RiskAssessment"
+          },
+          "description": "Stores AI-generated risk analyses based on vitals readings. Includes denormalized 'userId' for data integrity and explicit ownership. Access is restricted to the owner matching the {userId} in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user for whom the assessment was made."
+            },
+            {
+              "name": "assessmentId",
+              "description": "The unique identifier for the risk assessment document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/alerts/{alertId}",
+        "definition": {
+          "entityName": "Alert",
+          "schema": {
+            "$ref": "#/backend/entities/Alert"
+          },
+          "description": "Logs details of emergency alerts triggered for a user. Includes denormalized 'userId' for data integrity and explicit ownership. Access is restricted to the owner matching the {userId} in the path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user for whom the alert was triggered."
+            },
+            {
+              "name": "alertId",
+              "description": "The unique identifier for the alert document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The core design principle for HeatGuard AI's Firestore structure is **Authorization Independence** achieved primarily through **path-based ownership** and **structural segregation**. All user-specific data is nested directly under a top-level `/users/{userId}` collection.1.  **Path-Based Ownership and Authorization Independence:**    *   Every entity related to a specific user (UserSetting, EmergencyContact, VitalsReading, RiskAssessment, Alert) is stored as a subcollection or document directly under the respective user's document: `/users/{userId}/<subcollection>/<docId>`.    *   This design ensures that the `userId` in the path is always the owner of the data. Firebase security rules can then simply check `request.auth.uid == userId` to grant read/write access. This completely eliminates the need for expensive and complex `get()` calls in security rules to check parent document ownership or relationships, thus ensuring **authorization independence**.    *   For example, to access `VitalsReading` documents, the rule would be `match /users/{userId}/vitalsReadings/{readingId} { allow read, write: if request.auth.uid == userId; }`. This makes rules robust, atomic, and easy to debug.2.  **Structural Segregation for Homogeneous Security Posture:**    *   Each subcollection (e.g., `/users/{userId}/emergencyContacts`, `/users/{userId}/vitalsReadings`) holds documents that share the exact same security requirements: only the `userId` associated with the path can access them.    *   This adheres to the mandate of \"homogeneous security posture,\" simplifying rules by moving complexity from rule logic to the data structure itself. There are no mixed-access data types within a single collection, preventing potential security loopholes.3.  **Support for QAPs (Queries as Authorization Primitives):**    *   Because all user-specific data is strictly nested under `/users/{userId}`, all `list` operations naturally include the `userId` in their path.    *   For instance, when a user queries their `vitalsReadings` (`db.collection(\"users\").doc(request.auth.uid).collection(\"vitalsReadings\")`), the security rules can efficiently verify `request.auth.uid == userId` for every document in the result set. This structure ensures that no unauthorized data can ever be returned by a `list` query, as the query itself is scoped by the user's ID, thereby satisfying the QAP principle without needing complex filtering logic in rules.4.  **Denormalization for Integrity and Efficiency:**    *   While path-based ownership is primary, entities like `RiskAssessment` and `Alert` also include the `userId` field *within* the document itself (`riskAssessment.userId`, `alert.userId`). This denormalization provides an additional layer for data integrity validation and can facilitate more flexible (though less performant for security checks) collection group queries if needed in the future, without compromising the core security model.    *   The `Alert` entity also stores `riskAssessmentId` and `EmergencyContact` IDs as `recipients` arrays, ensuring all necessary context is directly available within the document.This design strategy results in an easily auditable, scalable, and secure Firestore database, adhering to all core principles and mandates."
+  }
+}

@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * HeatGuard AI – Sunstroke Detection & Emergency Alert System
+     *
+     * CORE PHILOSOPHY:
+     * This ruleset implements a strict Path-Based Ownership model. All security is derived 
+     * from the user's authenticated identity (UID) matching the hierarchical path of the data.
+     * This ensures "Authorization Independence," where access decisions are made without 
+     * requiring cross-document lookups (get() calls), maximizing performance and reliability.
+     *
+     * DATA STRUCTURE:
+     * All application data is strictly nested under the top-level /users/{userId} collection. 
+     * This includes settings, emergency contacts, vital readings, risk assessments, and alerts.
+     *
+     * KEY SECURITY DECISIONS:
+     * 1. Private by Default: No data is publicly readable or writable. 
+     * 2. Strict Ownership: Users can only access, list, or modify documents within their own sub-tree.
+     * 3. Relational Integrity: During creation, the rules enforce that internal 'userId' or 'id' 
+     *    fields match the path UID to ensure data consistency.
+     * 4. Prototyping Flexibility: Data shapes and types are not validated to allow for rapid iteration.
+     *
+     * DENORMALIZATION FOR AUTHORIZATION:
+     * The 'userId' is denormalized into every sub-document. While the path provides the primary 
+     * security boundary, these internal fields are used to validate the link between the 
+     * document and its owner during write operations.
+     */
+
+    // --- GLOBAL HELPER FUNCTIONS ---
+
+    /** @description Checks if the request is made by an authenticated user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Validates that the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Combines ownership check with verification that the document exists for updates/deletes. */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Rules for the root User profile document.
+     * @path /users/{userId}
+     * @allow Authenticated user can (create) their own profile if UID matches document ID.
+     * @deny User 'A' attempts to (update) profile for User 'B'.
+     * @principle Pattern 1 (Ownership) & Pattern 4 (Self-Creation).
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Stores health parameters and notification preferences. Single document named 'preferences'.
+       * @path /users/{userId}/settings/preferences
+       * @allow User can (update) their own health thresholds.
+       * @deny Unauthenticated user attempts to (get) settings.
+       * @principle Restricts access to a user's own data tree and enforces internal relational links.
+       */
+      match /settings/preferences {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages individual emergency contacts.
+       * @path /users/{userId}/emergencyContacts/{contactId}
+       * @allow User can (create) a contact with their own userId as the owner.
+       * @deny User attempts to (delete) a contact belonging to another user's path.
+       * @principle Path-based authorization for subcollections.
+       */
+      match /emergencyContacts/{contactId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Records time-series biometric (temp, heart rate) and environmental data.
+       * @path /users/{userId}/vitalsReadings/{readingId}
+       * @allow User can (list) their history of vital readings.
+       * @deny authenticated user 'A' attempts to (get) a vital reading from user 'B'.
+       * @principle Ensures data integrity by locking the userId field on creation.
+       */
+      match /vitalsReadings/{readingId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Stores AI-generated risk analyses.
+       * @path /users/{userId}/riskAssessments/{assessmentId}
+       * @allow User can (get) an AI recommendation for their own reading.
+       * @deny Any write (create/update) where the userId field does not match the path.
+       * @principle Path-based isolation for AI-generated insights.
+       */
+      match /riskAssessments/{assessmentId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Logs details of emergency alerts triggered.
+       * @path /users/{userId}/alerts/{alertId}
+       * @allow User can (update) alert status to 'cancelled'.
+       * @deny User attempts to (create) an alert for a different userId.
+       * @principle Enforces document ownership and relational immutability.
+       */
+      match /alerts/{alertId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+  }
+}
