@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
+import { Navbar } from '@/components/Navbar';
 
 export const metadata: Metadata = {
   title: 'HeatGuard AI | Sunstroke Detection & Emergency Alert System',
@@ -21,6 +22,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased selection:bg-primary/30">
         <FirebaseClientProvider>
+          <Navbar />
           {children}
         </FirebaseClientProvider>
       </body>

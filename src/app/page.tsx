@@ -24,29 +24,8 @@ export default function Home() {
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px] animate-pulse" />
 
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <Shield className="h-6 w-6" />
-            </div>
-            <span className="text-xl font-black tracking-tighter">HEATGUARD <span className="text-primary font-light">AI</span></span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#how-it-works" className="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">How it Works</Link>
-            <Link href="#features" className="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">Features</Link>
-            <Link href="/dashboard">
-              <Button onClick={handleGetStarted} variant="default" className="bg-primary hover:bg-primary/90 text-white font-bold h-10 px-6 rounded-xl shadow-lg shadow-primary/20">
-                {isUserLoading ? "Loading..." : user ? "Dashboard" : "Launch App"}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6">
+      <section className="relative pt-48 pb-20 px-6">
         <div className="max-w-5xl mx-auto text-center space-y-8">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
@@ -79,8 +58,8 @@ export default function Home() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
           >
             <Link href="/dashboard">
-              <Button onClick={handleGetStarted} size="lg" className="h-16 px-10 text-lg font-black bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30 w-full sm:w-auto rounded-2xl">
-                GET STARTED FREE <ArrowRight className="ml-2 h-6 w-6" />
+              <Button onClick={handleGetStarted} size="lg" className="h-16 px-10 text-lg font-black bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30 w-full sm:w-auto rounded-2xl uppercase tracking-tighter">
+                LAUNCH REAL-TIME SCAN <ArrowRight className="ml-2 h-6 w-6" />
               </Button>
             </Link>
           </motion.div>
@@ -91,8 +70,8 @@ export default function Home() {
       <section id="how-it-works" className="py-32 px-6 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24 space-y-4">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter">SMART WORKFLOW</h2>
-            <p className="text-muted-foreground font-medium">Four layers of protection against extreme heat.</p>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">SMART WORKFLOW</h2>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Four layers of protection against extreme heat.</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 relative">
@@ -131,7 +110,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24 space-y-4">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">Defensive Layers</h2>
-            <p className="text-muted-foreground font-medium">Engineered for the most extreme environments on Earth.</p>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Engineered for the most extreme environments on Earth.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
@@ -169,14 +148,14 @@ export default function Home() {
       </section>
 
       {/* Future Vision Section */}
-      <section className="py-32 px-6">
+      <section id="vision" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="glass rounded-[3rem] p-12 md:p-20 border-white/10 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-12 opacity-10">
               <Sun className="h-64 w-64 animate-spin-slow" />
             </div>
             <div className="max-w-2xl space-y-8 relative z-10">
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">FUTURE OF <br /><span className="text-primary">THERMAL SAFETY</span></h2>
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight uppercase">FUTURE OF <br /><span className="text-primary">THERMAL SAFETY</span></h2>
               <div className="space-y-6">
                 <VisionItem title="HOSPITAL INTEGRATION" description="Direct vitals streaming to local ER triage systems for immediate medical prep." />
                 <VisionItem title="PREDICTIVE WARNINGS" description="AI alerts sent 2 hours before a heatwave reaches dangerous levels for your profile." />
@@ -184,6 +163,16 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-32 px-6 border-t border-white/5">
+        <div className="max-w-3xl mx-auto text-center space-y-8">
+          <h2 className="text-4xl font-black uppercase tracking-tighter">About the Project</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            HeatGuard AI was born from the intersection of wearable technology and preventative healthcare. Our mission is to eliminate heat-related fatalities through intelligent, proactive monitoring and autonomous emergency protocols. Designed for athletes, outdoor workers, and vulnerable populations.
+          </p>
         </div>
       </section>
 
@@ -213,7 +202,7 @@ function WorkflowStep({ number, icon: Icon, title, description }: { number: stri
         <Icon className="h-8 w-8" />
       </div>
       <div className="space-y-2">
-        <h3 className="text-xl font-bold">{title}</h3>
+        <h3 className="text-xl font-bold uppercase tracking-tight">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
       </div>
     </div>
@@ -226,7 +215,7 @@ function FeatureCard({ icon: Icon, title, description }: { icon: any, title: str
       <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-500">
         <Icon className="h-7 w-7" />
       </div>
-      <h3 className="text-2xl font-bold mb-4 tracking-tight">{title}</h3>
+      <h3 className="text-2xl font-bold mb-4 tracking-tight uppercase">{title}</h3>
       <p className="text-muted-foreground leading-relaxed font-medium">{description}</p>
     </div>
   );
@@ -237,7 +226,7 @@ function VisionItem({ title, description }: { title: string, description: string
     <div className="flex gap-6 group">
       <div className="h-2 w-2 rounded-full bg-primary mt-2 group-hover:scale-150 transition-transform" />
       <div className="space-y-1">
-        <h4 className="text-lg font-black tracking-tight">{title}</h4>
+        <h4 className="text-lg font-black tracking-tight uppercase">{title}</h4>
         <p className="text-muted-foreground text-sm font-medium">{description}</p>
       </div>
     </div>

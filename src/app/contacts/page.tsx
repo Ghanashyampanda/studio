@@ -1,74 +1,60 @@
 "use client";
 
-import { AppProvider } from '../context/AppContext';
 import { SOSPanel } from '@/components/dashboard/SOSPanel';
-import { Shield, LayoutDashboard, Users, AlertTriangle, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-
-function ContactsContent() {
-  return (
-    <div className="min-h-screen flex bg-[#050505]">
-      {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex w-64 flex-col glass-dark border-r border-white/5 sticky top-0 h-screen p-6">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
-            <Shield className="h-6 w-6" />
-          </div>
-          <span className="text-lg font-bold">HeatGuard <span className="text-primary">AI</span></span>
-        </div>
-        
-        <nav className="flex-1 space-y-2">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-white/5">
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
-            </Button>
-          </Link>
-          <Link href="/contacts">
-            <Button variant="secondary" className="w-full justify-start gap-3 bg-primary/10 text-primary hover:bg-primary/20 border-none">
-              <Users className="h-4 w-4" /> Contacts
-            </Button>
-          </Link>
-          <Link href="/alert-sim">
-            <Button variant="ghost" className="w-full justify-start gap-3 hover:bg-white/5 text-secondary">
-              <AlertTriangle className="h-4 w-4" /> Simulate Alert
-            </Button>
-          </Link>
-        </nav>
-      </aside>
-
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col">
-        <header className="glass-dark border-b border-white/5 sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="lg:hidden">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h2 className="text-xl font-bold">Emergency <span className="text-muted-foreground font-normal">Network</span></h2>
-          </div>
-        </header>
-
-        <main className="p-6 max-w-2xl mx-auto w-full">
-          <SOSPanel />
-          
-          <div className="mt-8 p-8 rounded-2xl glass-dark border-white/5 space-y-4">
-            <h3 className="font-bold">About SOS Protocols</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              When an alert is triggered, the system sends an automated voice call and SMS containing your live location and vitals to all contacts listed above. 
-              <br /><br />
-              Ensure your contacts have verified their numbers to receive critical life-safety notifications.
-            </p>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}
 
 export default function ContactsPage() {
   return (
-    <AppProvider>
-      <ContactsContent />
-    </AppProvider>
+    <div className="min-h-screen bg-[#050505] pt-24">
+      <main className="p-8 max-w-4xl mx-auto w-full">
+        <div className="flex items-center gap-6 mb-12">
+          <Link href="/dashboard" className="h-12 w-12 glass rounded-2xl flex items-center justify-center hover:bg-white/10 transition-colors">
+            <ArrowLeft className="h-6 w-6" />
+          </Link>
+          <div>
+            <h2 className="text-3xl font-black uppercase tracking-tighter">Emergency <span className="text-primary">Network</span></h2>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">Configure automated SOS nodes</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <SOSPanel />
+          
+          <div className="space-y-6">
+            <div className="p-8 rounded-[2rem] glass-dark border-white/5 space-y-4">
+              <h3 className="text-xl font-bold uppercase tracking-tight">SOS Protocols</h3>
+              <div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+                <p>
+                  When a sunstroke condition is identified by the AI Risk Engine, the system initiates a 10-second countdown.
+                </p>
+                <p>
+                  If not cancelled, an automated broadcast containing your precise GPS coordinates, heart rate, and body temperature is sent via SMS and Email to all active nodes in your network.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                    <span>Triple-redundancy notification system</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                    <span>Real-time location tracking active for 60 mins</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                    <span>Direct integration with local emergency dispatch</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="p-8 rounded-[2rem] glass bg-primary/5 border-primary/20">
+              <h4 className="font-black uppercase text-xs tracking-[0.2em] text-primary mb-2">Network Status</h4>
+              <p className="text-sm font-medium">Your emergency network is currently ARMED. Notifications will trigger automatically upon critical thermal detection.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
