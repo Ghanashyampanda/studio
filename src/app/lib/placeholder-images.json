@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -11,6 +12,12 @@
       "description": "Healthcare AI Surveillance",
       "imageUrl": "https://picsum.photos/seed/health2/800/1000",
       "imageHint": "medical ai"
+    },
+    {
+      "id": "sky-background",
+      "description": "Clear blue sky with soft white clouds",
+      "imageUrl": "https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?q=80&w=2000&auto=format&fit=crop",
+      "imageHint": "sky clouds"
     }
   ]
 }
