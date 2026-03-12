@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -23,7 +22,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import Link from 'next/navigation'; // Corrected import
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -153,25 +151,25 @@ export default function ContactsPage() {
                 Establish New Node
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] border-none shadow-2xl p-8">
-              <DialogHeader className="mb-6">
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900">Configure Node</DialogTitle>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Establish a new rescue coordination link</p>
+            <DialogContent className="sm:max-w-[380px] rounded-[2rem] border-none shadow-2xl p-6">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-xl font-black uppercase tracking-tight text-slate-900">Configure Node</DialogTitle>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Establish a new rescue coordination link</p>
               </DialogHeader>
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Full Identity</Label>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Full Identity</Label>
                   <Input 
                     placeholder="Enter full name" 
-                    className="h-12 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-sm font-bold"
+                    className="h-11 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-xs font-bold"
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Relationship</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Relationship</Label>
                   <Select value={formData.relationship} onValueChange={val => setFormData({...formData, relationship: val})}>
-                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-transparent text-sm font-bold">
+                    <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-transparent text-xs font-bold">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
@@ -181,19 +179,19 @@ export default function ContactsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Phone Node</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Phone Node</Label>
                   <div className="flex gap-2">
                     <Select value={countryCode} onValueChange={setCountryCode}>
-                      <SelectTrigger className="w-[120px] h-12 rounded-xl bg-slate-50 border-transparent text-sm font-bold">
+                      <SelectTrigger className="w-[100px] h-11 rounded-xl bg-slate-50 border-transparent text-xs font-bold">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent>
                         {COUNTRY_CODES.map(c => (
                           <SelectItem key={c.code} value={c.code}>
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center gap-1.5">
                               <span>{c.flag}</span>
-                              <span>{c.dial_code}</span>
+                              <span className="text-[10px]">{c.dial_code}</span>
                             </span>
                           </SelectItem>
                         ))}
@@ -201,24 +199,24 @@ export default function ContactsPage() {
                     </Select>
                     <Input 
                       placeholder="(555) 000-0000" 
-                      className="h-12 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-sm font-bold flex-1"
+                      className="h-11 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-xs font-bold flex-1"
                       value={formData.phoneNumber}
                       onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Email Node (Optional)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Email Node (Optional)</Label>
                   <Input 
                     placeholder="rescue@example.com" 
-                    className="h-12 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-sm font-bold"
+                    className="h-11 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-xs font-bold"
                     value={formData.email}
                     onChange={e => setFormData({...formData, email: e.target.value})}
                   />
                 </div>
               </div>
-              <DialogFooter className="mt-8">
-                <Button onClick={handleAdd} className="w-full h-14 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
+              <DialogFooter className="mt-6">
+                <Button onClick={handleAdd} className="w-full h-12 rounded-xl bg-primary text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
                   Activate Node Synchronization
                 </Button>
               </DialogFooter>
@@ -370,7 +368,7 @@ export default function ContactsPage() {
                       <Settings2 className="h-3.5 w-3.5" /> Network Architecture
                     </div>
                     <p className="text-[11px] font-bold text-slate-600 leading-relaxed uppercase">
-                      Nodes are distributed via global mesh network for maximum reliability.
+                      Nodes are distributed via global reference network for maximum reliability.
                     </p>
                   </div>
                 </div>
