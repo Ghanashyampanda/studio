@@ -194,7 +194,7 @@ export default function Home() {
             <Shield className="h-8 w-8 text-primary" />
             <span className="text-xl font-black tracking-tighter">HEATGUARD AI</span>
           </div>
-          <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">© 2024 Thermal Defense Systems. All Rights Reserved.</p>
+          <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">© 2026 Thermal Defense Systems. All Rights Reserved.</p>
           <div className="flex gap-8">
             <Link href="#" className="text-xs font-bold hover:text-white transition-colors uppercase tracking-widest">Privacy</Link>
             <Link href="#" className="text-xs font-bold hover:text-white transition-colors uppercase tracking-widest">System Status</Link>
