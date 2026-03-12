@@ -37,6 +37,7 @@ export default function DashboardPage() {
     );
   }, [db, user]);
   const { data: vitalsData } = useCollection(vitalsQuery);
+  
   const latestVitals = vitalsData?.[0] || {
     bodyTemperatureC: 37.0,
     heartRateBPM: 72,
@@ -84,7 +85,7 @@ export default function DashboardPage() {
           <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
             <Shield className="h-6 w-6" />
           </div>
-          <span className="text-xl font-black tracking-tighter">HEATGUARD <span className="text-primary">AI</span></span>
+          <span className="text-xl font-black tracking-tighter uppercase">HEATGUARD <span className="text-primary">AI</span></span>
         </div>
         
         <nav className="flex-1 space-y-3">
@@ -110,7 +111,7 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col">
         <header className="glass-dark border-b border-white/5 sticky top-0 z-50 px-8 py-5 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black tracking-tighter">CORE <span className="text-muted-foreground font-light">VITALS</span></h2>
+            <h2 className="text-2xl font-black tracking-tighter uppercase">CORE <span className="text-muted-foreground font-light">VITALS</span></h2>
             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Real-time biometrics active</p>
           </div>
           <div className="flex items-center gap-6">
@@ -161,8 +162,8 @@ export default function DashboardPage() {
           {/* Detailed Panels */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
             <div className="xl:col-span-2 space-y-10">
-              <RiskAssessment />
-              <GuidancePanel />
+              <RiskAssessment vitals={latestVitals} />
+              <GuidancePanel vitals={latestVitals} />
             </div>
             <div className="space-y-10">
               <SOSPanel />
