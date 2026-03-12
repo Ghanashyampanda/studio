@@ -25,7 +25,6 @@ import {
   Search, 
   Filter, 
   AlertTriangle, 
-  Calendar, 
   Thermometer, 
   ArrowRight,
   ShieldAlert,
@@ -36,7 +35,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function AlertHistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -83,14 +82,10 @@ export default function AlertHistoryPage() {
   };
 
   const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'sunstroke':
-        return <AlertTriangle className="h-4 w-4 text-destructive" />;
-      case 'highTemperature':
-        return <Thermometer className="h-4 w-4 text-secondary" />;
-      default:
-        return <ShieldAlert className="h-4 w-4 text-primary" />;
+    if (type?.toLowerCase().includes('hyperthermia') || type?.toLowerCase().includes('critical')) {
+      return <AlertTriangle className="h-4 w-4 text-destructive" />;
     }
+    return <ShieldAlert className="h-4 w-4 text-primary" />;
   };
 
   if (isUserLoading) return (
@@ -101,7 +96,7 @@ export default function AlertHistoryPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pt-24 pb-20 font-body">
-      <main className="max-w-6xl mx-auto px-6 space-y-10">
+      <main className="max-w-7xl mx-auto px-6 space-y-10">
         
         {/* Header Section */}
         <div className="space-y-2">
@@ -152,11 +147,11 @@ export default function AlertHistoryPage() {
           <Table>
             <TableHeader className="bg-slate-50/50">
               <TableRow className="hover:bg-transparent border-slate-100">
-                <TableHead className="w-[200px] py-6 px-8 text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</TableHead>
-                <TableHead className="py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Incident Node</TableHead>
-                <TableHead className="py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Message Content</TableHead>
+                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-widest text-slate-400">Date / Time</TableHead>
+                <TableHead className="py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Incident Type</TableHead>
+                <TableHead className="py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Temp</TableHead>
                 <TableHead className="py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Status Protocol</TableHead>
-                <TableHead className="text-right py-6 px-8 text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</TableHead>
+                <TableHead className="text-right py-6 px-8 text-[10px] font-black uppercase tracking-widest text-slate-400">Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -191,10 +186,10 @@ export default function AlertHistoryPage() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-6">
-                      <p className="text-xs font-medium text-slate-500 max-w-xs truncate group-hover:whitespace-normal transition-all duration-300">
-                        {alert.messageContent}
-                      </p>
+                    <TableCell className="py-6 text-center">
+                      <span className="text-xs font-black text-destructive">
+                        {alert.bodyTemperatureAtAlertC ? `${alert.bodyTemperatureAtAlertC.toFixed(1)}°C` : '--'}
+                      </span>
                     </TableCell>
                     <TableCell className="py-6">
                       {getStatusBadge(alert.status)}

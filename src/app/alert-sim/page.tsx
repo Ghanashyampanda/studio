@@ -1,14 +1,15 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert, MapPin, X, BellRing, Navigation, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AlertSimPage() {
   const { user, isUserLoading } = useUser();
@@ -16,25 +17,44 @@ export default function AlertSimPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(10);
   const [isAlertSent, setIsAlertSent] = useState(false);
+  const hasLogged = useRef(false);
 
-  // Fetch Emergency Contacts for the status display
+  // Fetch Emergency Contacts
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'emergency_contacts');
   }, [db, user]);
   const { data: contacts } = useCollection(contactsQuery);
 
-  // Countdown Logic
+  // Countdown Logic & Automatic SOS Dispatch
   useEffect(() => {
     if (countdown > 0 && !isAlertSent) {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0 && !isAlertSent) {
+    } else if (countdown === 0 && !isAlertSent && !hasLogged.current) {
       setIsAlertSent(true);
+      hasLogged.current = true;
+      dispatchSOS();
     }
   }, [countdown, isAlertSent]);
 
-  // Cancel Protocol: Return to dashboard
+  const dispatchSOS = () => {
+    if (!db || !user) return;
+
+    const alertRef = collection(db, 'users', user.uid, 'alert_history');
+    addDocumentNonBlocking(alertRef, {
+      userId: user.uid,
+      triggerTimestamp: new Date().toISOString(),
+      alertType: 'Critical Hyperthermia',
+      messageContent: `EMERGENCY: User core temperature exceeded 40°C. Live location shared.`,
+      bodyTemperatureAtAlertC: 40.2,
+      status: 'sent',
+      locationAtAlertLatitude: 40.7128,
+      locationAtAlertLongitude: -74.0060,
+      emergencyContactIds: contacts?.map(c => c.id) || []
+    });
+  };
+
   const cancelAlert = () => {
     router.push('/dashboard');
   };
@@ -99,7 +119,7 @@ export default function AlertSimPage() {
                         </div>
                       ))}
                       {(!contacts || contacts.length === 0) && (
-                        <p className="text-[10px] text-muted-foreground font-medium italic">Broadcasting to public emergency services...</p>
+                        <p className="text-[10px] text-muted-foreground font-medium italic text-center">Broadcasting to public emergency services...</p>
                       )}
                     </div>
                   </motion.div>

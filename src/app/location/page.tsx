@@ -1,8 +1,8 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { 
   MapPin, 
   Navigation, 
@@ -13,16 +13,14 @@ import {
   ArrowRight,
   Crosshair,
   Search,
-  PhoneCall
+  PhoneCall,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock Hospitals for Proximity Scanning
 const NEARBY_HOSPITALS = [
   { id: 'h1', name: 'Central Medical Center', distance: '0.8 km', time: '3 min', status: 'Emergency Dept Open', phone: '555-0199', lat: 40.7138, lng: -74.0050 },
   { id: 'h2', name: 'St. Jude General Hospital', distance: '1.4 km', time: '6 min', status: 'Level 1 Trauma', phone: '555-0211', lat: 40.7118, lng: -74.0080 },
@@ -31,7 +29,6 @@ const NEARBY_HOSPITALS = [
 
 export default function LocationPage() {
   const { user, isUserLoading } = useUser();
-  const db = useFirestore();
   const { toast } = useToast();
   const [selectedHospital, setSelectedHospital] = useState(NEARBY_HOSPITALS[0]);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -52,7 +49,7 @@ export default function LocationPage() {
   return (
     <div className="min-h-screen bg-slate-900 pt-16 flex flex-col lg:flex-row font-body">
       {/* Sidebar Controls */}
-      <aside className="w-full lg:w-96 bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 h-[40vh] lg:h-auto overflow-y-auto">
+      <aside className="w-full lg:w-96 bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 h-[45vh] lg:h-auto overflow-y-auto">
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-2 text-primary mb-1">
             <Navigation className="h-4 w-4" />
@@ -120,11 +117,11 @@ export default function LocationPage() {
           >
             {isBroadcasting ? (
               <span className="flex items-center gap-2">
-                <Share2 className="h-4 w-4 animate-spin" /> Synchronizing...
+                <Activity className="h-4 w-4 animate-spin" /> SynchronizingSOS...
               </span>
             ) : (
               <span className="flex items-center gap-2">
-                <Share2 className="h-4 w-4" /> Broadcast Location
+                <Share2 className="h-4 w-4" /> Broadcast SOS Location
               </span>
             )}
           </Button>
@@ -133,10 +130,10 @@ export default function LocationPage() {
 
       {/* Map View Area */}
       <main className="flex-1 relative bg-slate-800 overflow-hidden">
-        {/* Mock Map Background (Using a stylized placeholder) */}
+        {/* Mock Map Background */}
         <div className="absolute inset-0 opacity-40 grayscale pointer-events-none">
           <img 
-            src="https://picsum.photos/seed/map1/1920/1080" 
+            src="https://picsum.photos/seed/mapview/1920/1080" 
             alt="Map Grid" 
             className="w-full h-full object-cover"
           />
@@ -164,6 +161,18 @@ export default function LocationPage() {
               <Button size="icon" className="h-12 w-12 rounded-xl bg-white text-slate-900 shadow-2xl hover:bg-slate-50">
                 <Search className="h-6 w-6" />
               </Button>
+            </div>
+          </div>
+
+          {/* User Marker */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary rounded-full animate-ping scale-150 opacity-20" />
+              <div className="absolute inset-0 bg-primary rounded-full animate-pulse scale-125 opacity-40" />
+              <div className="h-6 w-6 bg-primary rounded-full border-4 border-white shadow-xl relative z-10" />
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded whitespace-nowrap shadow-xl">
+                Critical Node: You
+              </div>
             </div>
           </div>
 
@@ -203,33 +212,6 @@ export default function LocationPage() {
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {/* User Marker */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary rounded-full animate-ping scale-150 opacity-20" />
-            <div className="absolute inset-0 bg-primary rounded-full animate-pulse scale-125 opacity-40" />
-            <div className="h-6 w-6 bg-primary rounded-full border-4 border-white shadow-xl relative z-10" />
-          </div>
-        </div>
-
-        {/* Hospital Markers */}
-        {NEARBY_HOSPITALS.map(h => (
-          <div 
-            key={h.id}
-            style={{ 
-              top: `${50 + (h.lat - 40.7128) * 1000}%`, 
-              left: `${50 + (h.lng - (-74.0060)) * 1000}%` 
-            }}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
-          >
-            <div className={`h-8 w-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all cursor-pointer ${
-              selectedHospital.id === h.id ? 'bg-destructive scale-125 z-20' : 'bg-slate-600 opacity-60'
-            }`} onClick={() => setSelectedHospital(h)}>
-              <Hospital className="h-4 w-4 text-white" />
-            </div>
-          </div>
-        ))}
       </main>
     </div>
   );
