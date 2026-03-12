@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { predictSunstrokeRisk, type SunstrokeRiskOutput } from '@/ai/flows/risk-prediction-flow';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, ShieldCheck, Zap, Activity } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Zap, Activity, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface RiskAssessmentProps {
@@ -20,15 +20,25 @@ interface RiskAssessmentProps {
 export function RiskAssessment({ vitals }: RiskAssessmentProps) {
   const [assessment, setAssessment] = useState<SunstrokeRiskOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const lastVitals = useRef({ temp: 0, hr: 0 });
 
   useEffect(() => {
     const fetchRisk = async () => {
+      // Significant change detection to preserve quota
+      const tempDiff = Math.abs(lastVitals.current.temp - vitals.bodyTemperatureC);
+      const hrDiff = Math.abs(lastVitals.current.hr - vitals.heartRateBPM);
+      
+      if (tempDiff < 0.2 && hrDiff < 5 && assessment) {
+        return;
+      }
+
       setLoading(true);
+      setError(null);
       try {
         const result = await predictSunstrokeRisk({
           bodyTemperature: vitals.bodyTemperatureC,
           heartRate: vitals.heartRateBPM,
-          // Cast activity level to match the enum expected by the Genkit flow
           activityLevel: (['sedentary', 'light', 'moderate', 'high'].includes(vitals.activityLevel) 
             ? vitals.activityLevel 
             : 'moderate') as any,
@@ -36,15 +46,20 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
           heatIndex: vitals.heatIndexC,
         });
         setAssessment(result);
-      } catch (error) {
-        // Silently handle error as guidance panel might still show relevant info
-        setAssessment(null);
+        lastVitals.current = { temp: vitals.bodyTemperatureC, hr: vitals.heartRateBPM };
+      } catch (err: any) {
+        console.error("Risk engine error", err);
+        if (err.message?.includes('429')) {
+          setError("Quota exhausted. Sync paused.");
+        } else {
+          setError("Engine error. Retrying...");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    const timer = setTimeout(fetchRisk, 1000); // Debounce AI calls
+    const timer = setTimeout(fetchRisk, 3000); // Increased debounce
     return () => clearTimeout(timer);
   }, [vitals.bodyTemperatureC, vitals.heartRateBPM, vitals.activityLevel]);
 
@@ -77,6 +92,11 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
           </div>
           {loading ? (
             <Skeleton className="h-8 w-24 rounded-full" />
+          ) : error ? (
+            <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              OFFLINE
+            </Badge>
           ) : assessment && (
             <Badge variant="outline" className={riskColors[assessment.riskLevel]}>
               <Icon className="h-3 w-3 mr-1" />
@@ -91,6 +111,11 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-20 w-full rounded-2xl" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-10 space-y-4">
+            <AlertTriangle className="h-10 w-10 text-secondary opacity-50" />
+            <p className="text-sm text-muted-foreground font-bold">{error}</p>
           </div>
         ) : assessment ? (
           <div className="space-y-6">

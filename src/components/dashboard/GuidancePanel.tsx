@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getPreventativeFirstAidGuidance, type PreventativeFirstAidGuidanceOutput } from '@/ai/flows/preventative-first-aid-guidance-flow';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ShieldCheck, Info, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Info, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -19,9 +19,17 @@ interface GuidancePanelProps {
 export function GuidancePanel({ vitals }: GuidancePanelProps) {
   const [guidance, setGuidance] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const lastAnalyzedTemp = useRef<number | null>(null);
 
-  const fetchGuidance = async () => {
+  const fetchGuidance = async (force = false) => {
+    // Only update if temperature changed by more than 0.3°C or forced
+    if (!force && lastAnalyzedTemp.current !== null && Math.abs(lastAnalyzedTemp.current - vitals.bodyTemperatureC) < 0.3) {
+      return;
+    }
+
     setLoading(true);
+    setError(null);
     try {
       const result = await getPreventativeFirstAidGuidance({
         currentBodyTemperature: vitals.bodyTemperatureC,
@@ -32,16 +40,23 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
         symptoms: vitals.bodyTemperatureC > 38.5 ? ['Dizziness', 'Heavy sweating'] : []
       });
       setGuidance(result.guidance);
-    } catch (error) {
-      console.error("Guidance error", error);
+      lastAnalyzedTemp.current = vitals.bodyTemperatureC;
+    } catch (err: any) {
+      console.error("Guidance error", err);
+      if (err.message?.includes('429')) {
+        setError("AI Rate Limit: Retrying soon...");
+      } else {
+        setError("Sync Error: Retrying...");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchGuidance();
-  }, [vitals.bodyTemperatureC]); // Refresh guidance when significant temp changes occur
+    const timer = setTimeout(() => fetchGuidance(), 2000);
+    return () => clearTimeout(timer);
+  }, [vitals.bodyTemperatureC]);
 
   return (
     <Card className="h-full glass border-accent/20 bg-accent/5 rounded-3xl overflow-hidden">
@@ -53,7 +68,7 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
           </CardTitle>
           <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Active safety guidance</CardDescription>
         </div>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/10" onClick={fetchGuidance} disabled={loading}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/10" onClick={() => fetchGuidance(true)} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
       </CardHeader>
@@ -63,6 +78,11 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-2/3" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
+            <AlertTriangle className="h-8 w-8 text-secondary/60" />
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{error}</p>
           </div>
         ) : guidance ? (
           <div className="text-sm prose prose-blue dark:prose-invert max-w-none">

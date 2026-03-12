@@ -16,7 +16,7 @@ export function ConfigPanel() {
   const [isSimulating, setIsSimulating] = useState(true);
   const [currentTemp, setCurrentTemp] = useState(37.0);
 
-  // Auto-simulation effect
+  // Auto-simulation effect - increased interval to 10s to preserve AI quota
   useEffect(() => {
     if (!isSimulating || !db || !user) return;
 
@@ -38,7 +38,7 @@ export function ConfigPanel() {
         longitude: -74.0060,
         deviceType: 'AI Simulator'
       });
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [isSimulating, currentTemp, db, user]);
@@ -103,7 +103,7 @@ export function ConfigPanel() {
               {isSimulating && (
                 <div className="flex items-center gap-2 text-[10px] text-primary/60 italic font-bold">
                   <RefreshCcw className="h-3 w-3 animate-spin" />
-                  Auto-sync active. Disable to override.
+                  Auto-sync active (10s intervals).
                 </div>
               )}
             </div>
