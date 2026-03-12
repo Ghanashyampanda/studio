@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -11,9 +10,8 @@ import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { Shield, Thermometer, Activity, LayoutDashboard, Bell } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
@@ -59,9 +57,9 @@ export default function DashboardPage() {
     hrMax: prefs?.maxHeartRateThresholdBPM || 140
   };
 
-  // Monitor for danger threshold
+  // Monitor for danger threshold: Redirect to Alert Sim if body temp > 40°C
   useEffect(() => {
-    if (latestVitals.bodyTemperatureC >= 40.5) {
+    if (latestVitals.bodyTemperatureC >= 40.0) {
       router.push('/alert-sim');
     }
   }, [latestVitals.bodyTemperatureC, router]);
