@@ -159,7 +159,7 @@ export function Navbar() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-white dark:bg-black w-[300px] p-0 border-l">
+            <SheetContent side="right" className="bg-white/90 dark:bg-black/90 backdrop-blur-xl w-[300px] p-0 border-l">
               <SheetHeader className="p-6 border-b">
                 <SheetTitle className="flex items-center gap-3">
                   <div className="relative flex items-center justify-center">
