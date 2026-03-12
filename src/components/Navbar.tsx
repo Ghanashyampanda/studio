@@ -18,7 +18,8 @@ import {
   Moon,
   Smartphone,
   Monitor,
-  LogIn
+  LogIn,
+  MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -61,17 +62,16 @@ export function Navbar() {
   const desktopMenuItems = [
     { label: 'Home', href: '/' },
     { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Live Map', href: '/location' },
     { label: 'Contacts', href: '/contacts' },
-    { label: 'Features', href: '/#features' },
   ];
 
   const mobileMenuItems = [
     { label: 'Home', href: '/', icon: Home },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Monitor', href: '/dashboard', icon: Thermometer },
+    { label: 'Live Map', href: '/location', icon: MapPin },
     { label: 'Contacts', href: '/contacts', icon: Users },
     { label: 'Alert Protocol', href: '/alert-sim', icon: AlertTriangle },
-    { label: 'How It Works', href: '/#how-it-works', icon: GitBranch },
   ];
 
   const authRoutes = ['/login', '/signup'];
