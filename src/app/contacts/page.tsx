@@ -23,7 +23,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from 'next/navigation'; // Corrected import
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,12 +32,34 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+const COUNTRY_CODES = [
+  { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
+  { name: "United Kingdom", dial_code: "+44", code: "GB", flag: "🇬🇧" },
+  { name: "Australia", dial_code: "+61", code: "AU", flag: "🇦🇺" },
+  { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
+  { name: "Germany", dial_code: "+49", code: "DE", flag: "🇩🇪" },
+  { name: "France", dial_code: "+33", code: "FR", flag: "🇫🇷" },
+  { name: "Japan", dial_code: "+81", code: "JP", flag: "🇯🇵" },
+  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧🇷" },
+  { name: "China", dial_code: "+86", code: "CN", flag: "🇨🇳" },
+  { name: "South Africa", dial_code: "+27", code: "ZA", flag: "🇿🇦" },
+  { name: "Mexico", dial_code: "+52", code: "MX", flag: "🇲🇽" },
+  { name: "Spain", dial_code: "+34", code: "ES", flag: "🇪🇸" },
+  { name: "Italy", dial_code: "+39", code: "IT", flag: "🇮🇹" },
+  { name: "Russia", dial_code: "+7", code: "RU", flag: "🇷🇺" },
+  { name: "South Korea", dial_code: "+82", code: "KR", flag: "🇰🇷" },
+  { name: "Singapore", dial_code: "+65", code: "SG", flag: "🇸🇬" },
+  { name: "UAE", dial_code: "+971", code: "AE", flag: "🇦🇪" },
+];
+
 export default function ContactsPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [countryCode, setCountryCode] = useState('US');
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: '',
@@ -57,11 +80,15 @@ export default function ContactsPage() {
       return;
     }
 
+    const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
+    const dialPrefix = selectedCountry?.dial_code || '+1';
+    const finalPhone = `${dialPrefix}${formData.phoneNumber.replace(/^\+/, '')}`;
+
     const contactsRef = collection(db, 'users', user.uid, 'emergency_contacts');
     addDocumentNonBlocking(contactsRef, {
       userId: user.uid,
       name: formData.name,
-      phoneNumber: formData.phoneNumber,
+      phoneNumber: finalPhone,
       email: formData.email,
       relationship: formData.relationship,
       isPrimary: (contacts?.length || 0) === 0,
@@ -105,9 +132,12 @@ export default function ContactsPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <Link href="/dashboard" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:gap-3 transition-all">
+            <button 
+              onClick={() => router.push('/dashboard')} 
+              className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:gap-3 transition-all"
+            >
               <ArrowLeft className="h-3 w-3" /> Dashboard
-            </Link>
+            </button>
             <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
               Emergency <span className="text-primary">Network</span>
             </h1>
@@ -138,25 +168,40 @@ export default function ContactsPage() {
                     onChange={e => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Relationship</Label>
-                    <Select value={formData.relationship} onValueChange={val => setFormData({...formData, relationship: val})}>
-                      <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-transparent text-sm font-bold">
-                        <SelectValue placeholder="Select" />
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Relationship</Label>
+                  <Select value={formData.relationship} onValueChange={val => setFormData({...formData, relationship: val})}>
+                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-transparent text-sm font-bold">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Family', 'Doctor', 'Friend', 'Caregiver', 'Colleague'].map(r => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Phone Node</Label>
+                  <div className="flex gap-2">
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger className="w-[120px] h-12 rounded-xl bg-slate-50 border-transparent text-sm font-bold">
+                        <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent>
-                        {['Family', 'Doctor', 'Friend', 'Caregiver', 'Colleague'].map(r => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        {COUNTRY_CODES.map(c => (
+                          <SelectItem key={c.code} value={c.code}>
+                            <span className="flex items-center gap-2">
+                              <span>{c.flag}</span>
+                              <span>{c.dial_code}</span>
+                            </span>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Phone Node</Label>
                     <Input 
-                      placeholder="+1 (555) 000-0000" 
-                      className="h-12 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-sm font-bold"
+                      placeholder="(555) 000-0000" 
+                      className="h-12 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-primary transition-all text-sm font-bold flex-1"
                       value={formData.phoneNumber}
                       onChange={e => setFormData({...formData, phoneNumber: e.target.value})}
                     />
