@@ -13,10 +13,11 @@ import { useState, useEffect } from 'react';
 export function ConfigPanel() {
   const { user } = useUser();
   const db = useFirestore();
-  const [isSimulating, setIsSimulating] = useState(true);
+  // Default to false to avoid burning AI quota immediately on load
+  const [isSimulating, setIsSimulating] = useState(false);
   const [currentTemp, setCurrentTemp] = useState(37.0);
 
-  // Auto-simulation effect - increased interval to 10s to preserve AI quota
+  // Auto-simulation effect - increased interval to 20s to preserve AI quota
   useEffect(() => {
     if (!isSimulating || !db || !user) return;
 
@@ -38,7 +39,7 @@ export function ConfigPanel() {
         longitude: -74.0060,
         deviceType: 'AI Simulator'
       });
-    }, 10000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [isSimulating, currentTemp, db, user]);
@@ -77,7 +78,7 @@ export function ConfigPanel() {
           <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
             <div className="space-y-1">
               <Label className="text-sm font-black tracking-tight uppercase">Bio-Flux Auto</Label>
-              <p className="text-[10px] text-muted-foreground font-medium">Fluctuate vitals naturally</p>
+              <p className="text-[10px] text-muted-foreground font-medium">Fluctuate vitals (20s cycle)</p>
             </div>
             <Switch checked={isSimulating} onCheckedChange={setIsSimulating} />
           </div>
@@ -103,7 +104,7 @@ export function ConfigPanel() {
               {isSimulating && (
                 <div className="flex items-center gap-2 text-[10px] text-primary/60 italic font-bold">
                   <RefreshCcw className="h-3 w-3 animate-spin" />
-                  Auto-sync active (10s intervals).
+                  Auto-sync active (20s intervals).
                 </div>
               )}
             </div>

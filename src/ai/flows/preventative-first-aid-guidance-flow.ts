@@ -66,7 +66,16 @@ const preventativeFirstAidGuidanceFlow = ai.defineFlow(
     outputSchema: PreventativeFirstAidGuidanceOutputSchema,
   },
   async (input) => {
-    const {output} = await preventativeFirstAidPrompt(input);
-    return output!;
+    try {
+      const {output} = await preventativeFirstAidPrompt(input);
+      return output!;
+    } catch (e: any) {
+      if (e.message?.includes('429') || e.message?.includes('RESOURCE_EXHAUSTED')) {
+        return {
+          guidance: "System Notice: AI Guidance service is currently rate-limited. Immediate advice: Move to a cool area, loosen tight clothing, and sip water. If body temperature exceeds 40°C, call emergency services immediately."
+        };
+      }
+      throw e;
+    }
   }
 );

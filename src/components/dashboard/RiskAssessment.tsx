@@ -25,11 +25,11 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
 
   useEffect(() => {
     const fetchRisk = async () => {
-      // Significant change detection to preserve quota
+      // Much stricter significant change detection to preserve quota
       const tempDiff = Math.abs(lastVitals.current.temp - vitals.bodyTemperatureC);
       const hrDiff = Math.abs(lastVitals.current.hr - vitals.heartRateBPM);
       
-      if (tempDiff < 0.2 && hrDiff < 5 && assessment) {
+      if (tempDiff < 0.5 && hrDiff < 10 && assessment) {
         return;
       }
 
@@ -49,17 +49,14 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
         lastVitals.current = { temp: vitals.bodyTemperatureC, hr: vitals.heartRateBPM };
       } catch (err: any) {
         console.error("Risk engine error", err);
-        if (err.message?.includes('429')) {
-          setError("Quota exhausted. Sync paused.");
-        } else {
-          setError("Engine error. Retrying...");
-        }
+        setError("Engine offline. Retrying...");
       } finally {
         setLoading(false);
       }
     };
 
-    const timer = setTimeout(fetchRisk, 3000); // Increased debounce
+    // Increased debounce to 5s
+    const timer = setTimeout(fetchRisk, 5000); 
     return () => clearTimeout(timer);
   }, [vitals.bodyTemperatureC, vitals.heartRateBPM, vitals.activityLevel]);
 

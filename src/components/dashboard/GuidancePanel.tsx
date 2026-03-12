@@ -23,8 +23,8 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
   const lastAnalyzedTemp = useRef<number | null>(null);
 
   const fetchGuidance = async (force = false) => {
-    // Only update if temperature changed by more than 0.3°C or forced
-    if (!force && lastAnalyzedTemp.current !== null && Math.abs(lastAnalyzedTemp.current - vitals.bodyTemperatureC) < 0.3) {
+    // Stricter change detection: Only update if temperature changed by more than 0.5°C
+    if (!force && lastAnalyzedTemp.current !== null && Math.abs(lastAnalyzedTemp.current - vitals.bodyTemperatureC) < 0.5) {
       return;
     }
 
@@ -42,19 +42,17 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
       setGuidance(result.guidance);
       lastAnalyzedTemp.current = vitals.bodyTemperatureC;
     } catch (err: any) {
+      // Server flow handles 429 now, but we catch others here
       console.error("Guidance error", err);
-      if (err.message?.includes('429')) {
-        setError("AI Rate Limit: Retrying soon...");
-      } else {
-        setError("Sync Error: Retrying...");
-      }
+      setError("Sync Issue: Retrying...");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchGuidance(), 2000);
+    // Increased debounce to 5s
+    const timer = setTimeout(() => fetchGuidance(), 5000);
     return () => clearTimeout(timer);
   }, [vitals.bodyTemperatureC]);
 

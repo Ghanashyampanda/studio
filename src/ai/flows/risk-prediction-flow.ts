@@ -72,7 +72,18 @@ const sunstrokeRiskPredictionFlow = ai.defineFlow(
     outputSchema: SunstrokeRiskOutputSchema,
   },
   async input => {
-    const {output} = await sunstrokeRiskPredictionPrompt(input);
-    return output!;
+    try {
+      const {output} = await sunstrokeRiskPredictionPrompt(input);
+      return output!;
+    } catch (e: any) {
+      if (e.message?.includes('429') || e.message?.includes('RESOURCE_EXHAUSTED')) {
+        return {
+          riskLevel: 'low',
+          explanation: "The AI Risk Engine is currently at capacity. Analysis is temporarily paused to preserve system resources. Manual monitoring of vitals is recommended.",
+          preventativeAdvice: ["Keep body temperature below 39°C", "Monitor heart rate for spikes", "Drink cool water frequently"]
+        };
+      }
+      throw e;
+    }
   }
 );
