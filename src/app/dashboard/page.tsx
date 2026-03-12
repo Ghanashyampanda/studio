@@ -19,14 +19,12 @@ export default function DashboardPage() {
   const db = useFirestore();
   const router = useRouter();
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
 
-  // Fetch Latest Vitals
   const vitalsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -46,7 +44,6 @@ export default function DashboardPage() {
     activityLevel: 'light'
   };
 
-  // Fetch Preferences/Thresholds
   const prefsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'users', user.uid, 'user_settings', 'current');
@@ -58,7 +55,6 @@ export default function DashboardPage() {
     hrMax: prefs?.maxHeartRateThresholdBPM || 140
   };
 
-  // Monitor for danger threshold: Redirect to Alert Sim if body temp > 40°C
   useEffect(() => {
     if (latestVitals.bodyTemperatureC >= 40.0) {
       router.push('/alert-sim');
@@ -79,24 +75,23 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 text-foreground pt-24 pb-12">
       <main className="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
-        {/* Dashboard Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-primary">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-2 text-primary">
               <LayoutDashboard className="h-5 w-5" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Health Command Center</span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight uppercase">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase">
               Surveillance <span className="text-primary">Console</span>
             </h1>
             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
               Live Biometrics for {user.displayName || 'Active User'}
             </p>
           </div>
-          <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border shadow-sm">
-            <div className="flex items-center gap-2 px-3 border-r">
+          <div className="flex items-center justify-center gap-4 bg-white p-3 rounded-2xl border shadow-sm">
+            <div className="flex items-center gap-2 px-3 border-r pr-4">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-wider">AI Link Active</span>
+              <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">AI Link Active</span>
             </div>
             <button className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
               <Bell className="h-5 w-5" />
@@ -104,7 +99,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* Top Level Vitals */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <VitalsCard 
             title="Core Temperature" 
@@ -136,7 +130,6 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Primary Analysis Section */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
