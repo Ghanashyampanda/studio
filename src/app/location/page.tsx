@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useState, useEffect, useCallback } from 'react';
+import { useUser, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { 
@@ -11,14 +11,12 @@ import {
   Hospital, 
   Share2, 
   ShieldAlert, 
-  Clock, 
   ArrowRight,
   Crosshair,
   PhoneCall,
   Activity,
   Layers,
   ChevronRight,
-  AlertTriangle,
   Map as MapIcon,
   Globe
 } from 'lucide-react';
@@ -36,17 +34,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const NEARBY_HOSPITALS = [
-  { id: 'h1', name: 'Central Medical Center', distance: '0.8 km', time: '3 min', status: 'Emergency Dept Open', phone: '555-0199', lat: 40.7138, lng: -74.0050 },
-  { id: 'h2', name: 'St. Jude General Hospital', distance: '1.4 km', time: '6 min', status: 'Level 1 Trauma', phone: '555-0211', lat: 40.7118, lng: -74.0080 },
-  { id: 'h3', name: 'Metropolis Health Hub', distance: '2.5 km', time: '12 min', status: 'Specialized Burn Unit', phone: '555-0344', lat: 40.7158, lng: -74.0030 },
+// Base Hospital Data (Coordinates for calculation)
+const BASE_HOSPITALS = [
+  { id: 'h1', name: 'Central Medical Center', status: 'Emergency Dept Open', phone: '555-0199', lat: 40.7138, lng: -74.0050 },
+  { id: 'h2', name: 'St. Jude General Hospital', status: 'Level 1 Trauma', phone: '555-0211', lat: 40.7118, lng: -74.0080 },
+  { id: 'h3', name: 'Metropolis Health Hub', status: 'Specialized Burn Unit', phone: '555-0344', lat: 40.7158, lng: -74.0030 },
+  { id: 'h4', name: 'Riverside Urgent Care', status: 'Walk-ins Welcome', phone: '555-0566', lat: 40.7090, lng: -74.0100 },
 ];
 
 const MAP_LAYERS = [
   { id: 'mapnik', name: 'Standard', icon: MapIcon },
   { id: 'satellite', name: 'Satellite', icon: Globe },
-  { id: 'cyclemap', name: 'Cycling', icon: Activity },
-  { id: 'transportmap', name: 'Transport', icon: Navigation },
 ];
 
 export default function LocationPage() {
@@ -55,29 +53,61 @@ export default function LocationPage() {
   const { toast } = useToast();
   
   const [coords, setCoords] = useState({ lat: 40.7128, lng: -74.0060 });
-  const [selectedHospital, setSelectedHospital] = useState(NEARBY_HOSPITALS[0]);
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [selectedHospital, setSelectedHospital] = useState<any>(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [currentLayer, setCurrentLayer] = useState('mapnik');
   const [isTacticalMode, setIsTacticalMode] = useState(false);
+
+  // Haversine formula to calculate distance in km
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const d = R * c; 
+    return d;
+  };
+
+  const updateNearbyNodes = useCallback((lat: number, lng: number) => {
+    const updatedHospitals = BASE_HOSPITALS.map(h => {
+      const dist = calculateDistance(lat, lng, h.lat, h.lng);
+      // Average 40km/h in city traffic for ETA
+      const timeMin = Math.round((dist / 40) * 60) + 2; 
+      return { ...h, distance: dist.toFixed(2) + ' km', time: timeMin + ' min' };
+    }).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+
+    setHospitals(updatedHospitals);
+    setSelectedHospital(updatedHospitals[0]);
+  }, []);
 
   const findMe = () => {
     setIsLocating(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCoords({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
+          const newLat = position.coords.latitude;
+          const newLng = position.coords.longitude;
+          setCoords({ lat: newLat, lng: newLng });
+          updateNearbyNodes(newLat, newLng);
           setIsLocating(false);
-          toast({ title: "Signal Synced", description: "Telemetry locked to current GPS node." });
+          toast({ title: "Signal Synced", description: "Telemetry locked to high-accuracy GPS." });
         },
         () => {
           setIsLocating(false);
-          toast({ title: "GPS Error", description: "Defaulting to secure simulated coordinates.", variant: "destructive" });
-        }
+          updateNearbyNodes(coords.lat, coords.lng);
+          toast({ title: "GPS Error", description: "Using default tactical coordinates.", variant: "destructive" });
+        },
+        { enableHighAccuracy: true }
       );
+    } else {
+      setIsLocating(false);
+      updateNearbyNodes(coords.lat, coords.lng);
     }
   };
 
@@ -98,24 +128,24 @@ export default function LocationPage() {
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: coords.lat,
       locationAtAlertLongitude: coords.lng,
-      alertMessage: `MANUAL SOS: User is sharing live location. Coordinates: ${coords.lat}, ${coords.lng}`,
+      alertMessage: `MANUAL SOS: User is sharing live location. Coordinates: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
       emergencyContactIds: [] 
     });
 
     setTimeout(() => {
       setIsBroadcasting(false);
       toast({
-        title: "Telemetry Broadcast Active",
-        description: "Your live coordinates have been shared with your emergency network.",
+        title: "SOS Broadcast Active",
+        description: "Your coordinates have been shared with your emergency network.",
       });
-    }, 5000);
+    }, 3000);
   };
 
   const getMapSrc = () => {
     if (currentLayer === 'satellite') {
       return `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&t=k&z=17&ie=UTF8&iwloc=&output=embed`;
     }
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.005}%2C${coords.lat-0.005}%2C${coords.lng+0.005}%2C${coords.lat+0.005}&layer=${currentLayer}&marker=${coords.lat}%2C${coords.lng}`;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.005}%2C${coords.lat-0.005}%2C${coords.lng+0.005}%2C${coords.lat+0.005}&layer=mapnik&marker=${coords.lat}%2C${coords.lng}`;
   };
 
   if (isUserLoading) return null;
@@ -131,12 +161,12 @@ export default function LocationPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Link</span>
+              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Live Feed</span>
             </div>
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-black uppercase tracking-tight leading-none">Live <span className="text-primary">Telemetry</span></h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">Precision Rescue Coordination</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">Dynamic Proximity Coordination</p>
           </div>
         </div>
 
@@ -153,7 +183,9 @@ export default function LocationPage() {
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-black font-mono tracking-tight text-slate-900">{coords.lat.toFixed(4)}° N, {coords.lng.toFixed(4)}° W</p>
+                  <p className="text-xs font-black font-mono tracking-tight text-slate-900">
+                    {coords.lat.toFixed(4)}° N, {coords.lng.toFixed(4)}° W
+                  </p>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Global Reference Frame</p>
                 </div>
              </div>
@@ -162,27 +194,31 @@ export default function LocationPage() {
           <div className="space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Nearby Care Nodes</h2>
-              <Badge variant="outline" className="text-[9px] font-black bg-emerald-50 text-emerald-600 border-none px-3 uppercase">3 Detected</Badge>
+              <Badge variant="outline" className="text-[9px] font-black bg-emerald-50 text-emerald-600 border-none px-3 uppercase">
+                {hospitals.length} Detected
+              </Badge>
             </div>
             <div className="space-y-3">
-              {NEARBY_HOSPITALS.map(hospital => (
+              {hospitals.map(hospital => (
                 <button
                   key={hospital.id}
                   onClick={() => setSelectedHospital(hospital)}
                   className={cn(
                     "w-full text-left p-5 rounded-[2rem] transition-all border-2 group",
-                    selectedHospital.id === hospital.id 
+                    selectedHospital?.id === hospital.id 
                     ? 'bg-slate-900 border-slate-900 text-white shadow-xl' 
                     : 'bg-white border-slate-50 hover:border-primary/20 text-slate-700'
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center", selectedHospital.id === hospital.id ? "bg-primary text-white" : "bg-slate-50 text-slate-400")}>
+                    <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center", selectedHospital?.id === hospital.id ? "bg-primary text-white" : "bg-slate-50 text-slate-400")}>
                       <Hospital className="h-4 w-4" />
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-black">{hospital.distance}</p>
-                      <p className={cn("text-[8px] font-bold uppercase", selectedHospital.id === hospital.id ? "text-primary-foreground/60" : "text-slate-400")}>{hospital.time} ETA</p>
+                      <p className={cn("text-[8px] font-bold uppercase", selectedHospital?.id === hospital.id ? "text-primary-foreground/60" : "text-slate-400")}>
+                        {hospital.time} ETA
+                      </p>
                     </div>
                   </div>
                   <p className="text-xs font-black uppercase tracking-tight truncate">{hospital.name}</p>
@@ -299,27 +335,32 @@ export default function LocationPage() {
 
           <div className="w-full max-w-sm mx-auto pointer-events-auto">
             <AnimatePresence mode="wait">
-              <motion.div 
-                key={selectedHospital.id}
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 50, opacity: 0 }}
-                className="bg-white/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-white"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="space-y-1">
-                    <Badge className="bg-destructive/10 text-destructive border-none text-[8px] font-black uppercase px-2">Nearest Care</Badge>
-                    <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none truncate">{selectedHospital.name}</h3>
+              {selectedHospital && (
+                <motion.div 
+                  key={selectedHospital.id}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 50, opacity: 0 }}
+                  className="bg-white/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-white"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="space-y-1">
+                      <Badge className="bg-destructive/10 text-destructive border-none text-[8px] font-black uppercase px-2">
+                        Nearest Care
+                      </Badge>
+                      <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none truncate">{selectedHospital.name}</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedHospital.distance} Away • {selectedHospital.time} ETA</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-primary bg-primary/5">
+                      <PhoneCall className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-primary bg-primary/5">
-                    <PhoneCall className="h-4 w-4" />
+                  
+                  <Button className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] transition-all">
+                    Navigate Route <ArrowRight className="h-3 w-3 ml-2" />
                   </Button>
-                </div>
-                
-                <Button className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] transition-all">
-                  Navigate Route <ArrowRight className="h-3 w-3 ml-2" />
-                </Button>
-              </motion.div>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         </div>
