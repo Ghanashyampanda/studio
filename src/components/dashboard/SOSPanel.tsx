@@ -15,7 +15,6 @@ import { useState } from 'react';
 const COUNTRY_CODES = [
   { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
   { name: "United Kingdom", dial_code: "+44", code: "GB", flag: "🇬🇧" },
-  { name: "Canada", dial_code: "+1", code: "CA", flag: "🇨🇦" },
   { name: "Australia", dial_code: "+61", code: "AU", flag: "🇦🇺" },
   { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
   { name: "Germany", dial_code: "+49", code: "DE", flag: "🇩🇪" },
@@ -40,7 +39,7 @@ export function SOSPanel() {
   const [newName, setNewName] = useState('');
   const [newContact, setNewContact] = useState('');
   const [newType, setNewType] = useState<'phone' | 'email'>('phone');
-  const [countryCode, setCountryCode] = useState('+1');
+  const [countryCode, setCountryCode] = useState('US');
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -56,7 +55,9 @@ export function SOSPanel() {
     }
     if (!newName || !newContact) return;
 
-    const formattedContact = newType === 'phone' ? `${countryCode}${newContact.replace(/^\+/, '')}` : newContact;
+    const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
+    const dialPrefix = selectedCountry?.dial_code || '+1';
+    const formattedContact = newType === 'phone' ? `${dialPrefix}${newContact.replace(/^\+/, '')}` : newContact;
 
     const contactsRef = collection(db, 'users', user.uid, 'emergencyContacts');
     addDocumentNonBlocking(contactsRef, {
@@ -137,7 +138,7 @@ export function SOSPanel() {
                     </SelectTrigger>
                     <SelectContent>
                       {COUNTRY_CODES.map(c => (
-                        <SelectItem key={`${c.code}-${c.dial_code}`} value={c.dial_code}>
+                        <SelectItem key={c.code} value={c.code}>
                           <span className="flex items-center gap-2">
                             <span>{c.flag}</span>
                             <span>{c.dial_code}</span>
