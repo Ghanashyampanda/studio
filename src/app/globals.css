@@ -4,26 +4,49 @@
 
 @layer base {
   :root {
-    --background: 220 50% 2%; /* Deep Navy Black */
-    --foreground: 0 0% 100%;
-    --card: 0 0% 100% / 0.02;
-    --card-foreground: 0 0% 100%;
-    --popover: 220 50% 4%;
-    --popover-foreground: 0 0% 100%;
+    /* Professional Light Theme (White Background) */
+    --background: 0 0% 100%;
+    --foreground: 220 50% 2%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 50% 2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 50% 2%;
     --primary: 20 100% 55%; /* Safety Orange */
     --primary-foreground: 0 0% 100%;
     --secondary: 0 100% 50%; /* Crisis Red */
     --secondary-foreground: 0 0% 100%;
+    --muted: 220 10% 96%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 40 100% 60%; /* Warning Yellow */
+    --accent-foreground: 220 50% 2%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 10% 90%;
+    --input: 220 10% 90%;
+    --ring: 20 100% 55%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 220 50% 2%; /* Deep Navy Black */
+    --foreground: 0 0% 100%;
+    --card: 220 50% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 220 50% 4%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 20 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 100% 50%;
+    --secondary-foreground: 0 0% 100%;
     --muted: 220 20% 10%;
     --muted-foreground: 220 10% 60%;
-    --accent: 40 100% 60%; /* Warning Yellow */
+    --accent: 40 100% 60%;
     --accent-foreground: 0 0% 5%;
     --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 100% / 0.08;
     --input: 0 0% 100% / 0.08;
     --ring: 20 100% 55%;
-    --radius: 1.5rem;
   }
 }
 
@@ -34,20 +57,18 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
     background-image: 
-      radial-gradient(circle at 0% 0%, hsla(20, 100% , 55%, 0.15) 0%, transparent 45%),
-      radial-gradient(circle at 100% 100%, hsla(0, 100%, 50%, 0.15) 0%, transparent 45%),
-      radial-gradient(circle at 50% 50%, hsla(40, 100%, 60%, 0.05) 0%, transparent 60%),
-      radial-gradient(circle at 80% 20%, hsla(220, 100%, 40%, 0.08) 0%, transparent 50%);
+      radial-gradient(circle at 0% 0%, hsla(20, 100% , 55%, 0.03) 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, hsla(0, 100%, 50%, 0.03) 0%, transparent 45%);
     background-attachment: fixed;
   }
 }
 
 .glass {
-  @apply backdrop-blur-3xl bg-white/[0.03] border border-white/[0.05] shadow-[0_20px_50px_rgba(0,0,0,0.5)];
+  @apply backdrop-blur-md bg-white/70 border border-white/20 shadow-lg;
 }
 
 .glass-dark {
-  @apply backdrop-blur-3xl bg-black/60 border border-white/5 shadow-2xl;
+  @apply backdrop-blur-md bg-black/70 border border-white/10 shadow-xl;
 }
 
 .text-gradient {
@@ -56,7 +77,7 @@
 
 @keyframes pulse-red {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); }
-  50% { box-shadow: 0 0 0 30px rgba(255, 0, 0, 0); }
+  50% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
 }
 
 .animate-pulse-red {
@@ -72,8 +93,7 @@
   animation: spin-slow 20s linear infinite;
 }
 
-/* Custom Headline Font Styling */
 h1, h2, h3, .font-headline {
   font-family: 'Inter', sans-serif;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.02em;
 }
