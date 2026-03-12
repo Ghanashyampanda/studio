@@ -22,7 +22,8 @@ import {
   Loader2,
   Building2,
   Stethoscope,
-  Clock
+  Clock,
+  Building
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,9 +41,9 @@ import {
 
 // Enhanced Hospital Data for classification
 const FACILITY_DATABASE = [
-  { name: 'City General Medical Center', type: 'Level 1 Trauma Center', size: 'Large', specialty: 'Full Emergency' },
-  { name: 'St. Jude Trauma Hub', type: 'Regional Hospital', size: 'Large', specialty: 'Hyperthermia Unit' },
-  { name: 'Metropolis Health Station', type: 'General Hospital', size: 'Large', specialty: '24/7 ER' },
+  { name: 'City General Medical Center', type: 'Level 1 Trauma Center', size: 'Big', specialty: 'Full Emergency' },
+  { name: 'St. Jude Trauma Hub', type: 'Regional Hospital', size: 'Big', specialty: 'Hyperthermia Unit' },
+  { name: 'Metropolis Health Station', type: 'General Hospital', size: 'Big', specialty: '24/7 ER' },
   { name: 'Community Care Express', type: 'Urgent Care', size: 'Mini', specialty: 'Limited Services' },
   { name: 'Metro Health Station', type: 'Community Clinic', size: 'Mini', specialty: 'Stabilization Only' },
   { name: 'Riverbend Medical Point', type: 'Mini-Hospital', size: 'Mini', specialty: 'First Aid' }
@@ -107,7 +108,7 @@ export default function LocationPage() {
 
   const findMe = () => {
     setIsLocating(true);
-    if (navigator.geolocation) {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const newLat = position.coords.latitude;
@@ -255,7 +256,7 @@ export default function LocationPage() {
                     <div className="flex items-start justify-between mb-3 relative z-10">
                       <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center transition-colors", 
                         selectedHospital?.id === hospital.id ? "bg-primary text-white" : "bg-slate-50 text-slate-400")}>
-                        {hospital.size === 'Large' ? <Building2 className="h-5 w-5" /> : <Hospital className="h-5 w-5" />}
+                        {hospital.size === 'Big' ? <Building2 className="h-5 w-5" /> : <Building className="h-5 w-5" />}
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1.5 justify-end mb-1">
@@ -279,8 +280,8 @@ export default function LocationPage() {
                       
                       <div className="flex flex-wrap gap-2 pt-1">
                         <Badge className={cn("text-[7px] font-black uppercase px-2 h-4 border-none", 
-                          hospital.size === 'Large' ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700")}>
-                          {hospital.size} Facility
+                          hospital.size === 'Big' ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700")}>
+                          {hospital.size} Hospital
                         </Badge>
                         <Badge className="text-[7px] font-black uppercase px-2 h-4 bg-slate-100 text-slate-600 border-none">
                           {hospital.specialty}
@@ -426,7 +427,7 @@ export default function LocationPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Badge className={cn("border-none text-[8px] font-black uppercase px-2 py-0.5", 
-                          selectedHospital.size === 'Large' ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600")}>
+                          selectedHospital.size === 'Big' ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600")}>
                           {selectedHospital.size} Care Node
                         </Badge>
                         <Badge className="bg-emerald-100 text-emerald-600 border-none text-[8px] font-black uppercase px-2 py-0.5">
