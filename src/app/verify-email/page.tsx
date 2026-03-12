@@ -62,26 +62,26 @@ export default function VerifyEmailPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
+        className="w-full max-w-[400px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
       >
-        <div className="p-8 sm:p-10">
-          <div className="flex items-center justify-between mb-8">
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6">
             <Link href="/signup">
-              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
+              <div className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
+                <ChevronLeft className="h-4 w-4 text-gray-700" />
               </div>
             </Link>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">Please verify your email address</h1>
-          <p className="text-sm text-gray-700 font-bold leading-relaxed mb-10">
+          <h1 className="text-xl font-bold text-gray-900 mb-2 leading-tight">Please verify your email address</h1>
+          <p className="text-xs text-gray-700 font-bold leading-relaxed mb-8">
             We've sent an email to <span className="font-bold text-gray-900">{user?.email || "your email"}</span>, please enter the code below.
           </p>
 
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Enter Code</label>
-              <div className="flex justify-between gap-2">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest ml-1">Enter Code</label>
+              <div className="flex justify-between gap-1.5">
                 {otp.map((digit, idx) => (
                   <input
                     key={idx}
@@ -90,7 +90,7 @@ export default function VerifyEmailPage() {
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    className="w-12 h-14 bg-gray-50 border-2 border-transparent rounded-xl text-center text-xl font-bold text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none transition-all"
+                    className="w-10 h-12 bg-gray-50 border-2 border-transparent rounded-xl text-center text-lg font-bold text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none transition-all"
                   />
                 ))}
               </div>
@@ -98,12 +98,12 @@ export default function VerifyEmailPage() {
 
             <Button
               onClick={handleVerify}
-              className="w-full h-14 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/20 transition-all"
+              className="w-full h-12 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all"
             >
               Verify Code
             </Button>
 
-            <p className="text-center text-sm font-bold text-gray-700">
+            <p className="text-center text-xs font-bold text-gray-700">
               Didn't see your email? <button onClick={handleResend} disabled={isResending} className="text-[#2563EB] font-bold hover:underline">
                 {isResending ? "Resending..." : "Resend"}
               </button>

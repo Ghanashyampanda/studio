@@ -63,18 +63,18 @@ export default function LoginPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
+        className="w-full max-w-[400px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
       >
-        <div className="p-8 sm:p-10">
+        <div className="p-6 sm:p-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <Link href="/">
-              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
+              <div className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
+                <ChevronLeft className="h-4 w-4 text-gray-700" />
               </div>
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">Login</h1>
-            <div className="w-10" />
+            <h1 className="text-lg font-bold text-gray-900">Login</h1>
+            <div className="w-9" />
           </div>
 
           {/* Google Login */}
@@ -82,9 +82,9 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             onClick={handleGoogleLogin}
-            className="w-full h-14 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all"
+            className="w-full h-12 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all text-sm"
           >
-            <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z" fill="#FBBC05" />
@@ -93,33 +93,33 @@ export default function LoginPage() {
             Sign in with Google
           </Button>
 
-          <div className="relative my-8">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-4 text-gray-500 font-bold uppercase tracking-wider">or sign in with</span>
+              <span className="bg-white px-3 text-gray-500 font-bold uppercase tracking-wider text-[10px]">or sign in with</span>
             </div>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
               <Input
                 type="email"
                 required
-                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900"
+                className="h-12 bg-gray-50 border-transparent rounded-2xl px-4 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900 text-sm"
                 placeholder="Rhebek@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-widest">Password</label>
-                <Link href="/forgot-password" title="Recover Password" className="text-xs font-bold text-[#2563EB] hover:underline">
+                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest">Password</label>
+                <Link href="/forgot-password" title="Recover Password" className="text-[10px] font-bold text-[#2563EB] hover:underline">
                   Forgot Password?
                 </Link>
               </div>
@@ -127,7 +127,7 @@ export default function LoginPage() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   required
-                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900"
+                  className="h-12 bg-gray-50 border-transparent rounded-2xl px-4 pr-10 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900 text-sm"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -135,9 +135,9 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -146,16 +146,16 @@ export default function LoginPage() {
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 text-xs font-bold text-[#FF6B35] bg-orange-50 p-3 rounded-xl border border-orange-100"
+                className="flex items-center gap-2 text-[10px] font-bold text-[#FF6B35] bg-orange-50 p-2.5 rounded-xl border border-orange-100"
               >
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="h-3.5 w-3.5" />
                 {error}
               </motion.div>
             )}
 
-            <div className="flex items-center space-x-2 py-1 ml-1">
-              <Checkbox id="remember" className="rounded-md border-gray-300 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
-              <label htmlFor="remember" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
+            <div className="flex items-center space-x-2 py-0.5 ml-1">
+              <Checkbox id="remember" className="h-3.5 w-3.5 rounded-sm border-gray-300 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
+              <label htmlFor="remember" className="text-[10px] font-bold text-gray-700 cursor-pointer select-none">
                 Keep me signed in
               </label>
             </div>
@@ -163,13 +163,13 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-14 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/20 transition-all mt-4"
+              className="w-full h-12 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all mt-2"
             >
               {isLoading ? "Signing in..." : "Login"}
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-sm font-bold text-gray-700">
+          <p className="mt-6 text-center text-xs font-bold text-gray-700">
             Don't have an Account? <Link href="/signup" className="text-[#2563EB] font-bold hover:underline">Sign up here</Link>
           </p>
         </div>

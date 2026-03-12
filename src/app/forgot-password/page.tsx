@@ -35,31 +35,31 @@ export default function ForgotPasswordPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
+        className="w-full max-w-[400px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
       >
-        <div className="p-8 sm:p-10">
-          <div className="flex items-center justify-between mb-8">
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6">
             <Link href="/login">
-              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
+              <div className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
+                <ChevronLeft className="h-4 w-4 text-gray-700" />
               </div>
             </Link>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">Forgot Password</h1>
-          <p className="text-sm text-gray-700 font-bold leading-relaxed mb-10">
+          <h1 className="text-xl font-bold text-gray-900 mb-2 leading-tight">Forgot Password</h1>
+          <p className="text-xs text-gray-700 font-bold leading-relaxed mb-8">
             Enter the email address registered with your account. We'll send you a link to reset your password.
           </p>
 
           {!sent ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
                 <div className="relative">
                   <Input
                     type="email"
                     required
-                    className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900"
+                    className="h-12 bg-gray-50 border-transparent rounded-2xl px-4 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900 text-sm"
                     placeholder="Rhebek@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -70,30 +70,30 @@ export default function ForgotPasswordPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-14 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/20 transition-all mt-4"
+                className="w-full h-12 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all mt-2"
               >
                 {isLoading ? "Sending..." : "Submit"}
               </Button>
             </form>
           ) : (
-            <div className="text-center py-6">
-              <div className="h-16 w-16 bg-blue-50 text-[#2563EB] rounded-full flex items-center justify-center mx-auto mb-6">
-                <Mail className="h-8 w-8" />
+            <div className="text-center py-4">
+              <div className="h-14 w-14 bg-blue-50 text-[#2563EB] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Check your email</h3>
-              <p className="text-sm text-gray-700 font-bold mb-8">
+              <h3 className="text-base font-bold text-gray-900 mb-2">Check your email</h3>
+              <p className="text-xs text-gray-700 font-bold mb-6">
                 We've sent password reset instructions to your email.
               </p>
               <Link href="/login">
-                <Button variant="outline" className="h-12 rounded-xl border-gray-200 text-gray-900 font-bold px-8">
+                <Button variant="outline" className="h-11 rounded-xl border-gray-200 text-gray-900 font-bold px-6 text-sm">
                   Back to Login
                 </Button>
               </Link>
             </div>
           )}
 
-          <div className="mt-8 text-center">
-            <p className="text-sm font-bold text-gray-700">
+          <div className="mt-6 text-center">
+            <p className="text-xs font-bold text-gray-700">
               Remembered password? <Link href="/login" className="text-[#2563EB] font-bold hover:underline">Login to your account</Link>
             </p>
           </div>
