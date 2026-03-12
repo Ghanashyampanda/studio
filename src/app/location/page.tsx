@@ -17,19 +17,38 @@ import {
   Search,
   PhoneCall,
   Activity,
+  Layers,
   ChevronRight,
-  AlertTriangle
+  AlertTriangle,
+  Map as MapIcon,
+  Globe,
+  Mountain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NEARBY_HOSPITALS = [
   { id: 'h1', name: 'Central Medical Center', distance: '0.8 km', time: '3 min', status: 'Emergency Dept Open', phone: '555-0199', lat: 40.7138, lng: -74.0050 },
   { id: 'h2', name: 'St. Jude General Hospital', distance: '1.4 km', time: '6 min', status: 'Level 1 Trauma', phone: '555-0211', lat: 40.7118, lng: -74.0080 },
   { id: 'h3', name: 'Metropolis Health Hub', distance: '2.5 km', time: '12 min', status: 'Specialized Burn Unit', phone: '555-0344', lat: 40.7158, lng: -74.0030 },
+];
+
+const MAP_LAYERS = [
+  { id: 'mapnik', name: 'Standard', icon: MapIcon },
+  { id: 'cyclemap', name: 'Cycling', icon: Activity },
+  { id: 'transportmap', name: 'Transport', icon: Navigation },
+  { id: 'hot', name: 'Humanitarian', icon: Globe },
 ];
 
 export default function LocationPage() {
@@ -41,6 +60,8 @@ export default function LocationPage() {
   const [selectedHospital, setSelectedHospital] = useState(NEARBY_HOSPITALS[0]);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [currentLayer, setCurrentLayer] = useState('mapnik');
+  const [isTacticalMode, setIsTacticalMode] = useState(true);
 
   // Attempt to get real-time location
   const findMe = () => {
@@ -71,7 +92,6 @@ export default function LocationPage() {
     if (!db || !user) return;
     setIsBroadcasting(true);
 
-    // Create a record in alert_history for the broadcast
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
@@ -98,8 +118,8 @@ export default function LocationPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
-      {/* Sidebar Controls - High density healthcare UI */}
-      <aside className="w-full lg:w-[400px] bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 h-[45vh] lg:h-auto overflow-y-auto">
+      {/* Sidebar Controls */}
+      <aside className="w-full lg:w-[400px] bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 h-[45vh] lg:h-auto overflow-y-auto shrink-0">
         <div className="p-8 border-b border-slate-100 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-primary">
@@ -197,22 +217,26 @@ export default function LocationPage() {
         </div>
       </aside>
 
-      {/* Map View Area - Interactive Interface */}
-      <main className="flex-1 relative bg-slate-100 overflow-hidden">
+      {/* Map View Area */}
+      <main className="flex-1 relative bg-slate-100 overflow-hidden min-h-[400px]">
         {/* Interactive Map Layer */}
         <iframe 
+          key={`${coords.lat}-${coords.lng}-${currentLayer}`}
           width="100%" 
           height="100%" 
           frameBorder="0" 
           scrolling="no" 
           marginHeight={0} 
           marginWidth={0} 
-          src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.01}%2C${coords.lat-0.01}%2C${coords.lng+0.01}%2C${coords.lat+0.01}&layer=mapnik&marker=${coords.lat}%2C${coords.lng}`}
-          className="absolute inset-0 grayscale contrast-125 opacity-70"
+          src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.01}%2C${coords.lat-0.01}%2C${coords.lng+0.01}%2C${coords.lat+0.01}&layer=${currentLayer}&marker=${coords.lat}%2C${coords.lng}`}
+          className={cn(
+            "absolute inset-0 transition-all duration-700",
+            isTacticalMode && "grayscale contrast-125 opacity-70"
+          )}
         />
 
         {/* Tactical Overlays */}
-        <div className="absolute inset-0 p-10 flex flex-col justify-between pointer-events-none">
+        <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
           <div className="flex justify-between items-start">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
@@ -228,19 +252,58 @@ export default function LocationPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-primary">Altitude</p>
                 <p className="text-2xl font-mono font-black tracking-tighter">14 m MSL</p>
               </div>
-              <div className="h-12 w-px bg-white/10" />
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Accuracy</p>
-                <p className="text-2xl font-mono font-black tracking-tighter">±3.2m</p>
-              </div>
             </motion.div>
 
             <div className="pointer-events-auto flex flex-col gap-3">
-              <Button size="icon" className="h-14 w-14 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-2xl border border-white hover:bg-white transition-all">
-                <Crosshair className="h-6 w-6" />
-              </Button>
-              <Button size="icon" className="h-14 w-14 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-2xl border border-white hover:bg-white transition-all">
-                <Search className="h-6 w-6" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" className="h-14 w-14 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-2xl border border-white hover:bg-white transition-all">
+                    <Layers className="h-6 w-6" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-[1.5rem] p-2 border-none shadow-2xl bg-white/95 backdrop-blur">
+                  <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4 py-2">Map Layers</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {MAP_LAYERS.map(layer => (
+                    <DropdownMenuItem 
+                      key={layer.id}
+                      onClick={() => setCurrentLayer(layer.id)}
+                      className={cn(
+                        "rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between",
+                        currentLayer === layer.id ? "bg-primary/10 text-primary" : "text-slate-600"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <layer.icon className="h-4 w-4" />
+                        <span className="text-xs font-black uppercase tracking-tight">{layer.name}</span>
+                      </div>
+                      {currentLayer === layer.id && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setIsTacticalMode(!isTacticalMode)}
+                    className={cn(
+                      "rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between",
+                      isTacticalMode ? "bg-secondary/10 text-secondary" : "text-slate-600"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <ShieldAlert className="h-4 w-4" />
+                      <span className="text-xs font-black uppercase tracking-tight">Tactical Filter</span>
+                    </div>
+                    <div className={cn("h-4 w-8 rounded-full transition-colors relative", isTacticalMode ? "bg-secondary" : "bg-slate-200")}>
+                      <motion.div 
+                        animate={{ x: isTacticalMode ? 16 : 2 }}
+                        className="absolute top-1 h-2 w-2 rounded-full bg-white"
+                      />
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button size="icon" onClick={findMe} className="h-14 w-14 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-2xl border border-white hover:bg-white transition-all">
+                <Crosshair className={cn("h-6 w-6", isLocating && "animate-spin")} />
               </Button>
             </div>
           </div>
@@ -252,11 +315,6 @@ export default function LocationPage() {
                 animate={{ scale: [1, 2.5, 1], opacity: [0.4, 0, 0.4] }}
                 transition={{ repeat: Infinity, duration: 2.5 }}
                 className="absolute inset-0 bg-primary rounded-full -m-8"
-              />
-              <motion.div 
-                animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="absolute inset-0 bg-primary rounded-full -m-4"
               />
               <div className="h-10 w-10 bg-primary rounded-full border-[6px] border-white shadow-2xl relative z-10" />
               <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-2xl whitespace-nowrap shadow-2xl border border-white/10">
@@ -278,7 +336,6 @@ export default function LocationPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Badge className="bg-destructive/10 text-destructive border-none text-[9px] font-black uppercase tracking-widest px-3">Target Care Facility</Badge>
-                    {selectedHospital.id === 'h2' && <Badge className="bg-primary/10 text-primary border-none text-[9px] font-black uppercase tracking-widest px-3">Level 1 Trauma</Badge>}
                   </div>
                   <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900 leading-none">{selectedHospital.name}</h3>
                 </div>
