@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -47,7 +48,7 @@ export default function AlertHistoryPage() {
   const alertsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
-      collection(db, 'users', user.uid, 'alerts'),
+      collection(db, 'users', user.uid, 'alert_history'),
       orderBy('triggerTimestamp', 'desc')
     );
   }, [db, user]);

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -53,6 +54,17 @@ export function AuthModals({ mode, onClose, onSwitch }: AuthModalsProps) {
         dateCreated: new Date().toISOString()
       }, { merge: true });
 
+      await setDoc(doc(db, 'users', user.uid, 'user_settings', 'current'), {
+        id: 'current',
+        userId: user.uid,
+        maxBodyTemperatureThresholdC: 39.5,
+        maxHeartRateThresholdBPM: 140,
+        minHeartRateThresholdBPM: 50,
+        notificationSensitivity: 'medium',
+        enableAutomatedAlerts: true,
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+
       onClose();
       router.push('/dashboard');
     } catch (error: any) {
@@ -92,8 +104,8 @@ export function AuthModals({ mode, onClose, onSwitch }: AuthModalsProps) {
         dateCreated: new Date().toISOString()
       });
 
-      await setDoc(doc(db, 'users', user.uid, 'settings', 'preferences'), {
-        id: 'preferences',
+      await setDoc(doc(db, 'users', user.uid, 'user_settings', 'current'), {
+        id: 'current',
         userId: user.uid,
         maxBodyTemperatureThresholdC: 39.5,
         maxHeartRateThresholdBPM: 140,

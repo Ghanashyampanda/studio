@@ -2,7 +2,7 @@
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,7 @@ export default function ContactsPage() {
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'emergencyContacts');
+    return collection(db, 'users', user.uid, 'emergency_contacts');
   }, [db, user]);
   const { data: contacts, isLoading: isContactsLoading } = useCollection(contactsQuery);
 
@@ -57,7 +57,7 @@ export default function ContactsPage() {
       return;
     }
 
-    const contactsRef = collection(db, 'users', user.uid, 'emergencyContacts');
+    const contactsRef = collection(db, 'users', user.uid, 'emergency_contacts');
     addDocumentNonBlocking(contactsRef, {
       userId: user.uid,
       name: formData.name,
@@ -76,7 +76,7 @@ export default function ContactsPage() {
 
   const handleDelete = (contactId: string) => {
     if (!db || !user) return;
-    const contactRef = doc(db, 'users', user.uid, 'emergencyContacts', contactId);
+    const contactRef = doc(db, 'users', user.uid, 'emergency_contacts', contactId);
     deleteDocumentNonBlocking(contactRef);
     toast({ title: "Node Removed", description: "Contact has been disconnected from the network." });
   };
@@ -84,10 +84,8 @@ export default function ContactsPage() {
   const setPrimary = (contactId: string) => {
     if (!db || !user || !contacts) return;
     
-    // In a real app we'd use a transaction or batch to ensure only one is primary
-    // For MVP we update the target to true and others to false
     contacts.forEach(c => {
-      const ref = doc(db, 'users', user.uid, 'emergencyContacts', c.id);
+      const ref = doc(db, 'users', user.uid, 'emergency_contacts', c.id);
       updateDocumentNonBlocking(ref, { isPrimary: c.id === contactId });
     });
     

@@ -26,7 +26,7 @@ export function ConfigPanel() {
       const nextTemp = Math.min(41, Math.max(36, currentTemp + (Math.random() - 0.45) * 0.2));
       setCurrentTemp(nextTemp);
       
-      const vitalsRef = collection(db, 'users', user.uid, 'vitalsReadings');
+      const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
       addDocumentNonBlocking(vitalsRef, {
         userId: user.uid,
         timestamp: new Date().toISOString(),
@@ -50,7 +50,7 @@ export function ConfigPanel() {
     setAmbientTemp(ambient);
     if (!db || !user) return;
     
-    const vitalsRef = collection(db, 'users', user.uid, 'vitalsReadings');
+    const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
     addDocumentNonBlocking(vitalsRef, {
       userId: user.uid,
       timestamp: new Date().toISOString(),

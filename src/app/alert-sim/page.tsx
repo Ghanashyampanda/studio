@@ -1,15 +1,14 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldAlert, MapPin, X, BellRing, Navigation, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc } from 'firebase/firestore';
 
 export default function AlertSimPage() {
   const { user, isUserLoading } = useUser();
@@ -21,7 +20,7 @@ export default function AlertSimPage() {
   // Fetch Emergency Contacts for the status display
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'emergencyContacts');
+    return collection(db, 'users', user.uid, 'emergency_contacts');
   }, [db, user]);
   const { data: contacts } = useCollection(contactsQuery);
 
@@ -35,15 +34,9 @@ export default function AlertSimPage() {
     }
   }, [countdown, isAlertSent]);
 
-  // Cancel Protocol: Reset temp and return to dashboard
+  // Cancel Protocol: Return to dashboard
   const cancelAlert = () => {
-    if (db && user) {
-      const prefsRef = doc(db, 'users', user.uid, 'settings', 'preferences');
-      // In a real app we'd update state/db, here we just navigate back
-      router.push('/dashboard');
-    } else {
-      router.push('/dashboard');
-    }
+    router.push('/dashboard');
   };
 
   if (isUserLoading) return null;

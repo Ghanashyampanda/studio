@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -29,7 +30,7 @@ export default function DashboardPage() {
   const vitalsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
-      collection(db, 'users', user.uid, 'vitalsReadings'),
+      collection(db, 'users', user.uid, 'vital_sign_data'),
       orderBy('timestamp', 'desc'),
       limit(20)
     );
@@ -48,7 +49,7 @@ export default function DashboardPage() {
   // Fetch Preferences/Thresholds
   const prefsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return doc(db, 'users', user.uid, 'settings', 'preferences');
+    return doc(db, 'users', user.uid, 'user_settings', 'current');
   }, [db, user]);
   const { data: prefs } = useDoc(prefsRef);
   

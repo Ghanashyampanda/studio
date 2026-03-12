@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -37,7 +38,7 @@ export default function HealthTipsPage() {
   const vitalsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
-      collection(db, 'users', user.uid, 'vitalsReadings'),
+      collection(db, 'users', user.uid, 'vital_sign_data'),
       orderBy('timestamp', 'desc'),
       limit(1)
     );

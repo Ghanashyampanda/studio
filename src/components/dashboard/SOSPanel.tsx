@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -43,7 +44,7 @@ export function SOSPanel() {
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'users', user.uid, 'emergencyContacts');
+    return collection(db, 'users', user.uid, 'emergency_contacts');
   }, [db, user]);
   const { data: contacts } = useCollection(contactsQuery);
 
@@ -59,7 +60,7 @@ export function SOSPanel() {
     const dialPrefix = selectedCountry?.dial_code || '+1';
     const formattedContact = newType === 'phone' ? `${dialPrefix}${newContact.replace(/^\+/, '')}` : newContact;
 
-    const contactsRef = collection(db, 'users', user.uid, 'emergencyContacts');
+    const contactsRef = collection(db, 'users', user.uid, 'emergency_contacts');
     addDocumentNonBlocking(contactsRef, {
       userId: user.uid,
       name: newName,
