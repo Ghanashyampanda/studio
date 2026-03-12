@@ -5,21 +5,16 @@ import { useUser, useAuth } from '@/firebase';
 import { 
   Shield, 
   Menu, 
-  Bell, 
   Sun, 
   LayoutDashboard, 
-  Thermometer, 
   Users, 
   AlertTriangle, 
   Home,
   ChevronRight,
-  Info,
-  GitBranch,
   Moon,
-  Smartphone,
-  Monitor,
   LogIn,
-  MapPin
+  MapPin,
+  History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -62,8 +57,9 @@ export function Navbar() {
   const desktopMenuItems = [
     { label: 'Home', href: '/' },
     { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Live Map', href: '/location' },
+    { label: 'Map', href: '/location' },
     { label: 'Contacts', href: '/contacts' },
+    { label: 'History', href: '/alerts' },
   ];
 
   const mobileMenuItems = [
@@ -71,6 +67,7 @@ export function Navbar() {
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Live Map', href: '/location', icon: MapPin },
     { label: 'Contacts', href: '/contacts', icon: Users },
+    { label: 'Alert History', href: '/alerts', icon: History },
     { label: 'Alert Protocol', href: '/alert-sim', icon: AlertTriangle },
   ];
 
@@ -84,8 +81,8 @@ export function Navbar() {
       <nav className={cn(
         "fixed top-0 w-full z-[100] transition-all duration-300 px-4 md:px-6",
         isScrolled 
-          ? "bg-white/95 dark:bg-black/95 backdrop-blur-md shadow-sm py-2 border-b" 
-          : "bg-white/80 dark:bg-black/80 backdrop-blur-sm py-4"
+          ? "bg-white/95 dark:bg-black/95 shadow-sm py-2 border-b" 
+          : "bg-white/80 dark:bg-black/80 py-4"
       )}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group shrink-0 mr-4">
