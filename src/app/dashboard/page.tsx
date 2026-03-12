@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -7,10 +8,12 @@ import { RiskAssessment } from '@/components/dashboard/RiskAssessment';
 import { SOSPanel } from '@/components/dashboard/SOSPanel';
 import { GuidancePanel } from '@/components/dashboard/GuidancePanel';
 import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
-import { Shield, Thermometer, Activity } from 'lucide-react';
+import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
+import { Shield, Thermometer, Activity, LayoutDashboard, Bell } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
@@ -30,10 +33,10 @@ export default function DashboardPage() {
     return query(
       collection(db, 'users', user.uid, 'vitalsReadings'),
       orderBy('timestamp', 'desc'),
-      limit(1)
+      limit(20)
     );
   }, [db, user]);
-  const { data: vitalsData } = useCollection(vitalsQuery);
+  const { data: vitalsData, isLoading: isVitalsLoading } = useCollection(vitalsQuery);
   
   const latestVitals = vitalsData?.[0] || {
     bodyTemperatureC: 37.0,
@@ -58,15 +61,15 @@ export default function DashboardPage() {
 
   // Monitor for danger threshold
   useEffect(() => {
-    if (latestVitals.bodyTemperatureC >= 40) {
+    if (latestVitals.bodyTemperatureC >= 40.5) {
       router.push('/alert-sim');
     }
   }, [latestVitals.bodyTemperatureC, router]);
 
   if (isUserLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -75,23 +78,37 @@ export default function DashboardPage() {
   const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 20 ? 'warning' : 'normal';
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-28">
-      <main className="p-8 space-y-10 max-w-7xl mx-auto w-full">
-        {/* Vitals Summary Grid */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground uppercase">Medical <span className="text-primary">Dashboard</span></h2>
-            <p className="text-sm text-muted-foreground font-medium">Real-time physiological surveillance for UID: {user.uid.slice(0, 8)}</p>
+    <div className="min-h-screen bg-slate-50/50 text-foreground pt-24 pb-12">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
+        {/* Dashboard Header */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-primary">
+              <LayoutDashboard className="h-5 w-5" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Health Command Center</span>
+            </div>
+            <h1 className="text-3xl font-black tracking-tight uppercase">
+              Surveillance <span className="text-primary">Console</span>
+            </h1>
+            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
+              Live Biometrics for {user.displayName || 'Active User'}
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Secure AI Link Active</span>
+          <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border shadow-sm">
+            <div className="flex items-center gap-2 px-3 border-r">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-wider">AI Link Active</span>
+            </div>
+            <button className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+              <Bell className="h-5 w-5" />
+            </button>
           </div>
-        </div>
+        </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        {/* Top Level Vitals */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <VitalsCard 
-            title="Core Temp" 
+            title="Core Temperature" 
             value={latestVitals.bodyTemperatureC} 
             unit="°C" 
             icon={Thermometer} 
@@ -105,28 +122,32 @@ export default function DashboardPage() {
             status={hrStatus}
           />
           <VitalsCard 
+            title="Ambient Temp" 
+            value={latestVitals.outsideTemperatureC} 
+            unit="°C" 
+            icon={Thermometer} 
+            status={latestVitals.outsideTemperatureC > 35 ? 'warning' : 'normal'}
+          />
+          <VitalsCard 
             title="Heat Index" 
             value={latestVitals.heatIndexC} 
             unit="°C" 
-            icon={Thermometer} 
-            status={latestVitals.heatIndexC > 35 ? 'warning' : 'normal'}
-          />
-          <VitalsCard 
-            title="Safety Index" 
-            value={latestVitals.bodyTemperatureC > 38 ? (100 - ((latestVitals.bodyTemperatureC - 37) * 20)) : 98} 
-            unit="%" 
             icon={Shield} 
-            status={latestVitals.bodyTemperatureC > 39 ? 'critical' : 'normal'}
+            status={latestVitals.heatIndexC > 38 ? 'critical' : 'normal'}
           />
-        </section>
+        </div>
 
-        {/* Detailed Panels */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div className="xl:col-span-2 space-y-8">
-            <RiskAssessment vitals={latestVitals} />
-            <GuidancePanel vitals={latestVitals} />
+        {/* Primary Analysis Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RiskAssessment vitals={latestVitals} />
+              <GuidancePanel vitals={latestVitals} />
+            </div>
+            <VitalsHistoryChart data={vitalsData || []} />
           </div>
-          <div className="space-y-8">
+          
+          <div className="space-y-6">
             <SOSPanel />
             <ConfigPanel />
           </div>

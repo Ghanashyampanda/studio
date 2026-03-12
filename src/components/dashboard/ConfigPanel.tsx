@@ -1,23 +1,24 @@
+
 "use client";
 
 import { useUser, useFirestore } from '@/firebase';
-import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection } from 'firebase/firestore';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Settings, Thermometer, Activity, RefreshCcw } from 'lucide-react';
+import { Settings, Thermometer, Activity, RefreshCcw, Waves } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export function ConfigPanel() {
   const { user } = useUser();
   const db = useFirestore();
-  // Default to false to avoid burning AI quota immediately on load
   const [isSimulating, setIsSimulating] = useState(false);
   const [currentTemp, setCurrentTemp] = useState(37.0);
+  const [ambientTemp, setAmbientTemp] = useState(32.0);
 
-  // Auto-simulation effect - increased interval to 20s to preserve AI quota
+  // Auto-simulation effect
   useEffect(() => {
     if (!isSimulating || !db || !user) return;
 
@@ -32,32 +33,33 @@ export function ConfigPanel() {
         bodyTemperatureC: nextTemp,
         heartRateBPM: 70 + Math.floor(Math.random() * 30),
         activityLevel: 'moderate',
-        outsideTemperatureC: 34,
+        outsideTemperatureC: ambientTemp,
         humidityPercentage: 50,
-        heatIndexC: 35,
+        heatIndexC: ambientTemp + 3,
         latitude: 40.7128,
         longitude: -74.0060,
         deviceType: 'AI Simulator'
       });
-    }, 20000);
+    }, 15000);
 
     return () => clearInterval(interval);
-  }, [isSimulating, currentTemp, db, user]);
+  }, [isSimulating, currentTemp, ambientTemp, db, user]);
 
-  const handleManualTemp = (val: number) => {
-    setCurrentTemp(val);
+  const handleUpdate = (temp: number, ambient: number) => {
+    setCurrentTemp(temp);
+    setAmbientTemp(ambient);
     if (!db || !user) return;
     
     const vitalsRef = collection(db, 'users', user.uid, 'vitalsReadings');
     addDocumentNonBlocking(vitalsRef, {
       userId: user.uid,
       timestamp: new Date().toISOString(),
-      bodyTemperatureC: val,
+      bodyTemperatureC: temp,
       heartRateBPM: 72,
       activityLevel: 'manual',
-      outsideTemperatureC: 32,
+      outsideTemperatureC: ambient,
       humidityPercentage: 45,
-      heatIndexC: 32,
+      heatIndexC: ambient + 2,
       latitude: 40.7128,
       longitude: -74.0060,
       deviceType: 'Manual Override'
@@ -65,55 +67,71 @@ export function ConfigPanel() {
   };
 
   return (
-    <Card className="glass border-white/5 rounded-3xl overflow-hidden">
-      <CardHeader className="bg-white/[0.02] border-b border-white/5 p-6">
-        <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight">
+    <Card className="bg-white border rounded-[2.5rem] shadow-sm overflow-hidden border-slate-200">
+      <CardHeader className="bg-slate-50 border-b border-slate-100 p-6">
+        <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight uppercase">
           <Settings className="h-5 w-5 text-primary" />
-          SYSTEM CONTROLS
+          System Input
         </CardTitle>
-        <CardDescription className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Simulator Protocol</CardDescription>
+        <CardDescription className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
+          Manual Physiological Override
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-8 p-6">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-            <div className="space-y-1">
-              <Label className="text-sm font-black tracking-tight uppercase">Bio-Flux Auto</Label>
-              <p className="text-[10px] text-muted-foreground font-medium">Fluctuate vitals (20s cycle)</p>
+      <CardContent className="space-y-8 p-8">
+        <div className="space-y-8">
+          {/* Body Temp */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-slate-500">
+                <Thermometer className="h-4 w-4" /> Core Temperature
+              </Label>
+              <span className={`text-sm font-black font-mono px-3 py-1 rounded-lg bg-slate-100 ${currentTemp > 39 ? 'text-secondary' : 'text-primary'}`}>
+                {currentTemp.toFixed(1)}°C
+              </span>
             </div>
-            <Switch checked={isSimulating} onCheckedChange={setIsSimulating} />
+            <Slider 
+              min={36} 
+              max={41} 
+              step={0.1} 
+              value={[currentTemp]} 
+              onValueChange={([val]) => handleUpdate(val, ambientTemp)} 
+            />
           </div>
-          
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
-                  <Activity className="h-4 w-4" /> Thermal Override
-                </Label>
-                <span className={`text-sm font-black font-mono px-3 py-1 rounded-lg glass ${currentTemp > 39 ? 'text-secondary' : 'text-primary'}`}>
-                  {currentTemp.toFixed(1)}°C
-                </span>
+
+          {/* Ambient Temp */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-slate-500">
+                <Waves className="h-4 w-4" /> Ambient Environment
+              </Label>
+              <span className="text-sm font-black font-mono px-3 py-1 rounded-lg bg-slate-100 text-slate-700">
+                {ambientTemp.toFixed(1)}°C
+              </span>
+            </div>
+            <Slider 
+              min={15} 
+              max={50} 
+              step={0.5} 
+              value={[ambientTemp]} 
+              onValueChange={([val]) => handleUpdate(currentTemp, val)} 
+            />
+          </div>
+
+          <div className="pt-6 border-t border-slate-100 space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="space-y-1">
+                <Label className="text-xs font-black tracking-tight uppercase">Simulation Mode</Label>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase">Dynamic flux (15s cycles)</p>
               </div>
-              <Slider 
-                min={36} 
-                max={41} 
-                step={0.1} 
-                disabled={isSimulating}
-                value={[currentTemp]} 
-                onValueChange={([val]) => handleManualTemp(val)} 
-              />
-              {isSimulating && (
-                <div className="flex items-center gap-2 text-[10px] text-primary/60 italic font-bold">
-                  <RefreshCcw className="h-3 w-3 animate-spin" />
-                  Auto-sync active (20s intervals).
-                </div>
-              )}
+              <Switch checked={isSimulating} onCheckedChange={setIsSimulating} />
             </div>
 
-            <div className="p-4 rounded-2xl bg-secondary/10 border border-secondary/20">
-              <p className="text-[10px] font-black text-secondary uppercase tracking-widest leading-relaxed">
-                Danger Threshold Test: Set above 40.0°C to trigger emergency protocols.
-              </p>
-            </div>
+            {isSimulating && (
+              <div className="flex items-center gap-2 text-[10px] text-primary italic font-black uppercase tracking-widest">
+                <RefreshCcw className="h-3 w-3 animate-spin" />
+                Live Telemetry Synchronizing...
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
