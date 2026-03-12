@@ -1,0 +1,16 @@
+{
+  "placeholderImages": [
+    {
+      "id": "login-illustration",
+      "description": "AI Health Monitoring Smartwatch",
+      "imageUrl": "https://picsum.photos/seed/health1/800/1000",
+      "imageHint": "smartwatch health"
+    },
+    {
+      "id": "signup-illustration",
+      "description": "Healthcare AI Surveillance",
+      "imageUrl": "https://picsum.photos/seed/health2/800/1000",
+      "imageHint": "medical ai"
+    }
+  ]
+}

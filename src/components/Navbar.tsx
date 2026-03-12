@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useAuth } from '@/firebase';
-import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { 
   Shield, 
   Menu, 
@@ -19,7 +18,9 @@ import {
   Zap,
   Moon,
   Smartphone,
-  Monitor
+  Monitor,
+  LogIn,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -33,6 +34,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { signOut } from 'firebase/auth';
 
 export function Navbar() {
   const { user, isUserLoading } = useUser();
@@ -52,8 +54,8 @@ export function Navbar() {
     document.documentElement.classList.toggle('dark');
   };
 
-  const handleLogin = () => {
-    if (!user && auth) initiateAnonymousSignIn(auth);
+  const handleLogout = () => {
+    if (auth) signOut(auth);
   };
 
   const menuItems = [
@@ -66,6 +68,11 @@ export function Navbar() {
     { label: 'How It Works', href: '/#how-it-works', icon: GitBranch },
     { label: 'About', href: '/#about', icon: Info },
   ];
+
+  const authRoutes = ['/login', '/signup'];
+  const isAuthPage = authRoutes.includes(pathname);
+
+  if (isAuthPage) return null;
 
   return (
     <nav className={cn(
@@ -135,18 +142,30 @@ export function Navbar() {
 
           <AnimatePresence mode="wait">
             {!user ? (
-              <Button 
-                key="login-btn"
-                onClick={handleLogin} 
-                disabled={isUserLoading}
-                className="bg-primary hover:bg-primary/90 text-white font-bold h-10 px-6 rounded-full shadow-lg shadow-primary/20 text-xs uppercase tracking-widest"
-              >
-                {isUserLoading ? "..." : "Sign Up"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <Button variant="ghost" className="h-10 px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button 
+                    className="bg-primary hover:bg-primary/90 text-white font-bold h-10 px-6 rounded-full shadow-lg shadow-primary/20 text-xs uppercase tracking-widest"
+                  >
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
             ) : (
-              <div key="user-profile" className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
-                  {user.displayName?.[0] || user.email?.[0] || 'U'}
+              <div key="user-profile" className="flex items-center gap-3">
+                <div 
+                  onClick={handleLogout}
+                  className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all group relative"
+                >
+                  <span className="group-hover:opacity-0 transition-opacity">
+                    {user.displayName?.[0] || user.email?.[0] || 'U'}
+                  </span>
+                  <LogIn className="absolute inset-0 m-auto h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity rotate-180" />
                 </div>
               </div>
             )}
@@ -188,6 +207,20 @@ export function Navbar() {
               </div>
               
               <div className="absolute bottom-0 left-0 right-0 p-6 bg-muted/30 border-t space-y-4">
+                <div className="flex flex-col gap-2">
+                  {!user ? (
+                    <>
+                      <Link href="/login" className="w-full">
+                        <Button variant="outline" className="w-full h-12 rounded-xl text-xs font-bold uppercase">Sign In</Button>
+                      </Link>
+                      <Link href="/signup" className="w-full">
+                        <Button className="w-full h-12 rounded-xl bg-primary text-white text-xs font-bold uppercase">Sign Up</Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <Button onClick={handleLogout} variant="destructive" className="w-full h-12 rounded-xl text-xs font-bold uppercase">Sign Out</Button>
+                  )}
+                </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Monitor className="h-5 w-5 text-muted-foreground" />
