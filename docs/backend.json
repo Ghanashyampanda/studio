@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -105,6 +106,10 @@
         "name": {
           "type": "string",
           "description": "The full name of the emergency contact."
+        },
+        "relationship": {
+          "type": "string",
+          "description": "The relationship to the user (e.g., 'Family', 'Doctor', 'Friend')."
         },
         "phoneNumber": {
           "type": "string",
