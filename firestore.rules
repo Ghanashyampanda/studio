@@ -3,132 +3,160 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * HeatGuard AI – Sunstroke Detection & Emergency Alert System
-     *
-     * CORE PHILOSOPHY:
-     * This ruleset implements a strict Path-Based Ownership model. All security is derived 
-     * from the user's authenticated identity (UID) matching the hierarchical path of the data.
-     * This ensures "Authorization Independence," where access decisions are made without 
-     * requiring cross-document lookups (get() calls), maximizing performance and reliability.
-     *
-     * DATA STRUCTURE:
-     * All application data is strictly nested under the top-level /users/{userId} collection. 
-     * This includes settings, emergency contacts, vital readings, risk assessments, and alerts.
-     *
-     * KEY SECURITY DECISIONS:
-     * 1. Private by Default: No data is publicly readable or writable. 
-     * 2. Strict Ownership: Users can only access, list, or modify documents within their own sub-tree.
-     * 3. Relational Integrity: During creation, the rules enforce that internal 'userId' or 'id' 
-     *    fields match the path UID to ensure data consistency.
-     * 4. Prototyping Flexibility: Data shapes and types are not validated to allow for rapid iteration.
-     *
-     * DENORMALIZATION FOR AUTHORIZATION:
-     * The 'userId' is denormalized into every sub-document. While the path provides the primary 
-     * security boundary, these internal fields are used to validate the link between the 
-     * document and its owner during write operations.
+     * HeatGuard AI Security Rules
+     * 
+     * Core Philosophy:
+     * This ruleset enforces a strict user-ownership model where all health and personal data
+     * is siloed by the user's Firebase Authentication UID. Authorization is primarily
+     * path-based to ensure high performance and absolute data privacy.
+     * 
+     * Data Structure:
+     * All sensitive entities (Vitals, Risk Assessments, Emergency Contacts) are stored as
+     * subcollections under the primary /users/{userId} document. This creates a clear
+     * security boundary for each user.
+     * 
+     * Key Security Decisions:
+     * 1. Path-Based Authorization: By nesting data under {userId}, we compare request.auth.uid
+     *    directly against the path segment, avoiding expensive get() calls.
+     * 2. Prototyping Mode: Rules strictly enforce 'who' can access data (Authorization)
+     *    but remain flexible on 'what' the data looks like (Schema) to allow rapid iteration.
+     * 3. Relational Integrity: On creation, the rules force internal 'userId' fields to
+     *    match the authenticated user's ID, ensuring denormalized data remains consistent.
+     * 4. Admin Access: An optional top-level 'roles_admin' collection allows for global
+     *    monitoring capabilities based on document existence.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
 
-    /** @description Checks if the request is made by an authenticated user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Validates that the authenticated user's UID matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Combines ownership check with verification that the document exists for updates/deletes. */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
     // --- COLLECTION RULES ---
 
     /**
-     * @description Rules for the root User profile document.
+     * @description Rules for UserProfile. Users can only manage their own profile.
      * @path /users/{userId}
-     * @allow Authenticated user can (create) their own profile if UID matches document ID.
-     * @deny User 'A' attempts to (update) profile for User 'B'.
-     * @principle Pattern 1 (Ownership) & Pattern 4 (Self-Creation).
+     * @allow (create) if auth.uid matches userId.
+     * @deny (update) if user attempts to change their document ID.
+     * @principle Ownership and Self-Creation.
      */
     match /users/{userId} {
-      allow get, list: if isOwner(userId);
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
 
       /**
-       * @description Stores health parameters and notification preferences. Single document named 'preferences'.
-       * @path /users/{userId}/settings/preferences
-       * @allow User can (update) their own health thresholds.
-       * @deny Unauthenticated user attempts to (get) settings.
-       * @principle Restricts access to a user's own data tree and enforces internal relational links.
+       * @description Rules for Emergency Contacts. Private to the user.
+       * @path /users/{userId}/emergency_contacts/{contactId}
+       * @allow (list) if request.auth.uid == userId.
+       * @deny (create) if internal userId field doesn't match the path.
+       * @principle Structural Segregation and Path-Based Ownership.
        */
-      match /settings/preferences {
-        allow get, list: if isOwner(userId);
+      match /emergency_contacts/{contactId} {
+        allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
         allow delete: if isExistingOwner(userId);
       }
 
       /**
-       * @description Manages individual emergency contacts.
-       * @path /users/{userId}/emergencyContacts/{contactId}
-       * @allow User can (create) a contact with their own userId as the owner.
-       * @deny User attempts to (delete) a contact belonging to another user's path.
-       * @principle Path-based authorization for subcollections.
+       * @description Rules for VitalSignData. Highly sensitive health data.
+       * @path /users/{userId}/vital_sign_data/{vitalSignDataId}
+       * @allow (get) if the owner is requesting their own vitals.
+       * @deny (delete) if the document does not exist.
+       * @principle Verified Identity and Robustness for State Changes.
        */
-      match /emergencyContacts/{contactId} {
-        allow get, list: if isOwner(userId);
+      match /vital_sign_data/{vitalSignDataId} {
+        allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
         allow delete: if isExistingOwner(userId);
       }
 
       /**
-       * @description Records time-series biometric (temp, heart rate) and environmental data.
-       * @path /users/{userId}/vitalsReadings/{readingId}
-       * @allow User can (list) their history of vital readings.
-       * @deny authenticated user 'A' attempts to (get) a vital reading from user 'B'.
-       * @principle Ensures data integrity by locking the userId field on creation.
+       * @description Rules for RiskAssessments. AI-generated results for the user.
+       * @path /users/{userId}/risk_assessments/{assessmentId}
+       * @allow (create) if the user is authenticated and is the owner of the path.
+       * @deny (update) if trying to modify the userId field.
+       * @principle Relational Integrity and Ownership.
        */
-      match /vitalsReadings/{readingId} {
-        allow get, list: if isOwner(userId);
+      match /risk_assessments/{assessmentId} {
+        allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
         allow delete: if isExistingOwner(userId);
       }
 
       /**
-       * @description Stores AI-generated risk analyses.
-       * @path /users/{userId}/riskAssessments/{assessmentId}
-       * @allow User can (get) an AI recommendation for their own reading.
-       * @deny Any write (create/update) where the userId field does not match the path.
-       * @principle Path-based isolation for AI-generated insights.
+       * @description Rules for UserSettings. Configuration for alerts and preferences.
+       * @path /users/{userId}/user_settings/current
+       * @allow (get) if the user is fetching their own 'current' settings.
+       * @deny (create) if internal userId field is missing or incorrect.
+       * @principle Path-based ownership for singleton documents.
        */
-      match /riskAssessments/{assessmentId} {
-        allow get, list: if isOwner(userId);
+      match /user_settings/current {
+        allow get: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
         allow delete: if isExistingOwner(userId);
       }
 
       /**
-       * @description Logs details of emergency alerts triggered.
-       * @path /users/{userId}/alerts/{alertId}
-       * @allow User can (update) alert status to 'cancelled'.
-       * @deny User attempts to (create) an alert for a different userId.
-       * @principle Enforces document ownership and relational immutability.
+       * @description Rules for AlertHistory. Log of previous emergencies.
+       * @path /users/{userId}/alert_history/{alertId}
+       * @allow (list) if the user is viewing their history.
+       * @deny (write) if the user is not authenticated.
+       * @principle Query Against Paths (QAPs).
        */
-      match /alerts/{alertId} {
-        allow get, list: if isOwner(userId);
+      match /alert_history/{alertId} {
+        allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
         allow delete: if isExistingOwner(userId);
       }
+
+      /**
+       * @description Rules for AIHealthTip. Educational content personalized for the user.
+       * @path /users/{userId}/ai_health_tips/{tipId}
+       * @allow (update) if the user marks a tip as 'read'.
+       * @deny (list) if a different user tries to access this path.
+       * @principle Path-based Ownership.
+       */
+      match /ai_health_tips/{tipId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    /**
+     * @description Admin Role Management. Controls which users have monitoring privileges.
+     * @path /roles_admin/{adminUid}
+     * @allow (get) for signed-in users to check their own role status.
+     * @deny (write) for all standard users.
+     * @principle Roles and Access Modeling.
+     */
+    match /roles_admin/{adminUid} {
+      allow get: if isSignedIn() && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if false; // Admin roles are typically managed manually or via cloud functions.
     }
   }
 }
