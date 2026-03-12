@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -18,7 +17,8 @@ import {
   History,
   Sparkles,
   Info,
-  Activity
+  Activity,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
