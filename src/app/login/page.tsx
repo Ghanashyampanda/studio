@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, EyeOff, Mail, Lock, Shield, Sun } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Shield } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -64,13 +64,15 @@ export default function LoginPage() {
       <Card className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 overflow-hidden rounded-[2.5rem] border-none shadow-2xl bg-[#F5F7FA]">
         {/* Left Side: Illustration */}
         <div className="relative hidden lg:block bg-primary/5">
-          <Image
-            src={illustration?.imageUrl || ''}
-            alt={illustration?.description || 'Login'}
-            fill
-            className="object-cover opacity-90 mix-blend-multiply"
-            data-ai-hint={illustration?.imageHint}
-          />
+          {illustration?.imageUrl && (
+            <Image
+              src={illustration.imageUrl}
+              alt={illustration.description || 'Login'}
+              fill
+              className="object-cover opacity-90 mix-blend-multiply"
+              data-ai-hint={illustration.imageHint}
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
           <div className="absolute bottom-12 left-12 right-12 text-white">
             <h2 className="text-4xl font-black tracking-tighter uppercase leading-none mb-4">
