@@ -3,10 +3,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, MapPin, X, BellRing, Navigation, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, X, BellRing, Navigation, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -19,14 +19,12 @@ export default function AlertSimPage() {
   const [isAlertSent, setIsAlertSent] = useState(false);
   const hasLogged = useRef(false);
 
-  // Fetch Emergency Contacts
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'emergency_contacts');
   }, [db, user]);
   const { data: contacts } = useCollection(contactsQuery);
 
-  // Countdown Logic & Automatic SOS Dispatch
   useEffect(() => {
     if (countdown > 0 && !isAlertSent) {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
@@ -40,13 +38,12 @@ export default function AlertSimPage() {
 
   const dispatchSOS = () => {
     if (!db || !user) return;
-
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
       alertType: 'Critical Hyperthermia',
-      messageContent: `EMERGENCY: User core temperature exceeded 40°C. Live location shared.`,
+      messageContent: `EMERGENCY: User core temperature exceeded 40.0°C. Rescuers notified.`,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
       locationAtAlertLatitude: 40.7128,
@@ -55,114 +52,53 @@ export default function AlertSimPage() {
     });
   };
 
-  const cancelAlert = () => {
-    router.push('/dashboard');
-  };
-
   if (isUserLoading) return null;
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 sm:p-6 relative overflow-hidden font-body">
-      {/* Intense Background Pulses */}
-      <div className="absolute inset-0 bg-destructive/5 animate-pulse" />
-      
+    <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden font-body">
+      <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
       <AnimatePresence>
-        <motion.div 
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="max-w-lg w-full relative z-10"
-        >
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full relative z-10">
           <Card className="bg-white border-destructive/20 shadow-2xl rounded-[3rem] overflow-hidden border-2">
-            <CardHeader className="text-center pt-12 pb-8 bg-destructive/5">
-              <motion.div 
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-                className="mx-auto h-20 w-20 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-6 shadow-lg shadow-destructive/20"
-              >
+            <CardHeader className="text-center bg-destructive/5 p-10">
+              <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="mx-auto h-20 w-20 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-6 shadow-lg shadow-destructive/20">
                 <ShieldAlert className="h-10 w-10" />
               </motion.div>
-              <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">
-                Critical Detection
-              </CardTitle>
+              <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Critical Alert</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <AlertTriangle className="h-3 w-3" />
-                Hyperthermia Risk Confirmed
+                <AlertTriangle className="h-3 w-3" /> Hyperthermia Protocol Active
               </div>
             </CardHeader>
-
-            <CardContent className="space-y-8 px-8 pb-12 pt-8">
-              <div className="text-center">
-                {!isAlertSent ? (
-                  <div className="space-y-4">
-                    <div className="text-9xl font-black text-slate-900 tabular-nums tracking-tighter leading-none">
-                      {countdown}
-                    </div>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] animate-pulse">
-                      Dispatching Emergency Nodes...
-                    </p>
-                  </div>
-                ) : (
-                  <motion.div 
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="p-6 rounded-3xl bg-emerald-50 border border-emerald-100 space-y-4"
-                  >
-                    <div className="flex items-center justify-center gap-2 text-emerald-600 font-black text-sm uppercase tracking-tight">
-                      <BellRing className="h-5 w-5 animate-bounce" />
-                      SOS Network Active
-                    </div>
-                    <div className="space-y-2">
-                      {contacts?.map(c => (
-                        <div key={c.id} className="text-[10px] text-muted-foreground flex justify-between bg-white/80 p-3 rounded-xl border border-emerald-100">
-                          <span className="font-bold text-slate-700">{c.name}</span>
-                          <span className="text-emerald-500 font-black uppercase">Signal Dispatched</span>
-                        </div>
-                      ))}
-                      {(!contacts || contacts.length === 0) && (
-                        <p className="text-[10px] text-muted-foreground font-medium italic text-center">Broadcasting to public emergency services...</p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-
-              {/* Location Data */}
-              <div className="bg-slate-50 p-6 rounded-[2rem] space-y-4 border border-slate-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                    <Navigation className="h-3.5 w-3.5 fill-primary/20" />
-                    Live GPS Telemetry
-                  </div>
-                  <div className="h-2 w-2 rounded-full bg-destructive animate-ping" />
+            <CardContent className="p-10 space-y-8">
+              {!isAlertSent ? (
+                <div className="text-center space-y-4">
+                  <div className="text-8xl font-black text-slate-900 tracking-tighter tabular-nums">{countdown}</div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Dispatching Rescue Nodes...</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+              ) : (
+                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-4">
+                  <BellRing className="h-8 w-8 text-emerald-600 mx-auto animate-bounce" />
+                  <p className="text-sm font-black text-emerald-700 uppercase">SOS Dispatched Successfully</p>
                   <div className="space-y-1">
-                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Latitude</p>
-                    <p className="text-sm font-mono font-black text-slate-900">40.7128° N</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Longitude</p>
-                    <p className="text-sm font-mono font-black text-slate-900">74.0060° W</p>
+                    {contacts?.map(c => <p key={c.id} className="text-[9px] text-emerald-600 font-bold uppercase tracking-tight">{c.name} notified via SMS</p>)}
                   </div>
                 </div>
+              )}
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-primary">
+                  <span className="flex items-center gap-2"><Navigation className="h-3.5 w-3.5" /> GPS Broadcast</span>
+                  <div className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs font-mono font-bold text-slate-600">
+                  <div>Lat: 40.7128° N</div>
+                  <div>Lng: 74.0060° W</div>
+                </div>
               </div>
-
-              <div className="pt-4">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full h-14 rounded-2xl border-slate-200 hover:bg-slate-50 font-black text-slate-500 uppercase tracking-widest text-xs transition-all active:scale-[0.98]"
-                  onClick={cancelAlert}
-                >
-                  <X className="mr-2 h-4 w-4" /> Cancel Protocol
-                </Button>
-              </div>
+              <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs" onClick={() => router.push('/dashboard')}>
+                <X className="mr-2 h-4 w-4" /> Abort Protocol
+              </Button>
             </CardContent>
           </Card>
-          
-          <p className="text-center mt-6 text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] px-10">
-            Protocol 114-B: Automated rescue request is irreversible after the 10-second fail-safe window.
-          </p>
         </motion.div>
       </AnimatePresence>
     </div>
