@@ -3,6 +3,7 @@
 import { LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface VitalsCardProps {
   title: string;
@@ -15,38 +16,56 @@ interface VitalsCardProps {
 
 export function VitalsCard({ title, value, unit, icon: Icon, status, trend }: VitalsCardProps) {
   const statusColors = {
-    normal: 'text-primary',
-    warning: 'text-orange-500',
-    critical: 'text-destructive animate-pulse-subtle',
+    normal: 'text-emerald-400',
+    warning: 'text-amber-400',
+    critical: 'text-secondary animate-pulse-subtle',
+  };
+
+  const bgGradients = {
+    normal: 'from-emerald-500/5 to-transparent',
+    warning: 'from-amber-500/5 to-transparent',
+    critical: 'from-secondary/10 to-transparent',
   };
 
   const borderColors = {
-    normal: 'border-border',
-    warning: 'border-orange-200',
-    critical: 'border-destructive/30',
+    normal: 'border-white/5',
+    warning: 'border-amber-500/20',
+    critical: 'border-secondary/30',
   };
 
   return (
-    <Card className={cn("transition-all duration-300", borderColors[status])}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <Icon className={cn("h-5 w-5", statusColors[status])} />
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-baseline space-x-1">
-          <div className={cn("text-3xl font-bold font-headline", statusColors[status])}>
-            {typeof value === 'number' ? value.toFixed(1) : value}
+    <motion.div
+      whileHover={{ y: -5 }}
+      transition={{ type: "spring", stiffness: 300 }}
+    >
+      <Card className={cn(
+        "glass overflow-hidden border transition-all duration-300 relative",
+        borderColors[status]
+      )}>
+        <div className={cn("absolute inset-0 bg-gradient-to-br -z-10 opacity-30", bgGradients[status])} />
+        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+          <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            {title}
+          </CardTitle>
+          <Icon className={cn("h-5 w-5", statusColors[status])} />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-baseline space-x-1">
+            <div className={cn("text-4xl font-black font-headline tracking-tighter", statusColors[status])}>
+              {typeof value === 'number' ? value.toFixed(1) : value}
+            </div>
+            <div className="text-sm font-bold text-muted-foreground opacity-60">{unit}</div>
           </div>
-          <div className="text-sm text-muted-foreground">{unit}</div>
-        </div>
-        {trend && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {trend === 'up' ? 'Trending higher' : trend === 'down' ? 'Trending lower' : 'Stable'}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+          {trend && (
+            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground">REAL-TIME TREND</span>
+              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full glass", statusColors[status])}>
+                {trend.toUpperCase()}
+              </span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
