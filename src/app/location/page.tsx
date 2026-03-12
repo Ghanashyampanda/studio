@@ -78,11 +78,11 @@ export default function LocationPage() {
       triggerTimestamp: new Date().toISOString(),
       alertType: 'Manual SOS Broadcast',
       status: 'sent',
-      bodyTemperatureAtAlertC: 37.0, // Assuming normal if manual broadcast for safety
+      bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: coords.lat,
       locationAtAlertLongitude: coords.lng,
       alertMessage: `MANUAL SOS: User is sharing live location. Coordinates: ${coords.lat}, ${coords.lng}`,
-      emergencyContactIds: [] // In a real app, fetch these
+      emergencyContactIds: [] 
     });
 
     setTimeout(() => {
@@ -97,7 +97,7 @@ export default function LocationPage() {
   if (isUserLoading) return null;
 
   return (
-    <div className="min-h-screen bg-slate-900 pt-16 flex flex-col lg:row font-body overflow-hidden">
+    <div className="min-h-screen bg-slate-900 pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
       {/* Sidebar Controls - High density healthcare UI */}
       <aside className="w-full lg:w-[400px] bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 h-[45vh] lg:h-auto overflow-y-auto">
         <div className="p-8 border-b border-slate-100 space-y-4">
@@ -197,21 +197,23 @@ export default function LocationPage() {
         </div>
       </aside>
 
-      {/* Map View Area - High-end simulated interface */}
+      {/* Map View Area - Interactive Interface */}
       <main className="flex-1 relative bg-slate-100 overflow-hidden">
-        {/* Animated Map Background */}
-        <div className="absolute inset-0 grayscale opacity-30 pointer-events-none select-none">
-          <img 
-            src={`https://picsum.photos/seed/heatmap-${coords.lat}/1920/1080`} 
-            alt="Map Topology" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-100 via-transparent to-slate-100/50" />
-        </div>
+        {/* Interactive Map Layer */}
+        <iframe 
+          width="100%" 
+          height="100%" 
+          frameBorder="0" 
+          scrolling="no" 
+          marginHeight={0} 
+          marginWidth={0} 
+          src={`https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.01}%2C${coords.lat-0.01}%2C${coords.lng+0.01}%2C${coords.lat+0.01}&layer=mapnik&marker=${coords.lat}%2C${coords.lng}`}
+          className="absolute inset-0 grayscale contrast-125 opacity-70"
+        />
 
         {/* Tactical Overlays */}
-        <div className="absolute inset-0 p-10 flex flex-col justify-between">
-          <div className="flex justify-between items-start pointer-events-none">
+        <div className="absolute inset-0 p-10 flex flex-col justify-between pointer-events-none">
+          <div className="flex justify-between items-start">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -243,20 +245,20 @@ export default function LocationPage() {
             </div>
           </div>
 
-          {/* User Beacon */}
+          {/* User Beacon Animation */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <div className="relative">
               <motion.div 
-                animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }}
+                animate={{ scale: [1, 2.5, 1], opacity: [0.4, 0, 0.4] }}
                 transition={{ repeat: Infinity, duration: 2.5 }}
-                className="absolute inset-0 bg-primary rounded-full"
+                className="absolute inset-0 bg-primary rounded-full -m-8"
               />
               <motion.div 
-                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
-                className="absolute inset-0 bg-primary rounded-full"
+                className="absolute inset-0 bg-primary rounded-full -m-4"
               />
-              <div className="h-8 w-8 bg-primary rounded-full border-[6px] border-white shadow-2xl relative z-10" />
+              <div className="h-10 w-10 bg-primary rounded-full border-[6px] border-white shadow-2xl relative z-10" />
               <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-2xl whitespace-nowrap shadow-2xl border border-white/10">
                 Primary Beacon: You
               </div>
@@ -270,7 +272,7 @@ export default function LocationPage() {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 50, opacity: 0 }}
-              className="w-full max-w-lg mx-auto bg-white/95 backdrop-blur-xl p-8 rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-white relative group"
+              className="w-full max-w-lg mx-auto bg-white/95 backdrop-blur-xl p-8 rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-white pointer-events-auto relative group"
             >
               <div className="flex items-start justify-between mb-6">
                 <div className="space-y-2">
