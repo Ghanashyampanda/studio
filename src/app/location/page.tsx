@@ -19,7 +19,10 @@ import {
   ChevronRight,
   Map as MapIcon,
   Globe,
-  Loader2
+  Loader2,
+  Building2,
+  Stethoscope,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,14 +38,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Hospital names for dynamic generation
-const HOSPITAL_NAMES = [
-  'General Medical Center',
-  'St. Jude Trauma Hub',
-  'City Emergency Center',
-  'Regional Care Institute',
-  'Metropolis Health Station',
-  'Riverbend Urgent Care'
+// Enhanced Hospital Data for classification
+const FACILITY_DATABASE = [
+  { name: 'City General Medical Center', type: 'Level 1 Trauma Center', size: 'Large', specialty: 'Full Emergency' },
+  { name: 'St. Jude Trauma Hub', type: 'Regional Hospital', size: 'Large', specialty: 'Hyperthermia Unit' },
+  { name: 'Metropolis Health Station', type: 'General Hospital', size: 'Large', specialty: '24/7 ER' },
+  { name: 'Community Care Express', type: 'Urgent Care', size: 'Mini', specialty: 'Limited Services' },
+  { name: 'Metro Health Station', type: 'Community Clinic', size: 'Mini', specialty: 'Stabilization Only' },
+  { name: 'Riverbend Medical Point', type: 'Mini-Hospital', size: 'Mini', specialty: 'First Aid' }
 ];
 
 const MAP_LAYERS = [
@@ -79,26 +82,27 @@ export default function LocationPage() {
   };
 
   const generateDynamicHospitals = (lat: number, lng: number) => {
-    // Generate 4 hospitals within a 1-5km radius of the user's actual coordinates
-    return HOSPITAL_NAMES.slice(0, 4).map((name, index) => {
-      const offsetLat = (Math.random() - 0.5) * 0.02; // Roughly +/- 2km
-      const offsetLng = (Math.random() - 0.5) * 0.02;
+    // Generate facilities based on the current location
+    return FACILITY_DATABASE.map((facility, index) => {
+      const offsetLat = (Math.random() - 0.5) * 0.03; // +/- 3km range
+      const offsetLng = (Math.random() - 0.5) * 0.03;
       const hLat = lat + offsetLat;
       const hLng = lng + offsetLng;
       const dist = calculateDistance(lat, lng, hLat, hLng);
-      const timeMin = Math.round((dist / 35) * 60) + 1; // 35km/h avg speed
+      const timeMin = Math.round((dist / 35) * 60) + 2; // 35km/h avg speed + wait
 
       return {
         id: `h-${index}`,
-        name,
+        ...facility,
         lat: hLat,
         lng: hLng,
+        distanceVal: dist,
         distance: dist.toFixed(2) + ' km',
         time: timeMin + ' min',
         phone: `555-0${100 + index}`,
-        status: index === 0 ? 'Primary Response Center' : 'Active Facility'
+        status: dist < 1.5 ? 'Critical Proximity' : 'Active Facility'
       };
-    }).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+    }).sort((a, b) => a.distanceVal - b.distanceVal);
   };
 
   const findMe = () => {
@@ -124,7 +128,6 @@ export default function LocationPage() {
         (error) => {
           setIsLocating(false);
           console.error("Geolocation error:", error);
-          // Fallback to dynamic nodes around default if needed
           const fallbackNodes = generateDynamicHospitals(coords.lat, coords.lng);
           setHospitals(fallbackNodes);
           setSelectedHospital(fallbackNodes[0]);
@@ -183,7 +186,7 @@ export default function LocationPage() {
   return (
     <div className="min-h-screen bg-slate-900 pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
       {/* Control Sidebar */}
-      <aside className="w-full lg:w-[400px] bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 max-h-[50vh] lg:max-h-none lg:h-auto overflow-y-auto shrink-0">
+      <aside className="w-full lg:w-[420px] bg-white z-20 shadow-2xl flex flex-col border-r border-slate-100 max-h-[50vh] lg:max-h-none lg:h-auto overflow-y-auto shrink-0">
         <div className="p-6 lg:p-8 border-b border-slate-100 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-primary">
@@ -192,12 +195,12 @@ export default function LocationPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">100% Signal Synced</span>
+              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Signal Locked</span>
             </div>
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-black uppercase tracking-tight leading-none">Live <span className="text-primary">Telemetry</span></h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">Dynamic Proximity Coordination</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">Precision Rescue Coordination</p>
           </div>
         </div>
 
@@ -205,7 +208,7 @@ export default function LocationPage() {
           <div className="space-y-4">
              <div className="flex items-center justify-between">
                 <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Core Position</h2>
-                <Button variant="ghost" size="sm" onClick={findMe} disabled={isLocating} className="h-7 px-3 text-[9px] font-black uppercase tracking-widest">
+                <Button variant="ghost" size="sm" onClick={findMe} disabled={isLocating} className="h-7 px-3 text-[9px] font-black uppercase tracking-widest hover:bg-slate-50">
                   {isLocating ? <Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> : <Crosshair className="h-3 w-3 mr-1.5" />} Re-Sync
                 </Button>
              </div>
@@ -220,27 +223,20 @@ export default function LocationPage() {
                   <p className="text-sm font-black font-mono tracking-tight text-slate-900 leading-none">
                     {coords.lng.toFixed(6)}° W
                   </p>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Global Reference Frame</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Locked Coordinates</p>
                 </div>
              </div>
-             {accuracy && (
-               <div className="flex items-center gap-2 px-2">
-                 <div className="h-1 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                   <div className="h-full bg-primary" style={{ width: '85%' }} />
-                 </div>
-                 <span className="text-[9px] font-black uppercase text-slate-400">Accuracy: {Math.round(accuracy)}m</span>
-               </div>
-             )}
           </div>
 
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Proximity Care Nodes</h2>
+              <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Nearby Care Nodes</h2>
               <Badge variant="outline" className="text-[9px] font-black bg-emerald-50 text-emerald-600 border-none px-3 uppercase">
-                {hospitals.length} Nodes Found
+                {hospitals.length} Found
               </Badge>
             </div>
-            <div className="space-y-3">
+            
+            <div className="space-y-4">
               <AnimatePresence>
                 {hospitals.map(hospital => (
                   <motion.button
@@ -250,29 +246,51 @@ export default function LocationPage() {
                     key={hospital.id}
                     onClick={() => setSelectedHospital(hospital)}
                     className={cn(
-                      "w-full text-left p-5 rounded-[2rem] transition-all border-2 group",
+                      "w-full text-left p-5 rounded-[2.5rem] transition-all border-2 group relative overflow-hidden",
                       selectedHospital?.id === hospital.id 
-                      ? 'bg-slate-900 border-slate-900 text-white shadow-xl' 
-                      : 'bg-white border-slate-50 hover:border-primary/20 text-slate-700 shadow-sm'
+                      ? 'bg-slate-900 border-slate-900 text-white shadow-2xl' 
+                      : 'bg-white border-slate-100 hover:border-primary/20 text-slate-700 shadow-sm'
                     )}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", selectedHospital?.id === hospital.id ? "bg-primary text-white" : "bg-slate-50 text-slate-400")}>
-                        <Hospital className="h-5 w-5" />
+                    <div className="flex items-start justify-between mb-3 relative z-10">
+                      <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center transition-colors", 
+                        selectedHospital?.id === hospital.id ? "bg-primary text-white" : "bg-slate-50 text-slate-400")}>
+                        {hospital.size === 'Large' ? <Building2 className="h-5 w-5" /> : <Hospital className="h-5 w-5" />}
                       </div>
                       <div className="text-right">
-                        <p className="text-[11px] font-black tracking-tighter">{hospital.distance}</p>
-                        <p className={cn("text-[8px] font-bold uppercase", selectedHospital?.id === hospital.id ? "text-primary-foreground/60" : "text-slate-400")}>
-                          {hospital.time} ETA
+                        <div className="flex items-center gap-1.5 justify-end mb-1">
+                           <Clock className="h-3 w-3 text-primary" />
+                           <p className="text-[11px] font-black tracking-tighter">{hospital.time}</p>
+                        </div>
+                        <p className={cn("text-[9px] font-bold uppercase tracking-widest", selectedHospital?.id === hospital.id ? "text-primary-foreground/60" : "text-slate-400")}>
+                          {hospital.distance}
                         </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-tight truncate">{hospital.name}</p>
-                      <p className={cn("text-[9px] font-bold uppercase mt-1", selectedHospital?.id === hospital.id ? "text-primary" : "text-emerald-500")}>
-                        {hospital.status}
-                      </p>
+                    
+                    <div className="relative z-10 space-y-2">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-black uppercase tracking-tight truncate leading-none">{hospital.name}</p>
+                        <p className={cn("text-[8px] font-black uppercase tracking-[0.1em]", 
+                          selectedHospital?.id === hospital.id ? "text-primary" : "text-slate-400")}>
+                          {hospital.type}
+                        </p>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <Badge className={cn("text-[7px] font-black uppercase px-2 h-4 border-none", 
+                          hospital.size === 'Large' ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700")}>
+                          {hospital.size} Facility
+                        </Badge>
+                        <Badge className="text-[7px] font-black uppercase px-2 h-4 bg-slate-100 text-slate-600 border-none">
+                          {hospital.specialty}
+                        </Badge>
+                      </div>
                     </div>
+
+                    {selectedHospital?.id === hospital.id && (
+                      <motion.div layoutId="activeHighlight" className="absolute inset-0 bg-primary/5 pointer-events-none" />
+                    )}
                   </motion.button>
                 ))}
               </AnimatePresence>
@@ -280,7 +298,7 @@ export default function LocationPage() {
           </div>
         </div>
 
-        <div className="p-6 lg:p-8 bg-slate-50 border-t border-slate-100">
+        <div className="p-6 lg:p-8 bg-slate-50 border-t border-slate-100 mt-auto">
           <Button 
             onClick={handleBroadcast}
             disabled={isBroadcasting}
@@ -288,7 +306,7 @@ export default function LocationPage() {
           >
             {isBroadcasting ? (
               <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" /> Syncing Broadcast...
+                <Loader2 className="h-4 w-4 animate-spin" /> Transmitting...
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -316,15 +334,18 @@ export default function LocationPage() {
 
         <div className="absolute inset-0 p-4 lg:p-6 flex flex-col justify-between pointer-events-none">
           <div className="flex justify-between items-start">
-            <div className="hidden md:flex pointer-events-auto bg-slate-900/95 backdrop-blur-xl text-white p-4 rounded-[2rem] border border-white/10 shadow-2xl gap-8">
+            <div className="hidden md:flex pointer-events-auto bg-slate-900/95 backdrop-blur-xl text-white p-5 rounded-[2.5rem] border border-white/10 shadow-2xl gap-8">
               <div className="space-y-1">
-                <p className="text-[9px] font-black uppercase tracking-widest text-primary">Heading</p>
-                <p className="text-xl font-mono font-black tracking-tighter">042° NE</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-primary">Status</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <p className="text-lg font-mono font-black tracking-tighter uppercase">Ready</p>
+                </div>
               </div>
               <div className="h-10 w-px bg-white/10" />
               <div className="space-y-1">
                 <p className="text-[9px] font-black uppercase tracking-widest text-primary">Signal Strength</p>
-                <div className="flex gap-0.5 items-end h-6 pt-1">
+                <div className="flex gap-1 items-end h-6 pt-1">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className={cn("w-1.5 rounded-full bg-emerald-500", i === 3 ? "h-6" : i === 2 ? "h-4" : i === 1 ? "h-3" : "h-2")} />
                   ))}
@@ -335,45 +356,44 @@ export default function LocationPage() {
             <div className="pointer-events-auto flex flex-col gap-2 ml-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="icon" className="h-12 w-12 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-xl border border-white">
+                  <Button size="icon" className="h-12 w-12 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-xl border border-white hover:bg-white transition-all">
                     <Layers className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 rounded-[1.5rem] p-2 bg-white/95 backdrop-blur">
-                  <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3">Map Layers</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                <DropdownMenuContent align="end" className="w-48 rounded-[2rem] p-3 bg-white/95 backdrop-blur border-none shadow-2xl">
+                  <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-3">Map Selection</DropdownMenuLabel>
                   {MAP_LAYERS.map(layer => (
                     <DropdownMenuItem 
                       key={layer.id}
                       onClick={() => setCurrentLayer(layer.id)}
                       className={cn(
-                        "rounded-xl px-3 py-2.5 cursor-pointer flex items-center justify-between",
-                        currentLayer === layer.id ? "bg-primary/10 text-primary" : "text-slate-600"
+                        "rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between mb-1 last:mb-0 transition-colors",
+                        currentLayer === layer.id ? "bg-primary/10 text-primary" : "text-slate-600 hover:bg-slate-50"
                       )}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <layer.icon className="h-4 w-4" />
                         <span className="text-[10px] font-black uppercase">{layer.name}</span>
                       </div>
                     </DropdownMenuItem>
                   ))}
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="my-2 bg-slate-100" />
                   <DropdownMenuItem 
                     onClick={() => setIsTacticalMode(!isTacticalMode)}
                     className={cn(
-                      "rounded-xl px-3 py-2.5 cursor-pointer flex items-center justify-between",
-                      isTacticalMode ? "bg-secondary/10 text-secondary" : "text-slate-600"
+                      "rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between transition-colors",
+                      isTacticalMode ? "bg-orange-100 text-orange-600" : "text-slate-600 hover:bg-slate-50"
                     )}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <ShieldAlert className="h-4 w-4" />
-                      <span className="text-[10px] font-black uppercase">Tactical Filter</span>
+                      <span className="text-[10px] font-black uppercase">Tactical Mode</span>
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button size="icon" onClick={findMe} className="h-12 w-12 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-xl border border-white">
+              <Button size="icon" onClick={findMe} className="h-12 w-12 rounded-2xl bg-white/90 backdrop-blur text-slate-900 shadow-xl border border-white hover:bg-white transition-all">
                 <Crosshair className={cn("h-5 w-5", isLocating && "animate-spin")} />
               </Button>
             </div>
@@ -382,11 +402,13 @@ export default function LocationPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <div className="relative">
               <motion.div 
-                animate={{ scale: [1, 2.5, 1], opacity: [0.4, 0, 0.4] }}
+                animate={{ scale: [1, 2.8, 1], opacity: [0.3, 0, 0.3] }}
                 transition={{ repeat: Infinity, duration: 2.5 }}
-                className="absolute inset-0 bg-primary rounded-full -m-8"
+                className="absolute inset-0 bg-primary rounded-full -m-10"
               />
-              <div className="h-8 w-8 bg-primary rounded-full border-[4px] border-white shadow-2xl relative z-10" />
+              <div className="h-10 w-10 bg-primary rounded-full border-[5px] border-white shadow-2xl relative z-10 flex items-center justify-center">
+                <div className="h-2 w-2 bg-white rounded-full" />
+              </div>
             </div>
           </div>
 
@@ -398,23 +420,47 @@ export default function LocationPage() {
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 50, opacity: 0 }}
-                  className="bg-white/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-white"
+                  className="bg-white/95 backdrop-blur-xl p-6 rounded-[3rem] shadow-2xl border border-white"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-5">
                     <div className="space-y-1">
-                      <Badge className="bg-destructive/10 text-destructive border-none text-[8px] font-black uppercase px-2">
-                        Nearest Care Node
-                      </Badge>
-                      <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 leading-none truncate">{selectedHospital.name}</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedHospital.distance} Away • {selectedHospital.time} ETA</p>
+                      <div className="flex items-center gap-2">
+                        <Badge className={cn("border-none text-[8px] font-black uppercase px-2 py-0.5", 
+                          selectedHospital.size === 'Large' ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600")}>
+                          {selectedHospital.size} Care Node
+                        </Badge>
+                        <Badge className="bg-emerald-100 text-emerald-600 border-none text-[8px] font-black uppercase px-2 py-0.5">
+                          {selectedHospital.status}
+                        </Badge>
+                      </div>
+                      <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 leading-tight pt-1">{selectedHospital.name}</h3>
+                      <div className="flex items-center gap-4 pt-1">
+                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                           <MapPin className="h-3 w-3 text-primary" /> {selectedHospital.distance}
+                         </div>
+                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                           <Clock className="h-3 w-3 text-primary" /> {selectedHospital.time} ETA
+                         </div>
+                      </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-primary bg-primary/5">
-                      <PhoneCall className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-primary bg-primary/5 hover:bg-primary hover:text-white transition-all">
+                      <PhoneCall className="h-5 w-5" />
                     </Button>
                   </div>
                   
-                  <Button className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[10px] transition-all">
-                    Establish Routing <ArrowRight className="h-3 w-3 ml-2" />
+                  <div className="grid grid-cols-2 gap-3 mb-5">
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                      <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Classification</p>
+                      <p className="text-[10px] font-black uppercase text-slate-700">{selectedHospital.type}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                      <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Specialty</p>
+                      <p className="text-[10px] font-black uppercase text-slate-700">{selectedHospital.specialty}</p>
+                    </div>
+                  </div>
+                  
+                  <Button className="w-full h-14 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-[11px] transition-all shadow-xl">
+                    Establish Rescue Routing <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </motion.div>
               )}
@@ -425,4 +471,3 @@ export default function LocationPage() {
     </div>
   );
 }
-
