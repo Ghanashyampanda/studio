@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -41,26 +40,26 @@ export default function ForgotPasswordPage() {
         <div className="p-8 sm:p-10">
           <div className="flex items-center justify-between mb-8">
             <Link href="/login">
-              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
               </div>
             </Link>
           </div>
 
-          <h1 className="text-2xl font-bold text-[#1F2937] mb-3 leading-tight">Forgot Password</h1>
-          <p className="text-sm text-gray-500 font-medium leading-relaxed mb-10">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">Forgot Password</h1>
+          <p className="text-sm text-gray-700 font-bold leading-relaxed mb-10">
             Enter the email address registered with your account. We'll send you a link to reset your password.
           </p>
 
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
                 <div className="relative">
                   <Input
                     type="email"
                     required
-                    className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all"
+                    className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900"
                     placeholder="Rhebek@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -81,12 +80,12 @@ export default function ForgotPasswordPage() {
               <div className="h-16 w-16 bg-blue-50 text-[#2563EB] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Mail className="h-8 w-8" />
               </div>
-              <h3 className="text-lg font-bold text-[#1F2937] mb-2">Check your email</h3>
-              <p className="text-sm text-gray-500 font-medium mb-8">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Check your email</h3>
+              <p className="text-sm text-gray-700 font-bold mb-8">
                 We've sent password reset instructions to your email.
               </p>
               <Link href="/login">
-                <Button variant="outline" className="h-12 rounded-xl border-gray-200 text-gray-700 font-bold px-8">
+                <Button variant="outline" className="h-12 rounded-xl border-gray-200 text-gray-900 font-bold px-8">
                   Back to Login
                 </Button>
               </Link>
@@ -94,7 +93,7 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="mt-8 text-center">
-            <p className="text-sm font-medium text-gray-400">
+            <p className="text-sm font-bold text-gray-700">
               Remembered password? <Link href="/login" className="text-[#2563EB] font-bold hover:underline">Login to your account</Link>
             </p>
           </div>

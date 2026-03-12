@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -71,11 +70,11 @@ export default function LoginPage() {
           <div className="flex items-center justify-between mb-8">
             <Link href="/">
               <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
               </div>
             </Link>
-            <h1 className="text-xl font-bold text-[#1F2937]">Login</h1>
-            <div className="w-10" /> {/* Spacer for centering */}
+            <h1 className="text-xl font-bold text-gray-900">Login</h1>
+            <div className="w-10" />
           </div>
 
           {/* Google Login */}
@@ -83,7 +82,7 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             onClick={handleGoogleLogin}
-            className="w-full h-14 rounded-2xl bg-white border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all"
+            className="w-full h-14 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -96,21 +95,21 @@ export default function LoginPage() {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-100" />
+              <span className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-4 text-gray-400 font-medium">or sign in with</span>
+              <span className="bg-white px-4 text-gray-500 font-bold uppercase tracking-wider">or sign in with</span>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
               <Input
                 type="email"
                 required
-                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-300"
+                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900"
                 placeholder="Rhebek@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -119,7 +118,7 @@ export default function LoginPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Password</label>
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-widest">Password</label>
                 <Link href="/forgot-password" title="Recover Password" className="text-xs font-bold text-[#2563EB] hover:underline">
                   Forgot Password?
                 </Link>
@@ -128,7 +127,7 @@ export default function LoginPage() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   required
-                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-300"
+                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -136,7 +135,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -155,8 +154,8 @@ export default function LoginPage() {
             )}
 
             <div className="flex items-center space-x-2 py-1 ml-1">
-              <Checkbox id="remember" className="rounded-md border-gray-200 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
-              <label htmlFor="remember" className="text-xs font-bold text-gray-500 cursor-pointer select-none">
+              <Checkbox id="remember" className="rounded-md border-gray-300 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
+              <label htmlFor="remember" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
                 Keep me signed in
               </label>
             </div>
@@ -170,7 +169,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-sm font-medium text-gray-500">
+          <p className="mt-8 text-center text-sm font-bold text-gray-700">
             Don't have an Account? <Link href="/signup" className="text-[#2563EB] font-bold hover:underline">Sign up here</Link>
           </p>
         </div>

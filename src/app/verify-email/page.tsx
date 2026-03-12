@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -49,9 +48,6 @@ export default function VerifyEmailPage() {
   };
 
   const handleVerify = () => {
-    // Note: Standard Firebase uses link verification. 
-    // This OTP UI is for simulation or can be linked to a custom backend flow.
-    // For now, we'll just check if verified.
     if (user) {
       user.reload().then(() => {
         if (user.emailVerified) {
@@ -71,20 +67,20 @@ export default function VerifyEmailPage() {
         <div className="p-8 sm:p-10">
           <div className="flex items-center justify-between mb-8">
             <Link href="/signup">
-              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
               </div>
             </Link>
           </div>
 
-          <h1 className="text-2xl font-bold text-[#1F2937] mb-3 leading-tight">Please verify your email address</h1>
-          <p className="text-sm text-gray-500 font-medium leading-relaxed mb-10">
-            We've sent an email to <span className="font-bold text-gray-700">{user?.email || "your email"}</span>, please enter the code below.
+          <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">Please verify your email address</h1>
+          <p className="text-sm text-gray-700 font-bold leading-relaxed mb-10">
+            We've sent an email to <span className="font-bold text-gray-900">{user?.email || "your email"}</span>, please enter the code below.
           </p>
 
           <div className="space-y-8">
             <div className="space-y-4">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Enter Code</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Enter Code</label>
               <div className="flex justify-between gap-2">
                 {otp.map((digit, idx) => (
                   <input
@@ -94,7 +90,7 @@ export default function VerifyEmailPage() {
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    className="w-12 h-14 bg-gray-50 border-2 border-transparent rounded-xl text-center text-xl font-bold focus:bg-white focus:border-[#2563EB] outline-none transition-all"
+                    className="w-12 h-14 bg-gray-50 border-2 border-transparent rounded-xl text-center text-xl font-bold text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none transition-all"
                   />
                 ))}
               </div>
@@ -104,10 +100,10 @@ export default function VerifyEmailPage() {
               onClick={handleVerify}
               className="w-full h-14 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/20 transition-all"
             >
-              Create Account
+              Verify Code
             </Button>
 
-            <p className="text-center text-sm font-medium text-gray-500">
+            <p className="text-center text-sm font-bold text-gray-700">
               Didn't see your email? <button onClick={handleResend} disabled={isResending} className="text-[#2563EB] font-bold hover:underline">
                 {isResending ? "Resending..." : "Resend"}
               </button>

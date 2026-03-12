@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -107,6 +106,18 @@ export default function SignupPage() {
     }
   };
 
+  const getPasswordStrength = () => {
+    if (!formData.password) return 0;
+    let strength = 0;
+    if (formData.password.length > 6) strength += 25;
+    if (/[A-Z]/.test(formData.password)) strength += 25;
+    if (/[0-9]/.test(formData.password)) strength += 25;
+    if (/[^A-Za-z0-9]/.test(formData.password)) strength += 25;
+    return strength;
+  };
+
+  const strength = getPasswordStrength();
+
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center p-4 sm:p-6">
       <motion.div 
@@ -119,10 +130,10 @@ export default function SignupPage() {
           <div className="flex items-center justify-between mb-8">
             <Link href="/">
               <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
               </div>
             </Link>
-            <h1 className="text-xl font-bold text-[#1F2937]">Signup</h1>
+            <h1 className="text-xl font-bold text-gray-900">Signup</h1>
             <div className="w-10" />
           </div>
 
@@ -130,7 +141,7 @@ export default function SignupPage() {
             type="button"
             variant="outline"
             onClick={handleGoogleSignup}
-            className="w-full h-14 rounded-2xl bg-white border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all"
+            className="w-full h-14 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -143,20 +154,20 @@ export default function SignupPage() {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-100" />
+              <span className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-4 text-gray-400 font-medium">or sign up with</span>
+              <span className="bg-white px-4 text-gray-500 font-bold uppercase tracking-wider">or sign up with</span>
             </div>
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Full Name</label>
               <Input
                 name="fullName"
                 required
-                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all"
+                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900"
                 placeholder="Becca Ade"
                 value={formData.fullName}
                 onChange={handleChange}
@@ -164,12 +175,12 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
               <Input
                 name="email"
                 type="email"
                 required
-                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all"
+                className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900"
                 placeholder="Rhebek@gmail.com"
                 value={formData.email}
                 onChange={handleChange}
@@ -177,13 +188,13 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Password</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Password</label>
               <div className="relative">
                 <Input
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all"
+                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
@@ -191,38 +202,41 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              {formData.password && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex gap-1 h-1 w-full rounded-full overflow-hidden bg-gray-100">
+                    <div className={`h-full transition-all duration-300 ${strength > 25 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${strength}%` }} />
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
+                    Strength: {strength < 50 ? 'Weak' : strength < 100 ? 'Fair' : 'Strong'}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Confirm Password</label>
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-widest ml-1">Confirm Password</label>
               <div className="relative">
                 <Input
                   name="confirmPassword"
                   type={showPassword ? "text" : "password"}
                   required
-                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all"
+                  className="h-14 bg-gray-50 border-transparent rounded-2xl px-5 pr-12 focus:bg-white focus:border-[#2563EB] transition-all text-gray-900"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
               </div>
             </div>
 
             <div className="flex items-start space-x-3 py-2 ml-1">
-              <Checkbox id="terms" required className="mt-1 rounded-md border-gray-200 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
-              <label htmlFor="terms" className="text-[10px] font-bold text-gray-400 leading-tight select-none">
+              <Checkbox id="terms" required className="mt-1 rounded-md border-gray-300 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
+              <label htmlFor="terms" className="text-[10px] font-bold text-gray-700 leading-tight select-none">
                 By Creating an Account, I accept HeatGuard AI <Link href="#" className="text-[#2563EB] hover:underline">Terms of Use</Link> and <Link href="#" className="text-[#2563EB] hover:underline">Privacy Policy</Link>
               </label>
             </div>
@@ -236,7 +250,7 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-sm font-medium text-gray-500">
+          <p className="mt-8 text-center text-sm font-bold text-gray-700">
             Have an Account? <Link href="/login" className="text-[#2563EB] font-bold hover:underline">Sign in here</Link>
           </p>
         </div>
