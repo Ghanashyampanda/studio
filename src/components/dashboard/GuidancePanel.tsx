@@ -23,7 +23,6 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
   const lastAnalyzedTemp = useRef<number | null>(null);
 
   const fetchGuidance = async (force = false) => {
-    // Stricter change detection: Only update if temperature changed by more than 0.5°C
     if (!force && lastAnalyzedTemp.current !== null && Math.abs(lastAnalyzedTemp.current - vitals.bodyTemperatureC) < 0.5) {
       return;
     }
@@ -42,7 +41,6 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
       setGuidance(result.guidance);
       lastAnalyzedTemp.current = vitals.bodyTemperatureC;
     } catch (err: any) {
-      // Server flow handles 429 now, but we catch others here
       console.error("Guidance error", err);
       setError("Sync Issue: Retrying...");
     } finally {
@@ -51,26 +49,25 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
   };
 
   useEffect(() => {
-    // Increased debounce to 5s
     const timer = setTimeout(() => fetchGuidance(), 5000);
     return () => clearTimeout(timer);
   }, [vitals.bodyTemperatureC]);
 
   return (
-    <Card className="h-full glass border-accent/20 bg-accent/5 rounded-3xl overflow-hidden">
-      <CardHeader className="bg-white/[0.02] border-b border-white/5 flex flex-row items-center justify-between p-6">
+    <Card className="bg-white border-border shadow-sm rounded-3xl overflow-hidden">
+      <CardHeader className="bg-muted/30 border-b border-border flex flex-row items-center justify-between p-6">
         <div>
-          <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight uppercase">
-            <ShieldCheck className="h-5 w-5 text-accent" />
+          <CardTitle className="text-lg flex items-center gap-3 font-bold tracking-tight uppercase text-foreground">
+            <ShieldCheck className="h-5 w-5 text-primary" />
             AI Protocol
           </CardTitle>
-          <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Active safety guidance</CardDescription>
+          <CardDescription className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Medical guidance center</CardDescription>
         </div>
-        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/10" onClick={() => fetchGuidance(true)} disabled={loading}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-muted" onClick={() => fetchGuidance(true)} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-8">
         {loading ? (
           <div className="space-y-4">
             <Skeleton className="h-4 w-full" />
@@ -80,18 +77,18 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
             <AlertTriangle className="h-8 w-8 text-secondary/60" />
-            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{error}</p>
+            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{error}</p>
           </div>
         ) : guidance ? (
-          <div className="text-sm prose prose-blue dark:prose-invert max-w-none">
-            <div className="whitespace-pre-line leading-relaxed text-muted-foreground font-medium">
+          <div className="prose prose-blue max-w-none">
+            <div className="whitespace-pre-line leading-relaxed text-muted-foreground font-medium text-base">
               {guidance}
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-4">
-            <Info className="h-10 w-10 text-muted-foreground mb-2 opacity-20" />
-            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">Initialize Protocol Scan</p>
+            <Info className="h-12 w-12 text-muted opacity-50" />
+            <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">Initialize Protocol Scan</p>
           </div>
         )}
       </CardContent>

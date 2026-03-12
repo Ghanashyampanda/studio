@@ -16,21 +16,21 @@ interface VitalsCardProps {
 
 export function VitalsCard({ title, value, unit, icon: Icon, status, trend }: VitalsCardProps) {
   const statusColors = {
-    normal: 'text-emerald-400',
-    warning: 'text-amber-400',
-    critical: 'text-secondary animate-pulse-subtle',
+    normal: 'text-emerald-500',
+    warning: 'text-secondary',
+    critical: 'text-destructive animate-pulse-subtle',
   };
 
-  const bgGradients = {
-    normal: 'from-emerald-500/5 to-transparent',
-    warning: 'from-amber-500/5 to-transparent',
-    critical: 'from-secondary/10 to-transparent',
+  const bgColors = {
+    normal: 'bg-white',
+    warning: 'bg-white',
+    critical: 'bg-white',
   };
 
   const borderColors = {
-    normal: 'border-white/5',
-    warning: 'border-amber-500/20',
-    critical: 'border-secondary/30',
+    normal: 'border-border',
+    warning: 'border-secondary/30',
+    critical: 'border-destructive/30',
   };
 
   return (
@@ -39,27 +39,29 @@ export function VitalsCard({ title, value, unit, icon: Icon, status, trend }: Vi
       transition={{ type: "spring", stiffness: 300 }}
     >
       <Card className={cn(
-        "glass overflow-hidden border transition-all duration-300 relative",
+        "rounded-3xl border shadow-sm transition-all duration-300 relative overflow-hidden",
+        bgColors[status],
         borderColors[status]
       )}>
-        <div className={cn("absolute inset-0 bg-gradient-to-br -z-10 opacity-30", bgGradients[status])} />
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {title}
           </CardTitle>
-          <Icon className={cn("h-5 w-5", statusColors[status])} />
+          <div className={cn("h-8 w-8 rounded-full flex items-center justify-center bg-muted", statusColors[status])}>
+            <Icon className="h-4 w-4" />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-baseline space-x-1">
             <div className={cn("text-4xl font-black font-headline tracking-tighter", statusColors[status])}>
               {typeof value === 'number' ? value.toFixed(1) : value}
             </div>
-            <div className="text-sm font-bold text-muted-foreground opacity-60">{unit}</div>
+            <div className="text-xs font-bold text-muted-foreground">{unit}</div>
           </div>
           {trend && (
-            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-              <span className="text-[10px] font-bold text-muted-foreground">REAL-TIME TREND</span>
-              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full glass", statusColors[status])}>
+            <div className="mt-4 pt-4 border-t border-muted flex items-center justify-between">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">Trend</span>
+              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted", statusColors[status])}>
                 {trend.toUpperCase()}
               </span>
             </div>

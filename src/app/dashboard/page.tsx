@@ -75,24 +75,30 @@ export default function DashboardPage() {
   const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 20 ? 'warning' : 'normal';
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pt-24">
-      <main className="p-8 space-y-10 max-w-[1600px] mx-auto w-full">
+    <div className="min-h-screen bg-background text-foreground pt-28">
+      <main className="p-8 space-y-10 max-w-7xl mx-auto w-full">
         {/* Vitals Summary Grid */}
-        <div className="mb-10">
-          <h2 className="text-3xl font-black tracking-tighter uppercase mb-1">REAL-TIME <span className="text-primary">VITALS</span></h2>
-          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">Active Physiological Node: {user.uid.slice(0, 8)}</p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground uppercase">Medical <span className="text-primary">Dashboard</span></h2>
+            <p className="text-sm text-muted-foreground font-medium">Real-time physiological surveillance for UID: {user.uid.slice(0, 8)}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Secure AI Link Active</span>
+          </div>
         </div>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
           <VitalsCard 
-            title="Body Core Temp" 
+            title="Core Temp" 
             value={latestVitals.bodyTemperatureC} 
             unit="°C" 
             icon={Thermometer} 
             status={tempStatus}
           />
           <VitalsCard 
-            title="Cardiac Rhythm" 
+            title="Heart Rate" 
             value={latestVitals.heartRateBPM} 
             unit="BPM" 
             icon={Activity} 
@@ -115,12 +121,12 @@ export default function DashboardPage() {
         </section>
 
         {/* Detailed Panels */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-          <div className="xl:col-span-2 space-y-10">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2 space-y-8">
             <RiskAssessment vitals={latestVitals} />
             <GuidancePanel vitals={latestVitals} />
           </div>
-          <div className="space-y-10">
+          <div className="space-y-8">
             <SOSPanel />
             <ConfigPanel />
           </div>

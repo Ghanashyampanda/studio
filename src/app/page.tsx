@@ -19,29 +19,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground">
       {/* Animated Heat Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/5 rounded-full blur-[120px] animate-pulse" />
 
       {/* Hero Section */}
-      <section className="relative pt-48 pb-20 px-6">
+      <section className="relative pt-48 pb-24 px-6">
         <div className="max-w-5xl mx-auto text-center space-y-8">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em]"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em]"
           >
             <Brain className="h-3 w-3" />
-            Predictive Thermal Intelligence
+            AI-BASED SUNSTROKE DETECTION
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]"
+            className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] text-foreground"
           >
-            AI-BASED <span className="text-gradient">SUNSTROKE</span> DETECTION
+            SMART THERMAL <br /><span className="text-primary">PROTECTION</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -49,144 +49,101 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed"
           >
-            Real-time biometric monitoring and environmental analysis to stop heat-related emergencies before they happen.
+            Advanced biometric monitoring and real-time environmental analysis to predict and prevent heat-related emergencies.
           </motion.p>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6"
           >
             <Link href="/dashboard">
-              <Button onClick={handleGetStarted} size="lg" className="h-16 px-10 text-lg font-black bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/30 w-full sm:w-auto rounded-2xl uppercase tracking-tighter">
-                LAUNCH REAL-TIME SCAN <ArrowRight className="ml-2 h-6 w-6" />
+              <Button onClick={handleGetStarted} size="lg" className="h-16 px-10 text-lg font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 w-full sm:w-auto rounded-2xl uppercase tracking-tighter">
+                Get Started <ArrowRight className="ml-2 h-6 w-6" />
               </Button>
             </Link>
+            <Button variant="outline" size="lg" className="h-16 px-10 text-lg font-bold border-muted-foreground/20 hover:bg-muted w-full sm:w-auto rounded-2xl uppercase tracking-tighter">
+              Learn More
+            </Button>
           </motion.div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-32 px-6 relative">
+      {/* Workflow Section */}
+      <section id="how-it-works" className="py-32 px-6 bg-muted/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24 space-y-4">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">SMART WORKFLOW</h2>
-            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Four layers of protection against extreme heat.</p>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-foreground">Protocol Workflow</h2>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">A professional multi-stage safety protocol.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 relative">
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-primary/0 via-primary/20 to-primary/0 hidden md:block -translate-y-1/2 -z-10" />
-            
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <WorkflowStep 
               number="01" 
               icon={Smartphone} 
-              title="Sync Devices" 
-              description="Connect your smartwatch or wearable to begin real-time data streaming." 
+              title="Secure Sync" 
+              description="Connect your biometric sensors and establish a secure data stream." 
             />
             <WorkflowStep 
               number="02" 
               icon={Waves} 
               title="Thermal Scan" 
-              description="AI analyzes body core temp and environmental heat index every 30 seconds." 
+              description="AI continuously monitors core temperature and environmental heat index." 
             />
             <WorkflowStep 
               number="03" 
               icon={Brain} 
               title="Risk Analysis" 
-              description="If core temp hits 40°C, the system identifies a critical sunstroke state." 
+              description="Our neural engine assesses physiological risk every 10 seconds." 
             />
             <WorkflowStep 
               number="04" 
               icon={Bell} 
-              title="SOS Trigger" 
-              description="Emergency alerts with live location are sent to your network instantly." 
+              title="Emergency SOS" 
+              description="Automatic alerts are dispatched to your network upon critical detection." 
             />
           </div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-32 px-6 glass bg-white/5 border-y border-white/5">
+      <section id="features" className="py-32 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-24 space-y-4">
             <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">Defensive Layers</h2>
-            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Engineered for the most extreme environments on Earth.</p>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Engineered for absolute reliability.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={ActivitySquare} 
               title="Deep Learning Risk" 
-              description="Proprietary neural networks predict physiological failure points based on historical trends."
+              description="Predictive models analyze heart rate variability and core temperature trends."
             />
             <FeatureCard 
               icon={Globe} 
-              title="Hyper-Local GPS" 
-              description="Broadcasts your precise coordinates to emergency services and contacts during an alert."
+              title="Live GPS Nodes" 
+              description="Instant location broadcasting to emergency services during a critical state."
             />
             <FeatureCard 
               icon={Clock} 
               title="10-Sec SOS" 
-              description="Automated countdown allows for false-alert cancellation before SOS broadcast."
-            />
-            <FeatureCard 
-              icon={Thermometer} 
-              title="Env-Sync AI" 
-              description="Calculates real-feel heat indices by combining biometric data with local weather APIs."
-            />
-            <FeatureCard 
-              icon={Shield} 
-              title="Encrypted Data" 
-              description="Your biometric data is fully encrypted and stored securely on our decentralized network."
-            />
-            <FeatureCard 
-              icon={Heart} 
-              title="Vital Resilience" 
-              description="Monitors heart rate variability (HRV) to gauge your body's recovery and heat tolerance."
+              description="Autonomous countdown protocol with manual cancellation override."
             />
           </div>
-        </div>
-      </section>
-
-      {/* Future Vision Section */}
-      <section id="vision" className="py-32 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="glass rounded-[3rem] p-12 md:p-20 border-white/10 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-12 opacity-10">
-              <Sun className="h-64 w-64 animate-spin-slow" />
-            </div>
-            <div className="max-w-2xl space-y-8 relative z-10">
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight uppercase">FUTURE OF <br /><span className="text-primary">THERMAL SAFETY</span></h2>
-              <div className="space-y-6">
-                <VisionItem title="HOSPITAL INTEGRATION" description="Direct vitals streaming to local ER triage systems for immediate medical prep." />
-                <VisionItem title="PREDICTIVE WARNINGS" description="AI alerts sent 2 hours before a heatwave reaches dangerous levels for your profile." />
-                <VisionItem title="VOICE COMMAND SOS" description="Hands-free emergency triggering via natural language processing." />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="py-32 px-6 border-t border-white/5">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
-          <h2 className="text-4xl font-black uppercase tracking-tighter">About the Project</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            HeatGuard AI was born from the intersection of wearable technology and preventative healthcare. Our mission is to eliminate heat-related fatalities through intelligent, proactive monitoring and autonomous emergency protocols. Designed for athletes, outdoor workers, and vulnerable populations.
-          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-20 px-6 border-t border-white/5">
+      <footer className="py-20 px-6 border-t border-muted">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="flex items-center gap-2">
             <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-black tracking-tighter">HEATGUARD AI</span>
+            <span className="text-xl font-bold tracking-tight">HEATGUARD AI</span>
           </div>
           <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">© 2026 Thermal Defense Systems. All Rights Reserved.</p>
           <div className="flex gap-8">
-            <Link href="#" className="text-xs font-bold hover:text-white transition-colors uppercase tracking-widest">Privacy</Link>
-            <Link href="#" className="text-xs font-bold hover:text-white transition-colors uppercase tracking-widest">System Status</Link>
+            <Link href="#" className="text-xs font-bold hover:text-primary transition-colors uppercase tracking-widest">Privacy</Link>
+            <Link href="#" className="text-xs font-bold hover:text-primary transition-colors uppercase tracking-widest">Status</Link>
           </div>
         </div>
       </footer>
@@ -196,39 +153,25 @@ export default function Home() {
 
 function WorkflowStep({ number, icon: Icon, title, description }: { number: string, icon: any, title: string, description: string }) {
   return (
-    <div className="space-y-6 relative group">
-      <div className="text-5xl font-black text-white/5 absolute -top-10 -left-4 group-hover:text-primary/10 transition-colors">{number}</div>
-      <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-xl">
-        <Icon className="h-8 w-8" />
+    <div className="p-8 rounded-3xl bg-white border border-border shadow-sm hover:shadow-medical transition-all group">
+      <div className="text-4xl font-black text-muted mb-4 group-hover:text-primary/20 transition-colors">{number}</div>
+      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-all">
+        <Icon className="h-6 w-6" />
       </div>
-      <div className="space-y-2">
-        <h3 className="text-xl font-bold uppercase tracking-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-      </div>
+      <h3 className="text-lg font-bold uppercase tracking-tight mb-2 text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }
 
 function FeatureCard({ icon: Icon, title, description }: { icon: any, title: string, description: string }) {
   return (
-    <div className="p-10 rounded-3xl glass hover:bg-white/10 transition-all group border-white/5 border hover:border-primary/20">
-      <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-8 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-500">
+    <div className="p-10 rounded-3xl bg-white border border-border shadow-sm hover:shadow-medical transition-all group">
+      <div className="h-14 w-14 rounded-2xl bg-secondary/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-secondary group-hover:text-white transition-all">
         <Icon className="h-7 w-7" />
       </div>
-      <h3 className="text-2xl font-bold mb-4 tracking-tight uppercase">{title}</h3>
+      <h3 className="text-2xl font-bold mb-4 tracking-tight uppercase text-foreground">{title}</h3>
       <p className="text-muted-foreground leading-relaxed font-medium">{description}</p>
-    </div>
-  );
-}
-
-function VisionItem({ title, description }: { title: string, description: string }) {
-  return (
-    <div className="flex gap-6 group">
-      <div className="h-2 w-2 rounded-full bg-primary mt-2 group-hover:scale-150 transition-transform" />
-      <div className="space-y-1">
-        <h4 className="text-lg font-black tracking-tight uppercase">{title}</h4>
-        <p className="text-muted-foreground text-sm font-medium">{description}</p>
-      </div>
     </div>
   );
 }

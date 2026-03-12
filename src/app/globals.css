@@ -4,49 +4,49 @@
 
 @layer base {
   :root {
-    /* Professional Light Theme (White Background) */
+    /* Professional Medical Theme (Pure White Background) */
     --background: 0 0% 100%;
-    --foreground: 220 50% 2%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 50% 2%;
+    --foreground: 215 28% 17%; /* Dark Gray #1F2937 */
+    --card: 220 33% 97%; /* Soft Gray #F5F7FA */
+    --card-foreground: 215 28% 17%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 50% 2%;
-    --primary: 20 100% 55%; /* Safety Orange */
+    --popover-foreground: 215 28% 17%;
+    --primary: 221 83% 53%; /* Medical Blue #2563EB */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 100% 50%; /* Crisis Red */
+    --secondary: 16 100% 60%; /* Deep Orange #FF6B35 */
     --secondary-foreground: 0 0% 100%;
-    --muted: 220 10% 96%;
-    --muted-foreground: 220 10% 40%;
-    --accent: 40 100% 60%; /* Warning Yellow */
-    --accent-foreground: 220 50% 2%;
-    --destructive: 0 100% 50%;
+    --muted: 220 33% 97%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 40 100% 67%; /* Sun Yellow #FFC857 */
+    --accent-foreground: 215 28% 17%;
+    --destructive: 0 84% 60%; /* Critical Red #EF4444 */
     --destructive-foreground: 0 0% 100%;
-    --border: 220 10% 90%;
-    --input: 220 10% 90%;
-    --ring: 20 100% 55%;
+    --border: 215 32% 91%;
+    --input: 215 32% 91%;
+    --ring: 221 83% 53%;
     --radius: 1rem;
   }
 
   .dark {
-    --background: 220 50% 2%; /* Deep Navy Black */
-    --foreground: 0 0% 100%;
-    --card: 220 50% 4%;
-    --card-foreground: 0 0% 100%;
-    --popover: 220 50% 4%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 20 100% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 100% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 20% 10%;
-    --muted-foreground: 220 10% 60%;
-    --accent: 40 100% 60%;
-    --accent-foreground: 0 0% 5%;
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 100% / 0.08;
-    --input: 0 0% 100% / 0.08;
-    --ring: 20 100% 55%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 16 100% 60%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 40 100% 67%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 224 76% 48%;
   }
 }
 
@@ -57,40 +57,31 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
     background-image: 
-      radial-gradient(circle at 0% 0%, hsla(20, 100% , 55%, 0.03) 0%, transparent 45%),
-      radial-gradient(circle at 100% 100%, hsla(0, 100%, 50%, 0.03) 0%, transparent 45%);
+      radial-gradient(circle at 0% 0%, hsla(221, 83%, 53%, 0.02) 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, hsla(16, 100%, 60%, 0.02) 0%, transparent 45%);
     background-attachment: fixed;
   }
 }
 
 .glass {
-  @apply backdrop-blur-md bg-white/70 border border-white/20 shadow-lg;
+  @apply backdrop-blur-md bg-white/70 border border-white/20 shadow-sm;
 }
 
-.glass-dark {
-  @apply backdrop-blur-md bg-black/70 border border-white/10 shadow-xl;
+.shadow-medical {
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.05), 0 8px 10px -6px rgba(37, 99, 235, 0.05);
 }
 
-.text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-secondary;
+.text-gradient-medical {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
 }
 
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); }
-  50% { box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
 }
 
 .animate-pulse-red {
   animation: pulse-red 2s infinite;
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
 }
 
 h1, h2, h3, .font-headline {
