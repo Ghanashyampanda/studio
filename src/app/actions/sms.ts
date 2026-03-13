@@ -1,18 +1,6 @@
 
 'use server';
 
-import twilio from 'twilio';
-
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
-
-// Initialize Twilio client lazily to avoid errors if credentials are missing during build
-const getTwilioClient = () => {
-  if (!accountSid || !authToken) return null;
-  return twilio(accountSid, authToken);
-};
-
 /**
  * Sends an emergency SMS via Twilio.
  * @param to The recipient's phone number in E.164 format.
@@ -20,10 +8,12 @@ const getTwilioClient = () => {
  * @returns An object indicating success or failure.
  */
 export async function sendEmergencySms(to: string, message: string) {
-  const client = getTwilioClient();
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
 
-  if (!client || !twilioPhone) {
-    console.error('Twilio credentials not configured in environment variables.');
+  if (!accountSid || !authToken || !twilioPhone) {
+    console.warn('Twilio credentials not configured in environment variables.');
     return { 
       success: false, 
       error: 'Twilio not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER.' 
@@ -31,13 +21,16 @@ export async function sendEmergencySms(to: string, message: string) {
   }
 
   try {
+    // Dynamic import to ensure Twilio is only loaded in the server environment
+    const twilio = (await import('twilio')).default;
+    const client = twilio(accountSid, authToken);
+    
     const response = await client.messages.create({
       body: message,
       from: twilioPhone,
       to: to,
     });
     
-    console.log(`SMS successfully dispatched. SID: ${response.sid}`);
     return { success: true, sid: response.sid };
   } catch (error: any) {
     console.error('Twilio Dispatch Error:', error);
