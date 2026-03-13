@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -9,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Smartphone, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Smartphone, ExternalLink, CheckCircle2, BellRing } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { sendEmergencyAlert } from '@/app/actions/alerts';
+import { sendEmergencyFcm, sendEmergencyAlert } from '@/app/actions/alerts';
 
 const COUNTRY_CODES = [
   { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
@@ -27,8 +26,8 @@ export function SOSPanel() {
   const { toast } = useToast();
   const [newName, setNewName] = useState('');
   const [newContact, setNewContact] = useState('');
-  const [newType, setNewType] = useState<'phone' | 'email'>('phone');
-  const [countryCode, setCountryCode] = useState('US');
+  const [newType, setNewType] = useState<'phone' | 'email' | 'fcm'>('phone');
+  const [countryCode, setCountryCode] = useState('IN');
   const [isDispatching, setIsDispatching] = useState(false);
   const [lastMessage, setLastMessage] = useState<{ to: string, body: string } | null>(null);
 
@@ -46,9 +45,12 @@ export function SOSPanel() {
     }
     if (!newName || !newContact) return;
 
-    const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
-    const dialPrefix = selectedCountry?.dial_code || '+1';
-    const formattedContact = newType === 'phone' ? `${dialPrefix}${newContact.replace(/^\+/, '')}` : newContact;
+    let formattedContact = newContact;
+    if (newType === 'phone') {
+      const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
+      const dialPrefix = selectedCountry?.dial_code || '+1';
+      formattedContact = `${dialPrefix}${newContact.replace(/^\+/, '')}`;
+    }
 
     const contactsRef = collection(db, 'users', user.uid, 'emergency_contacts');
     addDocumentNonBlocking(contactsRef, {
@@ -56,6 +58,8 @@ export function SOSPanel() {
       name: newName,
       phoneNumber: newType === 'phone' ? formattedContact : '',
       email: newType === 'email' ? formattedContact : '',
+      fcmToken: newType === 'fcm' ? formattedContact : '',
+      type: newType,
       isPrimary: (contacts?.length || 0) === 0,
       enabledForAlerts: true,
       dateAdded: new Date().toISOString()
@@ -76,46 +80,27 @@ export function SOSPanel() {
   const handleManualSOS = async () => {
     if (!db || !user) return;
     
-    const phoneNodes = contacts?.filter(c => c.phoneNumber) || [];
-    if (phoneNodes.length === 0) {
-      toast({ 
-        title: "No Phone Nodes", 
-        description: "Please establish at least one phone node for dispatch.", 
-        variant: "destructive" 
-      });
+    if (!contacts || contacts.length === 0) {
+      toast({ title: "No Nodes", description: "Establish at least one rescue node.", variant: "destructive" });
       return;
     }
 
     setIsDispatching(true);
     setLastMessage(null);
     
-    const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
     const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Sequence through 3 bursts
     for (let i = 1; i <= 3; i++) {
-      await sendEmergencyAlert(primaryNode.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
-      setLastMessage({ to: primaryNode.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
+      for (const contact of contacts) {
+        if (contact.type === 'fcm' && contact.fcmToken) {
+          await sendEmergencyFcm(contact.fcmToken, `[BURST ${i}/3] ${emergencyMessage}`);
+        } else if (contact.phoneNumber) {
+          await sendEmergencyAlert(contact.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
+          setLastMessage({ to: contact.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
+        }
+      }
       
-      toast({
-        title: `CLOUD ALERT ${i}/3 SENT`,
-        description: `Automated dispatch cycle in progress.`,
-      });
-
-      const historyRef = collection(db, 'users', user.uid, 'alert_history');
-      addDocumentNonBlocking(historyRef, {
-        userId: user.uid,
-        triggerTimestamp: new Date().toISOString(),
-        alertType: `Manual SOS (Burst ${i}/3)`,
-        status: 'sent',
-        bodyTemperatureAtAlertC: 37.0, 
-        locationAtAlertLatitude: 40.7128, 
-        locationAtAlertLongitude: -74.0060,
-        alertMessage: emergencyMessage,
-        emergencyContactIds: [primaryNode.id],
-        protocol: 'Firebase Cloud Bridge'
-      });
-      
+      toast({ title: `CLOUD DISPATCH ${i}/3`, description: `Triple-redundancy cycle in progress.` });
       if (i < 3) await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
@@ -137,7 +122,7 @@ export function SOSPanel() {
         </CardTitle>
         <div className="flex items-center gap-2">
            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Cloud Ready</span>
+           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">FCM Ready</span>
         </div>
       </CardHeader>
       <CardContent className="space-y-6 p-6">
@@ -145,23 +130,20 @@ export function SOSPanel() {
           {contacts?.map(contact => (
             <div key={contact.id} className="flex items-center justify-between p-4 border border-border rounded-2xl bg-muted/30 group hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                  {contact.phoneNumber ? <Phone className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  {contact.type === 'fcm' ? <BellRing className="h-5 w-5" /> : contact.phoneNumber ? <Phone className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
                 </div>
-                <div>
+                <div className="max-w-[150px]">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-foreground">{contact.name}</p>
+                    <p className="text-sm font-bold text-foreground truncate">{contact.name}</p>
                     {contact.isPrimary && <CheckCircle2 className="h-3 w-3 text-primary" />}
                   </div>
-                  <p className="text-[10px] font-mono text-muted-foreground uppercase">{contact.phoneNumber || contact.email}</p>
+                  <p className="text-[9px] font-mono text-muted-foreground uppercase truncate">
+                    {contact.type === 'fcm' ? 'Firebase Cloud Push' : contact.phoneNumber || contact.email}
+                  </p>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-muted-foreground hover:text-destructive"
-                onClick={() => handleDelete(contact.id)}
-              >
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDelete(contact.id)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -182,11 +164,17 @@ export function SOSPanel() {
                 <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Protocol</Label>
-                <div className="flex gap-2">
-                  <Button variant={newType === 'phone' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('phone')}>PHONE</Button>
-                  <Button variant={newType === 'email' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('email')}>EMAIL</Button>
-                </div>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Type</Label>
+                <Select value={newType} onValueChange={(v: any) => setNewType(v)}>
+                  <SelectTrigger className="h-11 bg-muted/30 border-border rounded-xl text-[10px] font-bold uppercase">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="phone">Phone/SMS</SelectItem>
+                    <SelectItem value="fcm">Firebase Push</SelectItem>
+                    <SelectItem value="email">Email</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -198,11 +186,7 @@ export function SOSPanel() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {COUNTRY_CODES.map(c => (
-                        <SelectItem key={c.code} value={c.code}>
-                          {c.flag}
-                        </SelectItem>
-                      ))}
+                      {COUNTRY_CODES.map(c => <SelectItem key={c.code} value={c.code}>{c.flag}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )}
@@ -210,7 +194,7 @@ export function SOSPanel() {
                   className="h-11 bg-muted/30 border-border rounded-xl text-sm flex-1" 
                   value={newContact} 
                   onChange={e => setNewContact(e.target.value)} 
-                  placeholder={newType === 'phone' ? 'Number' : 'Email'} 
+                  placeholder={newType === 'phone' ? 'Number' : newType === 'fcm' ? 'FCM Token' : 'Email'} 
                 />
                 <Button size="icon" className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90" onClick={handleAdd} disabled={!newName || !newContact}>
                   <UserPlus className="h-5 w-5" />
@@ -222,19 +206,11 @@ export function SOSPanel() {
       </CardContent>
       <CardFooter className="p-6 pt-0 flex flex-col gap-3">
         {lastMessage ? (
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl h-14 rounded-2xl uppercase text-xs animate-bounce" 
-            onClick={handleNativeFallback}
-          >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Dispatch Real Native SMS
+          <Button className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl h-14 rounded-2xl uppercase text-xs animate-bounce" onClick={handleNativeFallback}>
+            <ExternalLink className="mr-2 h-4 w-4" /> Dispatch Real Native SMS
           </Button>
         ) : (
-          <Button 
-            disabled={isDispatching}
-            className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl h-14 rounded-2xl uppercase text-[10px]" 
-            onClick={handleManualSOS}
-          >
+          <Button disabled={isDispatching} className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl h-14 rounded-2xl uppercase text-[10px]" onClick={handleManualSOS}>
             {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
             Trigger SOS Protocol
           </Button>
