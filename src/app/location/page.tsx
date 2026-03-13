@@ -51,7 +51,7 @@ const FACILITY_DATABASE = [
 ];
 
 const MAP_LAYERS = [
-  { id: 'mapnik', name: 'Standard', icon: MapIcon },
+  { id: 'roadmap', name: 'Standard', icon: MapIcon },
   { id: 'satellite', name: 'Satellite', icon: Globe },
 ];
 
@@ -65,7 +65,7 @@ export default function LocationPage() {
   const [selectedHospital, setSelectedHospital] = useState<any>(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [currentLayer, setCurrentLayer] = useState('mapnik');
+  const [currentLayer, setCurrentLayer] = useState('roadmap');
   const [isTacticalMode, setIsTacticalMode] = useState(false);
   const [accuracy, setAccuracy] = useState<number | null>(null);
 
@@ -171,10 +171,12 @@ export default function LocationPage() {
   };
 
   const getMapSrc = () => {
-    if (currentLayer === 'satellite') {
-      return `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&t=k&z=18&ie=UTF8&iwloc=&output=embed`;
-    }
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${coords.lng-0.003}%2C${coords.lat-0.003}%2C${coords.lng+0.003}%2C${coords.lat+0.003}&layer=mapnik&marker=${coords.lat}%2C${coords.lng}`;
+    // Google Maps Embed URL parameters:
+    // t=m: Roadmap
+    // t=k: Satellite
+    const mapType = currentLayer === 'satellite' ? 'k' : 'm';
+    const zoomLevel = currentLayer === 'satellite' ? 19 : 15;
+    return `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&t=${mapType}&z=${zoomLevel}&ie=UTF8&iwloc=&output=embed`;
   };
 
   if (isUserLoading) return null;
@@ -225,7 +227,7 @@ export default function LocationPage() {
              </div>
           </div>
 
-          {/* Selected Hospital Details (Outside Map) */}
+          {/* Selected Hospital Details (Relocated Outside Map) */}
           <AnimatePresence mode="wait">
             {selectedHospital && (
               <motion.div 
@@ -246,7 +248,7 @@ export default function LocationPage() {
                       <div className="flex items-center gap-2">
                         <Badge className={cn("border-none text-[8px] font-black uppercase px-2 py-0.5", 
                           selectedHospital.size === 'Big' ? "bg-blue-500/20 text-blue-400" : "bg-orange-500/20 text-orange-400")}>
-                          {selectedHospital.size} Care Node
+                          {selectedHospital.size} Hospital Node
                         </Badge>
                       </div>
                       <h3 className="text-lg font-black uppercase tracking-tight leading-tight pt-1">{selectedHospital.name}</h3>
@@ -354,7 +356,7 @@ export default function LocationPage() {
                 <p className="text-[9px] font-black uppercase tracking-widest text-primary">Status</p>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-lg font-mono font-black tracking-tighter uppercase">Ready</p>
+                  <p className="text-lg font-mono font-black tracking-tighter uppercase">Live</p>
                 </div>
               </div>
               <div className="h-10 w-px bg-white/10" />
@@ -376,7 +378,7 @@ export default function LocationPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 rounded-[2rem] p-3 bg-white/95 backdrop-blur border-none shadow-2xl">
-                  <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-3">Map Selection</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-3">Google Maps Layers</DropdownMenuLabel>
                   {MAP_LAYERS.map(layer => (
                     <DropdownMenuItem 
                       key={layer.id}
@@ -402,7 +404,7 @@ export default function LocationPage() {
                   >
                     <div className="flex items-center gap-3">
                       <ShieldAlert className="h-4 w-4" />
-                      <span className="text-[10px] font-black uppercase">Tactical Mode</span>
+                      <span className="text-[10px] font-black uppercase">Tactical Filter</span>
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
