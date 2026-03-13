@@ -76,6 +76,37 @@ export function SOSPanel() {
     toast({ title: "Node synchronized", description: `${newName} added to network.` });
   };
 
+  const handleManualSOS = () => {
+    if (!db || !user) return;
+    
+    // Find primary or first contact
+    const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
+    const emergencyNumber = primaryContact?.phoneNumber || '911';
+
+    // Log the alert to history
+    const historyRef = collection(db, 'users', user.uid, 'alert_history');
+    addDocumentNonBlocking(historyRef, {
+      userId: user.uid,
+      triggerTimestamp: new Date().toISOString(),
+      alertType: 'Manual SOS',
+      status: 'sent',
+      bodyTemperatureAtAlertC: 37.0, 
+      locationAtAlertLatitude: 40.7128, 
+      locationAtAlertLongitude: -74.0060,
+      alertMessage: `Manual SOS triggered by user. Contacting: ${primaryContact?.name || 'Emergency Services'} at ${emergencyNumber}`,
+      emergencyContactIds: primaryContact ? [primaryContact.id] : []
+    });
+
+    toast({
+      variant: "destructive",
+      title: "SOS PROTOCOL ACTIVE",
+      description: `Initiating emergency call to ${emergencyNumber}...`
+    });
+
+    // Trigger device call functionality
+    window.location.href = `tel:${emergencyNumber}`;
+  };
+
   return (
     <Card className="bg-white border-border shadow-sm rounded-3xl overflow-hidden h-full">
       <CardHeader className="bg-muted/30 border-b border-border p-6">
@@ -165,7 +196,10 @@ export function SOSPanel() {
         )}
       </CardContent>
       <CardFooter className="p-6 pt-0">
-        <Button className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-xs" onClick={() => toast({ title: "SOS ACTIVATED", variant: "destructive" })}>
+        <Button 
+          className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-xs" 
+          onClick={handleManualSOS}
+        >
           Trigger Manual SOS
         </Button>
       </CardFooter>

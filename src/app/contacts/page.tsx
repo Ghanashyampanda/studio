@@ -148,7 +148,7 @@ export default function ContactsPage() {
                 <UserPlus className="mr-2 h-4 w-4" /> Establish New Node
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[380px] rounded-[2rem] border-none shadow-2xl p-6">
+            <DialogContent className="sm:max-w-[340px] rounded-[2.5rem] border-none shadow-2xl p-5">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black uppercase tracking-tight text-slate-900">{editingId ? 'Edit Node' : 'Configure Node'}</DialogTitle>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Rescue coordination link details</p>
