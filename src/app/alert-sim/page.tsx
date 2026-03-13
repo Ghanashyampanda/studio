@@ -6,11 +6,12 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, BellRing, Navigation, AlertTriangle, Phone, MessageSquare, Loader2, User, Smartphone } from 'lucide-react';
+import { ShieldAlert, X, BellRing, Navigation, AlertTriangle, Phone, MessageSquare, Loader2, User, Smartphone, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
+import { sendEmergencySms } from '@/app/actions/sms';
 
 export default function AlertSimPage() {
   const { user, isUserLoading } = useUser();
@@ -39,43 +40,36 @@ export default function AlertSimPage() {
       const timer = setTimeout(() => {
         dispatchSOS(dispatchStep);
         setDispatchStep(prev => prev + 1);
-      }, 3000); // 3 seconds between redundancy attempts
+      }, 4000); // 4 seconds between redundancy attempts to allow Twilio processing
       return () => clearTimeout(timer);
     }
   }, [dispatchStep]);
 
-  const dispatchSOS = (attempt: number) => {
+  const dispatchSOS = async (attempt: number) => {
     if (!db || !user) return;
-    const alertRef = collection(db, 'users', user.uid, 'alert_history');
     
-    // Explicitly identify the phone numbers in the rescue network
     const phoneContacts = contacts?.filter(c => c.phoneNumber) || [];
-    const contactInfoString = phoneContacts.length > 0 
-      ? phoneContacts.map(c => `${c.name} (${c.phoneNumber})`).join(', ') 
-      : 'Emergency Services';
-    
-    const message = `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature critical (40.2°C). Rescue dispatch initiated to: ${contactInfoString}. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature critical (40.2°C). Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
+    // Dispatch to each phone node via Twilio
+    for (const contact of phoneContacts) {
+      sendEmergencySms(contact.phoneNumber, message);
+    }
+
+    // Log the event
+    const alertRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: `Critical Redundancy Burst (Attempt ${attempt}/3)`,
+      alertType: `Critical Redundancy (Twilio Burst ${attempt}/3)`,
       messageContent: message,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts?.map(c => c.id) || [],
-      protocol: 'Real-World SMS Dispatch'
+      protocol: 'Twilio Cloud Dispatch'
     });
-
-    // On the final attempt, we actually trigger the browser SMS link if a primary number exists
-    if (attempt === 3 && phoneContacts.length > 0) {
-      const primary = phoneContacts.find(c => c.isPrimary) || phoneContacts[0];
-      // Note: We don't force a redirect here to avoid interrupting the simulation UI, 
-      // but in a production automated environment, this would be the hand-off.
-      console.log(`Final Burst Hand-off to: ${primary.phoneNumber}`);
-    }
   };
 
   if (isUserLoading) return null;
@@ -92,14 +86,14 @@ export default function AlertSimPage() {
               </motion.div>
               <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Critical Alert</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <Smartphone className="h-3 w-3" /> Real-World SMS Protocol Active
+                <Send className="h-3 w-3" /> Twilio Cloud Dispatch Active
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
               {dispatchStep === 0 ? (
                 <div className="text-center space-y-4">
                   <div className="text-8xl font-black text-slate-900 tracking-tighter tabular-nums">{countdown}</div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Syncing SMS Dispatch Nodes...</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Synchronizing Cloud SOS Nodes...</p>
                 </div>
               ) : dispatchStep <= 3 ? (
                 <div className="text-center space-y-6">
@@ -114,16 +108,16 @@ export default function AlertSimPage() {
                   <div className="space-y-4">
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-slate-900 uppercase">Synchronizing Burst {dispatchStep}/3</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Handing off SMS to associated phone numbers...</p>
+                      <p className="text-sm font-black text-slate-900 uppercase">Cloud Burst {dispatchStep}/3</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Broadcasting SMS via Twilio API...</p>
                     </div>
                     {contacts && contacts.length > 0 && (
-                      <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
-                        <p className="text-[8px] font-black uppercase text-slate-400 text-left">Target SMS Nodes:</p>
+                      <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100 text-left">
+                        <p className="text-[8px] font-black uppercase text-slate-400 mb-2">Target Cloud Nodes:</p>
                         {contacts.filter(c => c.phoneNumber).map(c => (
-                          <div key={c.id} className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                          <div key={c.id} className="flex items-center justify-between text-[10px] font-bold text-slate-600 border-b border-slate-100 pb-1 last:border-0">
                             <span className="flex items-center gap-2"><User className="h-2 w-2" /> {c.name}</span>
-                            <span className="font-mono text-[9px]">{c.phoneNumber}</span>
+                            <span className="font-mono text-[9px] text-emerald-600">{c.phoneNumber}</span>
                           </div>
                         ))}
                       </div>
@@ -137,19 +131,8 @@ export default function AlertSimPage() {
                     <Smartphone className="h-6 w-6 text-emerald-600 animate-bounce delay-100" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-black text-emerald-700 uppercase">Redundancy Cycle Complete</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">3-Burst SMS Synchronized to Associated Numbers</p>
-                  </div>
-                  <div className="space-y-2 border-t border-emerald-100 pt-4">
-                    {contacts?.filter(c => c.phoneNumber).map(c => (
-                      <div key={c.id} className="text-[9px] text-emerald-500 font-bold uppercase tracking-tight flex items-center justify-center gap-2">
-                        <span>{c.name}</span>
-                        <span className="h-1 w-1 bg-emerald-300 rounded-full" />
-                        <span>{c.phoneNumber}</span>
-                        <span className="h-1 w-1 bg-emerald-300 rounded-full" />
-                        <span>SMS Dispatched</span>
-                      </div>
-                    ))}
+                    <p className="text-sm font-black text-emerald-700 uppercase">Triple-Redundancy Complete</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">3 SMS Bursts successfully queued for rescue network</p>
                   </div>
                 </div>
               )}

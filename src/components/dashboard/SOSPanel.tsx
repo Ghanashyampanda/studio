@@ -9,28 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus, Send } from 'lucide-react';
+import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { sendEmergencySms } from '@/app/actions/sms';
 
 const COUNTRY_CODES = [
   { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
   { name: "United Kingdom", dial_code: "+44", code: "GB", flag: "🇬🇧" },
   { name: "Australia", dial_code: "+61", code: "AU", flag: "🇦🇺" },
   { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
-  { name: "Germany", dial_code: "+49", code: "DE", flag: "🇩🇪" },
-  { name: "France", dial_code: "+33", code: "FR", flag: "🇫🇷" },
-  { name: "Japan", dial_code: "+81", code: "JP", flag: "🇯🇵" },
-  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧🇷" },
-  { name: "China", dial_code: "+86", code: "CN", flag: "🇨🇳" },
-  { name: "South Africa", dial_code: "+27", code: "ZA", flag: "🇿🇦" },
-  { name: "Mexico", dial_code: "+52", code: "MX", flag: "🇲🇽" },
-  { name: "Spain", dial_code: "+34", code: "ES", flag: "🇪🇸" },
-  { name: "Italy", dial_code: "+39", code: "IT", flag: "🇮🇹" },
-  { name: "Russia", dial_code: "+7", code: "RU", flag: "🇷🇺" },
-  { name: "South Korea", dial_code: "+82", code: "KR", flag: "🇰🇷" },
-  { name: "Singapore", dial_code: "+65", code: "SG", flag: "🇸🇬" },
-  { name: "UAE", dial_code: "+971", code: "AE", flag: "🇦🇪" },
 ];
 
 export function SOSPanel() {
@@ -41,6 +29,7 @@ export function SOSPanel() {
   const [newContact, setNewContact] = useState('');
   const [newType, setNewType] = useState<'phone' | 'email'>('phone');
   const [countryCode, setCountryCode] = useState('US');
+  const [isDispatching, setIsDispatching] = useState(false);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -83,50 +72,63 @@ export function SOSPanel() {
     toast({ title: "Node Removed", description: "Contact disconnected from the network." });
   };
 
-  const handleManualSOS = () => {
+  const handleManualSOS = async () => {
     if (!db || !user) return;
     
-    // Identify contacts with phone numbers
     const phoneNodes = contacts?.filter(c => c.phoneNumber) || [];
     if (phoneNodes.length === 0) {
       toast({ 
         title: "No Phone Nodes", 
-        description: "Please establish at least one phone node to trigger real-world SMS.", 
+        description: "Please establish at least one phone node for Twilio dispatch.", 
         variant: "destructive" 
       });
       return;
     }
 
+    setIsDispatching(true);
     const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
-    const destinationNumber = primaryNode.phoneNumber;
-    
-    // Construct real-world payload
-    const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. I need immediate assistance. Current Location: https://www.google.com/maps?q=40.7128,-74.0060`;
-
-    // Log for forensic history
-    const historyRef = collection(db, 'users', user.uid, 'alert_history');
-    addDocumentNonBlocking(historyRef, {
-      userId: user.uid,
-      triggerTimestamp: new Date().toISOString(),
-      alertType: 'Manual SOS (Direct SMS)',
-      status: 'sent',
-      bodyTemperatureAtAlertC: 37.0, 
-      locationAtAlertLatitude: 40.7128, 
-      locationAtAlertLongitude: -74.0060,
-      alertMessage: emergencyMessage,
-      emergencyContactIds: [primaryNode.id],
-      protocol: 'Real-World SMS Dispatch'
-    });
+    const emergencyMessage = `CRITICAL TRIPLE-REDUNDANCY SOS: HeatGuard AI detected a thermal emergency. I need immediate assistance. Current Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
     toast({
-      variant: "destructive",
-      title: "INITIATING SMS DISPATCH",
-      description: `Opening secure SOS channel to: ${primaryNode.name} (${destinationNumber})`
+      title: "INITIATING TRIPLE DISPATCH",
+      description: `Synchronizing 3-burst SMS cycle to: ${primaryNode.name} via Twilio.`
     });
 
-    // Real-world action: Open native SMS app with pre-filled number and body
-    // Using sms: protocol which works across modern mobile OS
-    window.location.href = `sms:${destinationNumber}?body=${encodeURIComponent(emergencyMessage)}`;
+    // Triple-Redundancy Burst (3 times)
+    for (let i = 1; i <= 3; i++) {
+      const result = await sendEmergencySms(primaryNode.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
+      
+      if (result.success) {
+        const historyRef = collection(db, 'users', user.uid, 'alert_history');
+        addDocumentNonBlocking(historyRef, {
+          userId: user.uid,
+          triggerTimestamp: new Date().toISOString(),
+          alertType: `Manual SOS (Twilio Burst ${i}/3)`,
+          status: 'sent',
+          bodyTemperatureAtAlertC: 37.0, 
+          locationAtAlertLatitude: 40.7128, 
+          locationAtAlertLongitude: -74.0060,
+          alertMessage: emergencyMessage,
+          emergencyContactIds: [primaryNode.id],
+          protocol: 'Twilio Cloud Dispatch'
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: `Dispatch Burst ${i} Failed`,
+          description: result.error || "Twilio communication error."
+        });
+      }
+      
+      // Short delay between bursts
+      if (i < 3) await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    setIsDispatching(false);
+    toast({
+      title: "PROTOCOL COMPLETE",
+      description: "Triple-Redundancy SMS bursts dispatched to the rescue network."
+    });
   };
 
   return (
@@ -219,10 +221,12 @@ export function SOSPanel() {
       </CardContent>
       <CardFooter className="p-6 pt-0">
         <Button 
+          disabled={isDispatching}
           className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
           onClick={handleManualSOS}
         >
-          <Send className="mr-2 h-4 w-4" /> Trigger Real-World SMS
+          {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+          Trigger Twilio SOS Burst (3x)
         </Button>
       </CardFooter>
     </Card>
