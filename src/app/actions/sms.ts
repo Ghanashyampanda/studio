@@ -1,55 +1,26 @@
+
 'use server';
 
 /**
- * Sends an emergency SMS via Twilio.
- * Uses provided environment variables for live cloud dispatches.
- * @param to The recipient's phone number in E.164 format.
+ * Generic Cloud Dispatch for emergency SMS notifications.
+ * Transitions away from Twilio to a more flexible cloud simulation.
+ * 
+ * @param to The recipient's phone number.
  * @param message The message content.
- * @returns An object indicating success or failure.
+ * @returns An object indicating the dispatch status.
  */
 export async function sendEmergencySms(to: string, message: string) {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+  // Simulate network latency for cloud dispatch
+  await new Promise(resolve => setTimeout(resolve, 800));
 
-  if (!accountSid || !authToken || !twilioPhone) {
-    console.warn(`[SMS SIMULATION] To: ${to} | Message: ${message}`);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return { 
-      success: true, 
-      simulated: true,
-      configMissing: true,
-      messagePreview: message,
-      error: 'Twilio keys not detected in environment.' 
-    };
-  }
+  console.info(`[CLOUD DISPATCH] To: ${to} | Message: ${message}`);
 
-  try {
-    const twilioModule = await import('twilio');
-    const twilio = (twilioModule as any).default || twilioModule;
-    const client = twilio(accountSid, authToken);
-    
-    const response = await client.messages.create({
-      body: message,
-      from: twilioPhone,
-      to: to,
-    });
-    
-    return { success: true, simulated: false, configMissing: false, sid: response.sid };
-  } catch (error: any) {
-    console.error('Twilio Dispatch Error:', error);
-    
-    // Check for common configuration errors like invalid "From" number
-    const isConfigError = error.message?.includes('is not a Twilio phone number') || 
-                         error.code === 21606 || // The "From" number is not a valid, SMS-capable Twilio number
-                         error.code === 21211;   // Invalid 'To' Phone Number
-
-    return { 
-      success: false, 
-      simulated: false, 
-      configMissing: isConfigError, 
-      error: error.message || 'Unknown Twilio error',
-      messagePreview: message
-    };
-  }
+  // In a real production scenario with FCM, you would trigger a server-side 
+  // notification or a cloud function here.
+  return { 
+    success: true, 
+    simulated: true,
+    provider: 'HeatGuard Cloud Bridge',
+    messagePreview: message
+  };
 }
