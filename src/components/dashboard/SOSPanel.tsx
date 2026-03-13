@@ -90,24 +90,27 @@ export function SOSPanel() {
     const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
     const emergencyNumber = primaryContact?.phoneNumber || '911';
 
-    // Log the alert to history with explicit SMS and Call mention
+    // Log the alert to history with explicit TRIPLE REDUNDANCY mention
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
+    
+    // Simulate the first of 3 bursts immediately
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: 'Manual SOS',
+      alertType: 'Manual SOS (Triple-Redundancy Active)',
       status: 'sent',
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: 40.7128, 
       locationAtAlertLongitude: -74.0060,
-      alertMessage: `Manual SOS. Dispatched SMS alerts and Emergency Voice Link to: ${primaryContact?.name || 'Emergency Services'} (${emergencyNumber}).`,
-      emergencyContactIds: primaryContact ? [primaryContact.id] : []
+      alertMessage: `TRIPLE DISPATCH PROTOCOL: Initiated 3-burst SMS alerts and Emergency Voice Link to: ${primaryContact?.name || 'Emergency Services'} (${emergencyNumber}). Redundancy active till acknowledgment.`,
+      emergencyContactIds: primaryContact ? [primaryContact.id] : [],
+      protocol: 'Triple-Redundancy'
     });
 
     toast({
       variant: "destructive",
-      title: "SOS PROTOCOL ACTIVE",
-      description: `Dispatched SMS. Dialing ${emergencyNumber} now...`
+      title: "TRIPLE SOS DISPATCH ACTIVE",
+      description: `3-Burst SMS Synchronized. Dialing ${emergencyNumber} now...`
     });
 
     // Trigger device call functionality
@@ -138,7 +141,7 @@ export function SOSPanel() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-muted-foreground hover:text-destructive opacity-100 transition-opacity"
                 onClick={() => handleDelete(contact.id)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -208,7 +211,7 @@ export function SOSPanel() {
           className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-xs" 
           onClick={handleManualSOS}
         >
-          Trigger Manual SOS (Call + SMS)
+          Trigger Manual SOS (Triple Burst)
         </Button>
       </CardFooter>
     </Card>
