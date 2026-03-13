@@ -6,10 +6,11 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, BellRing, Navigation, AlertTriangle, Phone, MessageSquare, Loader2 } from 'lucide-react';
+import { ShieldAlert, X, BellRing, Navigation, AlertTriangle, Phone, MessageSquare, Loader2, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { cn } from '@/lib/utils';
 
 export default function AlertSimPage() {
   const { user, isUserLoading } = useUser();
@@ -52,11 +53,14 @@ export default function AlertSimPage() {
   const dispatchSOS = (attempt: number) => {
     if (!db || !user) return;
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
+    
+    const contactInfo = contacts?.map(c => `${c.name} (${c.phoneNumber || c.email})`).join(', ') || 'Emergency Services';
+    
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
       alertType: `Critical Hyperthermia (Attempt ${attempt}/3)`,
-      messageContent: `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature exceeded 40.0°C. SMS alerts and Emergency Voice Link initiated to rescue network. Repeat protocol active till acknowledgment.`,
+      messageContent: `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature exceeded 40.0°C. SMS alerts and Emergency Voice Link initiated to rescue network: ${contactInfo}.`,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
       locationAtAlertLatitude: 40.7128,
@@ -87,7 +91,7 @@ export default function AlertSimPage() {
               {dispatchStep === 0 ? (
                 <div className="text-center space-y-4">
                   <div className="text-8xl font-black text-slate-900 tracking-tighter tabular-nums">{countdown}</div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Dispatching Rescue Nodes...</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Preparing Rescue Node Dispatch...</p>
                 </div>
               ) : dispatchStep <= 3 ? (
                 <div className="text-center space-y-6">
@@ -99,10 +103,23 @@ export default function AlertSimPage() {
                       )} />
                     ))}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
-                    <p className="text-sm font-black text-slate-900 uppercase">Synchronizing Attempt {dispatchStep}/3</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Broadcasting SMS & Voice Link...</p>
+                    <div className="space-y-1">
+                      <p className="text-sm font-black text-slate-900 uppercase">Synchronizing Attempt {dispatchStep}/3</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Broadcasting SMS to saved nodes...</p>
+                    </div>
+                    {contacts && contacts.length > 0 && (
+                      <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
+                        <p className="text-[8px] font-black uppercase text-slate-400 text-left">Target Responders:</p>
+                        {contacts.map(c => (
+                          <div key={c.id} className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                            <span className="flex items-center gap-2"><User className="h-2 w-2" /> {c.name}</span>
+                            <span className="font-mono text-[9px]">{c.phoneNumber || c.email}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -113,12 +130,14 @@ export default function AlertSimPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-black text-emerald-700 uppercase">Redundancy Loop Complete</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Awaiting Contact Acknowledgement</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Messages successfully sent to rescue network</p>
                   </div>
                   <div className="space-y-2 border-t border-emerald-100 pt-4">
                     {contacts?.map(c => (
                       <div key={c.id} className="text-[9px] text-emerald-500 font-bold uppercase tracking-tight flex items-center justify-center gap-2">
                         <span>{c.name}</span>
+                        <span className="h-1 w-1 bg-emerald-300 rounded-full" />
+                        <span>{c.phoneNumber || c.email}</span>
                         <span className="h-1 w-1 bg-emerald-300 rounded-full" />
                         <span>3-Burst SMS Delivered</span>
                       </div>
@@ -133,7 +152,7 @@ export default function AlertSimPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono font-bold text-slate-600">
                   <div>Lat: 40.7128° N</div>
-                  <div>Lng: 74.0060° W</div>
+                  <div>Lng: -74.0060° W</div>
                 </div>
               </div>
               <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs" onClick={() => router.push('/dashboard')}>
@@ -145,8 +164,4 @@ export default function AlertSimPage() {
       </AnimatePresence>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

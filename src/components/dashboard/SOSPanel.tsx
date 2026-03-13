@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus } from 'lucide-react';
+import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
@@ -73,7 +73,7 @@ export function SOSPanel() {
 
     setNewName('');
     setNewContact('');
-    toast({ title: "Node synchronized", description: `${newName} added to network.` });
+    toast({ title: "Node synchronized", description: `${newName} added to rescue network.` });
   };
 
   const handleDelete = (contactId: string) => {
@@ -86,14 +86,11 @@ export function SOSPanel() {
   const handleManualSOS = () => {
     if (!db || !user) return;
     
-    // Find primary or first contact
     const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
     const emergencyNumber = primaryContact?.phoneNumber || '911';
 
-    // Log the alert to history with explicit TRIPLE REDUNDANCY mention
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
     
-    // Simulate the first of 3 bursts immediately
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
@@ -102,7 +99,7 @@ export function SOSPanel() {
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: 40.7128, 
       locationAtAlertLongitude: -74.0060,
-      alertMessage: `TRIPLE DISPATCH PROTOCOL: Initiated 3-burst SMS alerts and Emergency Voice Link to: ${primaryContact?.name || 'Emergency Services'} (${emergencyNumber}). Redundancy active till acknowledgment.`,
+      alertMessage: `TRIPLE DISPATCH PROTOCOL: Initiated 3-burst SMS alerts and Emergency Voice Link to rescue network. Primary contact: ${primaryContact?.name || 'Emergency Services'} at ${emergencyNumber}. Redundancy active till acknowledgment.`,
       emergencyContactIds: primaryContact ? [primaryContact.id] : [],
       protocol: 'Triple-Redundancy'
     });
@@ -110,10 +107,9 @@ export function SOSPanel() {
     toast({
       variant: "destructive",
       title: "TRIPLE SOS DISPATCH ACTIVE",
-      description: `3-Burst SMS Synchronized. Dialing ${emergencyNumber} now...`
+      description: `3-Burst SMS Synchronized to ${emergencyNumber}. Dialing now...`
     });
 
-    // Trigger device call functionality
     window.location.href = `tel:${emergencyNumber}`;
   };
 
@@ -141,7 +137,7 @@ export function SOSPanel() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-muted-foreground hover:text-destructive opacity-100 transition-opacity"
+                className="text-muted-foreground hover:text-destructive transition-colors"
                 onClick={() => handleDelete(contact.id)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -164,28 +160,27 @@ export function SOSPanel() {
                 <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Protocol</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Channel</Label>
                 <div className="flex gap-2">
-                  <Button variant={newType === 'phone' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('phone')}>SMS</Button>
+                  <Button variant={newType === 'phone' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('phone')}>PHONE</Button>
                   <Button variant={newType === 'email' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('email')}>EMAIL</Button>
                 </div>
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Address</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Contact Detail</Label>
               <div className="flex gap-2">
                 {newType === 'phone' && (
                   <Select value={countryCode} onValueChange={setCountryCode}>
-                    <SelectTrigger className="w-[120px] h-11 bg-muted/30 border-border rounded-xl text-xs font-bold">
+                    <SelectTrigger className="w-[110px] h-11 bg-muted/30 border-border rounded-xl text-[10px] font-bold">
                       <SelectValue placeholder="Code" />
                     </SelectTrigger>
                     <SelectContent>
                       {COUNTRY_CODES.map(c => (
                         <SelectItem key={c.code} value={c.code}>
-                          <span className="flex items-center gap-2">
+                          <span className="flex items-center gap-1.5">
                             <span>{c.flag}</span>
                             <span>{c.dial_code}</span>
-                            <span className="text-[10px] opacity-50">({c.code})</span>
                           </span>
                         </SelectItem>
                       ))}
@@ -196,7 +191,7 @@ export function SOSPanel() {
                   className="h-11 bg-muted/30 border-border rounded-xl text-sm flex-1" 
                   value={newContact} 
                   onChange={e => setNewContact(e.target.value)} 
-                  placeholder={newType === 'phone' ? 'Phone Number' : 'email@...'} 
+                  placeholder={newType === 'phone' ? 'Phone Number' : 'Email Address'} 
                 />
                 <Button size="icon" className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-md shadow-primary/10" onClick={handleAdd} disabled={!newName || !newContact}>
                   <PlusCircle className="h-5 w-5" />
@@ -208,10 +203,10 @@ export function SOSPanel() {
       </CardContent>
       <CardFooter className="p-6 pt-0">
         <Button 
-          className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-xs" 
+          className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
           onClick={handleManualSOS}
         >
-          Trigger Manual SOS (Triple Burst)
+          <Send className="mr-2 h-4 w-4" /> Trigger Triple-Redundancy SOS
         </Button>
       </CardFooter>
     </Card>
