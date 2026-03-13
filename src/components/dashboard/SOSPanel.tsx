@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Info, Smartphone, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { sendEmergencySms } from '@/app/actions/sms';
 
 const COUNTRY_CODES = [
@@ -27,7 +28,7 @@ export function SOSPanel() {
   const [newName, setNewName] = useState('');
   const [newContact, setNewContact] = useState('');
   const [newType, setNewType] = useState<'phone' | 'email'>('phone');
-  const [countryCode, setCountryCode] = useState('US');
+  const [countryCode, setCountryCode] = useState('IN');
   const [isDispatching, setIsDispatching] = useState(false);
   const [lastSimulatedMessage, setLastSimulatedMessage] = useState<{ to: string, body: string } | null>(null);
 
@@ -46,7 +47,7 @@ export function SOSPanel() {
     if (!newName || !newContact) return;
 
     const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
-    const dialPrefix = selectedCountry?.dial_code || '+1';
+    const dialPrefix = selectedCountry?.dial_code || '+91';
     const formattedContact = newType === 'phone' ? `${dialPrefix}${newContact.replace(/^\+/, '')}` : newContact;
 
     const contactsRef = collection(db, 'users', user.uid, 'emergency_contacts');
@@ -89,9 +90,9 @@ export function SOSPanel() {
     setLastSimulatedMessage(null);
     
     const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
-    const emergencyMessage = `CRITICAL TRIPLE-REDUNDANCY SOS: HeatGuard AI detected a thermal emergency. I need immediate assistance. Current Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Triple-Redundancy Burst (3 times)
+    // Sequence through 3 bursts
     for (let i = 1; i <= 3; i++) {
       const result = await sendEmergencySms(primaryNode.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
       
@@ -100,12 +101,12 @@ export function SOSPanel() {
           setLastSimulatedMessage({ to: primaryNode.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
           toast({
             title: `SIMULATED BURST ${i}/3 SENT`,
-            description: `Twilio not configured. Using simulation fallback.`,
+            description: `Twilio keys not loaded. Use native fallback.`,
           });
         } else {
           toast({
-            title: `SOS BURST ${i}/3 SENT`,
-            description: `Live Twilio dispatch to ${primaryNode.name} successful.`,
+            title: `SOS BURST ${i}/3 DISPATCHED`,
+            description: `Cloud dispatch via Twilio successful.`,
           });
         }
 
@@ -113,25 +114,25 @@ export function SOSPanel() {
         addDocumentNonBlocking(historyRef, {
           userId: user.uid,
           triggerTimestamp: new Date().toISOString(),
-          alertType: `Manual SOS (Twilio Burst ${i}/3)`,
+          alertType: `Manual SOS (Burst ${i}/3)`,
           status: 'sent',
           bodyTemperatureAtAlertC: 37.0, 
           locationAtAlertLatitude: 40.7128, 
           locationAtAlertLongitude: -74.0060,
           alertMessage: emergencyMessage,
           emergencyContactIds: [primaryNode.id],
-          protocol: result.simulated ? 'Twilio Simulation' : 'Twilio Cloud Dispatch'
+          protocol: result.simulated ? 'Simulation' : 'Twilio Cloud'
         });
       } else {
         toast({
           variant: "destructive",
-          title: `Dispatch Burst ${i} Failed`,
-          description: result.error || "Twilio communication error."
+          title: `Dispatch Failed`,
+          description: result.error || "Communication error."
         });
         break;
       }
       
-      if (i < 3) await new Promise(resolve => setTimeout(resolve, 1500));
+      if (i < 3) await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     setIsDispatching(false);
@@ -141,7 +142,6 @@ export function SOSPanel() {
     if (!lastSimulatedMessage) return;
     const url = `sms:${lastSimulatedMessage.to}?body=${encodeURIComponent(lastSimulatedMessage.body)}`;
     window.open(url, '_blank');
-    setLastSimulatedMessage(null);
   };
 
   return (
@@ -153,7 +153,7 @@ export function SOSPanel() {
         </CardTitle>
         <div className="flex items-center gap-2">
            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Nodes Active</span>
+           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Live Link Active</span>
         </div>
       </CardHeader>
       <CardContent className="space-y-6 p-6">
@@ -175,7 +175,7 @@ export function SOSPanel() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-muted-foreground hover:text-destructive transition-colors"
+                className="text-muted-foreground hover:text-destructive"
                 onClick={() => handleDelete(contact.id)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -185,8 +185,7 @@ export function SOSPanel() {
           {(!contacts || contacts.length === 0) && (
             <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 bg-muted/20 rounded-2xl border-2 border-dashed border-muted">
               <Smartphone className="h-10 w-10 text-muted-foreground opacity-30" />
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Rescue Network Offline</p>
-              <p className="text-[9px] text-muted-foreground uppercase px-6">Add a phone number to enable cellular SOS protocols.</p>
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Rescue Network Empty</p>
             </div>
           )}
         </div>
@@ -195,11 +194,11 @@ export function SOSPanel() {
           <div className="space-y-4 pt-6 border-t border-border">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Identity</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</Label>
                 <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Channel</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Relationship</Label>
                 <div className="flex gap-2">
                   <Button variant={newType === 'phone' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('phone')}>PHONE</Button>
                   <Button variant={newType === 'email' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('email')}>EMAIL</Button>
@@ -212,15 +211,12 @@ export function SOSPanel() {
                 {newType === 'phone' && (
                   <Select value={countryCode} onValueChange={setCountryCode}>
                     <SelectTrigger className="w-[110px] h-11 bg-muted/30 border-border rounded-xl text-[10px] font-bold">
-                      <SelectValue placeholder="Code" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {COUNTRY_CODES.map(c => (
                         <SelectItem key={c.code} value={c.code}>
-                          <span className="flex items-center gap-1.5">
-                            <span>{c.flag}</span>
-                            <span>{c.dial_code}</span>
-                          </span>
+                          {c.flag} {c.dial_code}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -230,9 +226,9 @@ export function SOSPanel() {
                   className="h-11 bg-muted/30 border-border rounded-xl text-sm flex-1" 
                   value={newContact} 
                   onChange={e => setNewContact(e.target.value)} 
-                  placeholder={newType === 'phone' ? 'Phone Number' : 'Email Address'} 
+                  placeholder={newType === 'phone' ? 'Number' : 'Email'} 
                 />
-                <Button size="icon" className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-md shadow-primary/10" onClick={handleAdd} disabled={!newName || !newContact}>
+                <Button size="icon" className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90" onClick={handleAdd} disabled={!newName || !newContact}>
                   <UserPlus className="h-5 w-5" />
                 </Button>
               </div>
@@ -243,33 +239,22 @@ export function SOSPanel() {
       <CardFooter className="p-6 pt-0 flex flex-col gap-3">
         {lastSimulatedMessage ? (
           <Button 
-            className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl shadow-primary/20 h-14 rounded-2xl uppercase text-xs animate-bounce" 
+            className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl h-14 rounded-2xl uppercase text-xs animate-bounce" 
             onClick={handleNativeFallback}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            Send Real Native SMS Now
+            Send Real Native SMS
           </Button>
         ) : (
           <Button 
             disabled={isDispatching}
-            className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
+            className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl h-14 rounded-2xl uppercase text-[10px]" 
             onClick={handleManualSOS}
           >
             {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-            Trigger Triple-Redundancy SOS
+            Trigger SOS Dispatch
           </Button>
         )}
-        
-        <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 space-y-2">
-          <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-700 tracking-widest">
-            <Info className="h-3.5 w-3.5" />
-            Communication Status
-          </div>
-          <p className="text-[8px] text-blue-600 font-bold uppercase leading-relaxed">
-            Twilio keys not detected. System is currently in Simulation Mode. 
-            Use the "Native SMS" fallback to send real messages via your device.
-          </p>
-        </div>
       </CardFooter>
     </Card>
   );
