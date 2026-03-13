@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, BellRing, Navigation, AlertTriangle, Phone, MessageSquare, Loader2, User, Smartphone, Send } from 'lucide-react';
+import { ShieldAlert, X, Navigation, Loader2, User, Smartphone, Send, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -19,6 +19,7 @@ export default function AlertSimPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(10);
   const [dispatchStep, setDispatchStep] = useState(0); // 0: countdown, 1: attempt 1, 2: attempt 2, 3: attempt 3, 4: complete
+  const [isSimulatedMode, setIsSimulatedMode] = useState(false);
   
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -39,8 +40,7 @@ export default function AlertSimPage() {
     if (dispatchStep >= 1 && dispatchStep <= 3) {
       const timer = setTimeout(() => {
         dispatchSOS(dispatchStep);
-        setDispatchStep(prev => prev + 1);
-      }, 4000); // 4 seconds between redundancy attempts to allow Twilio processing
+      }, 4000); // Wait 4 seconds between redundancy attempts
       return () => clearTimeout(timer);
     }
   }, [dispatchStep]);
@@ -49,11 +49,12 @@ export default function AlertSimPage() {
     if (!db || !user) return;
     
     const phoneContacts = contacts?.filter(c => c.phoneNumber) || [];
-    const message = `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature critical (40.2°C). Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): HeatGuard AI detected core temperature critical (40.2°C). Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Dispatch to each phone node via Twilio
+    // Dispatch to each phone node via Twilio (Simulated if keys missing)
     for (const contact of phoneContacts) {
-      sendEmergencySms(contact.phoneNumber, message);
+      const result = await sendEmergencySms(contact.phoneNumber, message);
+      if (result.simulated) setIsSimulatedMode(true);
     }
 
     // Log the event
@@ -61,7 +62,7 @@ export default function AlertSimPage() {
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: `Critical Redundancy (Twilio Burst ${attempt}/3)`,
+      alertType: `Critical Redundancy (Cloud Burst ${attempt}/3)`,
       messageContent: message,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
@@ -70,6 +71,9 @@ export default function AlertSimPage() {
       emergencyContactIds: contacts?.map(c => c.id) || [],
       protocol: 'Twilio Cloud Dispatch'
     });
+
+    // Advance to next step
+    setDispatchStep(prev => prev + 1);
   };
 
   if (isUserLoading) return null;
@@ -86,7 +90,7 @@ export default function AlertSimPage() {
               </motion.div>
               <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Critical Alert</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <Send className="h-3 w-3" /> Twilio Cloud Dispatch Active
+                <Send className="h-3 w-3" /> SOS Protocol Active
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
@@ -108,12 +112,14 @@ export default function AlertSimPage() {
                   <div className="space-y-4">
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-slate-900 uppercase">Cloud Burst {dispatchStep}/3</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Broadcasting SMS via Twilio API...</p>
+                      <p className="text-sm font-black text-slate-900 uppercase">Redundancy Burst {dispatchStep}/3</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                        {isSimulatedMode ? 'Simulating SMS Dispatch...' : 'Broadcasting SMS via Twilio API...'}
+                      </p>
                     </div>
                     {contacts && contacts.length > 0 && (
                       <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100 text-left">
-                        <p className="text-[8px] font-black uppercase text-slate-400 mb-2">Target Cloud Nodes:</p>
+                        <p className="text-[8px] font-black uppercase text-slate-400 mb-2">Target Rescue Nodes:</p>
                         {contacts.filter(c => c.phoneNumber).map(c => (
                           <div key={c.id} className="flex items-center justify-between text-[10px] font-bold text-slate-600 border-b border-slate-100 pb-1 last:border-0">
                             <span className="flex items-center gap-2"><User className="h-2 w-2" /> {c.name}</span>
@@ -127,15 +133,30 @@ export default function AlertSimPage() {
               ) : (
                 <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-6">
                   <div className="flex justify-center gap-4">
-                    <MessageSquare className="h-6 w-6 text-emerald-600 animate-bounce" />
+                    <Send className="h-6 w-6 text-emerald-600 animate-bounce" />
                     <Smartphone className="h-6 w-6 text-emerald-600 animate-bounce delay-100" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-black text-emerald-700 uppercase">Triple-Redundancy Complete</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">3 SMS Bursts successfully queued for rescue network</p>
+                    <p className="text-sm font-black text-emerald-700 uppercase">Protocol Complete</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">
+                      {isSimulatedMode 
+                        ? '3 Simulation Bursts successfully logged for rescue network' 
+                        : '3 SMS Bursts successfully queued via Twilio'}
+                    </p>
                   </div>
                 </div>
               )}
+              
+              {isSimulatedMode && dispatchStep > 0 && (
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700">
+                  <Info className="h-5 w-5 shrink-0" />
+                  <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">
+                    Twilio credentials not found. System is operating in Simulation Mode. 
+                    Real SMS will not be sent to your network.
+                  </p>
+                </div>
+              )}
+
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-primary">
                   <span className="flex items-center gap-2"><Navigation className="h-3.5 w-3.5" /> GPS Coordinates</span>

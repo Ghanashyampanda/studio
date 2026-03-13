@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { sendEmergencySms } from '@/app/actions/sms';
@@ -89,16 +89,23 @@ export function SOSPanel() {
     const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
     const emergencyMessage = `CRITICAL TRIPLE-REDUNDANCY SOS: HeatGuard AI detected a thermal emergency. I need immediate assistance. Current Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    toast({
-      title: "INITIATING TRIPLE DISPATCH",
-      description: `Synchronizing 3-burst SMS cycle to: ${primaryNode.name} via Twilio.`
-    });
-
     // Triple-Redundancy Burst (3 times)
     for (let i = 1; i <= 3; i++) {
       const result = await sendEmergencySms(primaryNode.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
       
       if (result.success) {
+        if (result.simulated) {
+          toast({
+            title: `SIMULATED BURST ${i}/3 SENT`,
+            description: `Twilio simulated for ${primaryNode.phoneNumber}. See action logs for details.`,
+          });
+        } else {
+          toast({
+            title: `SOS BURST ${i}/3 SENT`,
+            description: `Live Twilio dispatch to ${primaryNode.name} successful.`,
+          });
+        }
+
         const historyRef = collection(db, 'users', user.uid, 'alert_history');
         addDocumentNonBlocking(historyRef, {
           userId: user.uid,
@@ -110,7 +117,7 @@ export function SOSPanel() {
           locationAtAlertLongitude: -74.0060,
           alertMessage: emergencyMessage,
           emergencyContactIds: [primaryNode.id],
-          protocol: 'Twilio Cloud Dispatch'
+          protocol: result.simulated ? 'Twilio Simulation' : 'Twilio Cloud Dispatch'
         });
       } else {
         toast({
@@ -118,6 +125,7 @@ export function SOSPanel() {
           title: `Dispatch Burst ${i} Failed`,
           description: result.error || "Twilio communication error."
         });
+        break; // Stop bursts if one actually fails hard
       }
       
       // Short delay between bursts
@@ -125,10 +133,6 @@ export function SOSPanel() {
     }
 
     setIsDispatching(false);
-    toast({
-      title: "PROTOCOL COMPLETE",
-      description: "Triple-Redundancy SMS bursts dispatched to the rescue network."
-    });
   };
 
   return (
@@ -219,15 +223,19 @@ export function SOSPanel() {
           </div>
         )}
       </CardContent>
-      <CardFooter className="p-6 pt-0">
+      <CardFooter className="p-6 pt-0 flex flex-col gap-3">
         <Button 
           disabled={isDispatching}
           className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
           onClick={handleManualSOS}
         >
           {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-          Trigger Twilio SOS Burst (3x)
+          Trigger Triple-Redundancy SOS
         </Button>
+        <div className="flex items-center gap-2 text-[8px] font-black uppercase text-muted-foreground tracking-widest bg-muted/20 p-3 rounded-xl border border-dashed">
+          <Info className="h-3 w-3" />
+          Prototyping Mode: SMS dispatches are simulated if Twilio keys are missing.
+        </div>
       </CardFooter>
     </Card>
   );
