@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -11,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Info, Smartphone, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { sendEmergencySms } from '@/app/actions/sms';
 
 const COUNTRY_CODES = [
@@ -80,7 +79,7 @@ export function SOSPanel() {
     if (phoneNodes.length === 0) {
       toast({ 
         title: "No Phone Nodes", 
-        description: "Please establish at least one phone node for Twilio dispatch.", 
+        description: "Please establish at least one phone node for dispatch.", 
         variant: "destructive" 
       });
       return;
@@ -124,12 +123,14 @@ export function SOSPanel() {
           protocol: result.simulated ? 'Simulation' : 'Twilio Cloud'
         });
       } else {
+        // Handle failure (e.g., number not a Twilio number)
+        setLastSimulatedMessage({ to: primaryNode.phoneNumber, body: emergencyMessage });
         toast({
           variant: "destructive",
-          title: `Dispatch Failed`,
-          description: result.error || "Communication error."
+          title: `Twilio Error`,
+          description: result.error || "The 'From' number is invalid. Use Native Fallback."
         });
-        break;
+        break; // Stop bursts if one fails due to config
       }
       
       if (i < 3) await new Promise(resolve => setTimeout(resolve, 2000));

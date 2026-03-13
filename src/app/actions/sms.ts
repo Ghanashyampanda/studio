@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -39,6 +38,18 @@ export async function sendEmergencySms(to: string, message: string) {
     return { success: true, simulated: false, configMissing: false, sid: response.sid };
   } catch (error: any) {
     console.error('Twilio Dispatch Error:', error);
-    return { success: false, simulated: false, configMissing: false, error: error.message || 'Unknown Twilio error' };
+    
+    // Check for common configuration errors like invalid "From" number
+    const isConfigError = error.message?.includes('is not a Twilio phone number') || 
+                         error.code === 21606 || // The "From" number is not a valid, SMS-capable Twilio number
+                         error.code === 21211;   // Invalid 'To' Phone Number
+
+    return { 
+      success: false, 
+      simulated: false, 
+      configMissing: isConfigError, 
+      error: error.message || 'Unknown Twilio error',
+      messagePreview: message
+    };
   }
 }
