@@ -86,38 +86,47 @@ export function SOSPanel() {
   const handleManualSOS = () => {
     if (!db || !user) return;
     
-    // Identify all phone contacts for the broadcast message
-    const phoneContacts = contacts?.filter(c => c.phoneNumber).map(c => `${c.name} (${c.phoneNumber})`) || [];
-    const contactInfoString = phoneContacts.length > 0 ? phoneContacts.join(', ') : 'Emergency Services';
-    
-    // Identify primary contact for immediate dial
-    const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
-    const dialNumber = primaryContact?.phoneNumber || '911';
+    // Identify contacts with phone numbers
+    const phoneNodes = contacts?.filter(c => c.phoneNumber) || [];
+    if (phoneNodes.length === 0) {
+      toast({ 
+        title: "No Phone Nodes", 
+        description: "Please establish at least one phone node to trigger real-world SMS.", 
+        variant: "destructive" 
+      });
+      return;
+    }
 
-    const historyRef = collection(db, 'users', user.uid, 'alert_history');
+    const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
+    const destinationNumber = primaryNode.phoneNumber;
     
-    // Log the triple-redundancy event
+    // Construct real-world payload
+    const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. I need immediate assistance. Current Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+
+    // Log for forensic history
+    const historyRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: 'Manual SOS (Triple-Redundancy Active)',
+      alertType: 'Manual SOS (Direct SMS)',
       status: 'sent',
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: 40.7128, 
       locationAtAlertLongitude: -74.0060,
-      alertMessage: `TRIPLE DISPATCH PROTOCOL: Initiated 3-burst SMS alerts and Emergency Voice Link to rescue network: ${contactInfoString}. Redundancy active till acknowledgment.`,
-      emergencyContactIds: contacts?.map(c => c.id) || [],
-      protocol: 'Triple-Redundancy'
+      alertMessage: emergencyMessage,
+      emergencyContactIds: [primaryNode.id],
+      protocol: 'Real-World SMS Dispatch'
     });
 
     toast({
       variant: "destructive",
-      title: "TRIPLE SOS DISPATCH ACTIVE",
-      description: `3-Burst SMS Synchronized to: ${contactInfoString}. Initiating voice link...`
+      title: "INITIATING SMS DISPATCH",
+      description: `Opening secure SOS channel to: ${primaryNode.name} (${destinationNumber})`
     });
 
-    // Actually trigger the phone call
-    window.location.href = `tel:${dialNumber}`;
+    // Real-world action: Open native SMS app with pre-filled number and body
+    // Using sms: protocol which works across modern mobile OS
+    window.location.href = `sms:${destinationNumber}?body=${encodeURIComponent(emergencyMessage)}`;
   };
 
   return (
@@ -213,7 +222,7 @@ export function SOSPanel() {
           className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
           onClick={handleManualSOS}
         >
-          <Send className="mr-2 h-4 w-4" /> Trigger Triple-Redundancy SOS
+          <Send className="mr-2 h-4 w-4" /> Trigger Real-World SMS
         </Button>
       </CardFooter>
     </Card>
