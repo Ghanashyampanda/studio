@@ -6,7 +6,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, Navigation, Loader2, Smartphone, Send, Info, ExternalLink, BellRing, Zap, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, X, Navigation, Loader2, Zap, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -49,9 +49,9 @@ export default function AlertSimPage() {
   const dispatchRescue = async (attempt: number) => {
     if (!db || !user || !contacts) return;
     
-    const message = `RESCUE PROTOCOL (Burst ${attempt}/3): HeatGuard AI detected critical core temperature (40.2°C). Rescue required immediately. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `RESCUE BURST ${attempt}/3: HeatGuard AI detected critical core temperature (40.2°C). Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Signally all FCM nodes in background
+    // Signally all FCM nodes
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
         sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
@@ -84,7 +84,7 @@ export default function AlertSimPage() {
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (!primaryPhone) return;
 
-    const message = `HEATGUARD RESCUE: Critical thermal emergency detected. Rescue required. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `HEATGUARD SOS: Critical thermal emergency. Rescue required. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
     const url = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -92,7 +92,7 @@ export default function AlertSimPage() {
   if (isUserLoading) return null;
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden font-body">
+    <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden font-body text-slate-900">
       <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
       <AnimatePresence>
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full relative z-10">
@@ -101,9 +101,9 @@ export default function AlertSimPage() {
               <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="mx-auto h-20 w-20 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-6 shadow-lg shadow-destructive/20">
                 <ShieldAlert className="h-10 w-10" />
               </motion.div>
-              <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Emergency Protocol</CardTitle>
+              <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Rescue Protocol</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <Zap className="h-3 w-3" /> Rescue Sequence Active
+                <Zap className="h-3 w-3" /> Signaling Sequence Active
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
@@ -126,7 +126,7 @@ export default function AlertSimPage() {
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
                       <p className="text-sm font-black text-slate-900 uppercase">Signaling Burst {Math.min(dispatchStep, 3)}/3</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">FCM App Nodes Synchronizing...</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">FCM App Nodes Signaling...</p>
                     </div>
                   </div>
                 </div>
@@ -135,13 +135,13 @@ export default function AlertSimPage() {
                   <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-2">
                     <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
                     <p className="text-sm font-black text-emerald-700 uppercase">Cloud Signaling Complete</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">Incident archived in forensics.</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">All nodes archived in forensics.</p>
                   </div>
                   
                   <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-4">
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-primary uppercase">Cellular Dispatch Ready</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send the final tactical payload to your primary responder.</p>
+                      <p className="text-sm font-black text-primary uppercase">Direct Rescue Ready</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send the tactical SOS payload to your primary cellular responder.</p>
                     </div>
                     <Button onClick={handleNativeSMSHandoff} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
                       Dispatch Rescue SMS
@@ -162,7 +162,7 @@ export default function AlertSimPage() {
               </div>
 
               <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs" onClick={() => router.push('/dashboard')}>
-                <X className="mr-2 h-4 w-4" /> Exit Sequence
+                <X className="mr-2 h-4 w-4" /> Exit Rescue Flow
               </Button>
             </CardContent>
           </Card>

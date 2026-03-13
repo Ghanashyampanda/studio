@@ -9,13 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Zap, ArrowRight, ExternalLink } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
 import { initializeFirebase } from '@/firebase';
 import { getToken } from 'firebase/messaging';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const COUNTRY_CODES = [
   { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
@@ -33,33 +32,12 @@ export function SOSPanel() {
   const [newType, setNewType] = useState<'phone' | 'fcm' | 'email'>('phone');
   const [countryCode, setCountryCode] = useState('IN');
   const [isDispatching, setIsDispatching] = useState(false);
-  const [fcmToken, setFcmToken] = useState<string | null>(null);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'emergency_contacts');
   }, [db, user]);
   const { data: contacts } = useCollection(contactsQuery);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const setupFCM = async () => {
-      try {
-        const { messaging } = initializeFirebase();
-        if (!messaging) return;
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          const token = await getToken(messaging, {
-            vapidKey: 'BNoC0vX6Qz_8mK6Z6X6X6X6X6X6X6X6X6X6X6X6X6X6X'
-          });
-          setFcmToken(token);
-        }
-      } catch (err) {
-        console.warn("FCM registration deferred.");
-      }
-    };
-    setupFCM();
-  }, []);
 
   const handleAdd = () => {
     if (!db || !user) return;
@@ -109,41 +87,41 @@ export function SOSPanel() {
 
     setIsDispatching(true);
     
-    const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // 1. Immediate Native Dispatch (Prioritize User Gesture)
-    const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
-    if (primaryPhone) {
-      const smsUrl = `sms:${primaryPhone}?body=${encodeURIComponent(emergencyMessage)}`;
-      window.open(smsUrl, '_blank');
-    }
-
-    // 2. Background FCM signaling
+    // 1. App-based signaling (FCM)
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
-        sendEmergencyFcm(contact.fcmToken || 'token-placeholder', emergencyMessage);
+        sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
       }
     }
 
-    // 3. Background Forensic Logging
+    // 2. Forensic Logging
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: 'Manual Rescue Protocol',
+      alertType: 'Direct Rescue Trigger',
       status: 'sent',
       bodyTemperatureAtAlertC: 37.0,
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: 'FCM + Cellular Native',
-      alertMessage: emergencyMessage
+      protocol: 'FCM + Direct Cellular',
+      alertMessage: message
     });
+
+    // 3. Direct Cellular Handoff (Real-world delivery)
+    const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
+    if (primaryPhone) {
+      const smsUrl = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
+      window.open(smsUrl, '_blank');
+    }
 
     setTimeout(() => {
       setIsDispatching(false);
-      toast({ title: "Protocol Active", description: "Cloud nodes signaled & Cellular handoff complete." });
-    }, 1500);
+      toast({ title: "Rescue Protocol Active", description: "Cloud nodes signaled and cellular handoff complete." });
+    }, 1000);
   };
 
   return (
@@ -155,7 +133,7 @@ export function SOSPanel() {
         </CardTitle>
         <div className="flex items-center gap-2">
            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Live Sync</span>
+           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Active Sync</span>
         </div>
       </CardHeader>
       <CardContent className="flex-1 space-y-6 p-6">
@@ -250,7 +228,7 @@ export function SOSPanel() {
           ) : (
             <ShieldAlert className="mr-2 h-5 w-5" />
           )}
-          Trigger Rescue Protocol
+          Trigger SOS Protocol
         </Button>
       </CardFooter>
     </Card>
