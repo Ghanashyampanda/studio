@@ -2,8 +2,8 @@
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +76,13 @@ export function SOSPanel() {
     toast({ title: "Node synchronized", description: `${newName} added to network.` });
   };
 
+  const handleDelete = (contactId: string) => {
+    if (!db || !user) return;
+    const contactRef = doc(db, 'users', user.uid, 'emergency_contacts', contactId);
+    deleteDocumentNonBlocking(contactRef);
+    toast({ title: "Node Removed", description: "Contact disconnected from the network." });
+  };
+
   const handleManualSOS = () => {
     if (!db || !user) return;
     
@@ -132,6 +139,7 @@ export function SOSPanel() {
                 variant="ghost" 
                 size="icon" 
                 className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleDelete(contact.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
