@@ -3,12 +3,12 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Zap, Navigation, Plus } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
@@ -134,7 +134,7 @@ export function SOSPanel() {
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-6 px-8 pt-8 pb-4 overflow-y-auto">
+      <CardContent className="flex-1 space-y-6 px-8 pt-8 pb-10 overflow-y-auto">
         {/* Contact List Node Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -246,22 +246,23 @@ export function SOSPanel() {
             </div>
           </div>
         )}
-      </CardContent>
 
-      <CardFooter className="p-8 pt-0">
-        <Button 
-          disabled={isDispatching}
-          className="w-full bg-destructive hover:bg-destructive/90 text-white font-black tracking-[0.2em] shadow-2xl h-16 rounded-[2rem] uppercase text-[11px] transition-all active:scale-[0.98]" 
-          onClick={triggerRescueProtocol}
-        >
-          {isDispatching ? (
-            <Loader2 className="h-5 w-5 animate-spin mr-3" />
-          ) : (
-            <ShieldAlert className="mr-3 h-5 w-5" />
-          )}
-          Trigger Rescue Protocol
-        </Button>
-      </CardFooter>
+        {/* SOS Trigger Protocol Button - Moved into CardContent for tighter layout */}
+        <div className="pt-4 border-t border-slate-50">
+          <Button 
+            disabled={isDispatching}
+            className="w-full bg-destructive hover:bg-destructive/90 text-white font-black tracking-[0.2em] shadow-2xl h-16 rounded-[2rem] uppercase text-[11px] transition-all active:scale-[0.98]" 
+            onClick={triggerRescueProtocol}
+          >
+            {isDispatching ? (
+              <Loader2 className="h-5 w-5 animate-spin mr-3" />
+            ) : (
+              <ShieldAlert className="mr-3 h-5 w-5" />
+            )}
+            Trigger Rescue Protocol
+          </Button>
+        </div>
+      </CardContent>
     </Card>
   );
 }
