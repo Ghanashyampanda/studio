@@ -21,7 +21,7 @@ const COUNTRY_CODES = [
   { name: "Germany", dial_code: "+49", code: "DE", flag: "🇩🇪" },
   { name: "France", dial_code: "+33", code: "FR", flag: "🇫🇷" },
   { name: "Japan", dial_code: "+81", code: "JP", flag: "🇯🇵" },
-  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧🇷" },
+  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧6" },
   { name: "China", dial_code: "+86", code: "CN", flag: "🇨🇳" },
   { name: "South Africa", dial_code: "+27", code: "ZA", flag: "🇿🇦" },
   { name: "Mexico", dial_code: "+52", code: "MX", flag: "🇲🇽" },
@@ -86,8 +86,11 @@ export function SOSPanel() {
   const handleManualSOS = () => {
     if (!db || !user) return;
     
+    const phoneContacts = contacts?.filter(c => c.phoneNumber).map(c => `${c.name} (${c.phoneNumber})`) || [];
+    const contactInfoString = phoneContacts.length > 0 ? phoneContacts.join(', ') : 'Emergency Services';
+    
     const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
-    const emergencyNumber = primaryContact?.phoneNumber || '911';
+    const dialNumber = primaryContact?.phoneNumber || '911';
 
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
     
@@ -99,18 +102,18 @@ export function SOSPanel() {
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: 40.7128, 
       locationAtAlertLongitude: -74.0060,
-      alertMessage: `TRIPLE DISPATCH PROTOCOL: Initiated 3-burst SMS alerts and Emergency Voice Link to rescue network. Primary contact: ${primaryContact?.name || 'Emergency Services'} at ${emergencyNumber}. Redundancy active till acknowledgment.`,
-      emergencyContactIds: primaryContact ? [primaryContact.id] : [],
+      alertMessage: `TRIPLE DISPATCH PROTOCOL: Initiated 3-burst SMS alerts and Emergency Voice Link to rescue network: ${contactInfoString}. Redundancy active till acknowledgment.`,
+      emergencyContactIds: contacts?.map(c => c.id) || [],
       protocol: 'Triple-Redundancy'
     });
 
     toast({
       variant: "destructive",
       title: "TRIPLE SOS DISPATCH ACTIVE",
-      description: `3-Burst SMS Synchronized to ${emergencyNumber}. Dialing now...`
+      description: `3-Burst SMS Synchronized to: ${contactInfoString}. Initiating voice link...`
     });
 
-    window.location.href = `tel:${emergencyNumber}`;
+    window.location.href = `tel:${dialNumber}`;
   };
 
   return (

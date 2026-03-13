@@ -38,12 +38,7 @@ export default function AlertSimPage() {
   useEffect(() => {
     if (dispatchStep >= 1 && dispatchStep <= 3) {
       const timer = setTimeout(() => {
-        if (dispatchStep === 1 && !hasLogged.current) {
-          dispatchSOS(1);
-          hasLogged.current = true;
-        } else if (dispatchStep > 1) {
-          dispatchSOS(dispatchStep);
-        }
+        dispatchSOS(dispatchStep);
         setDispatchStep(prev => prev + 1);
       }, 3000); // 3 seconds between redundancy attempts
       return () => clearTimeout(timer);
@@ -54,13 +49,15 @@ export default function AlertSimPage() {
     if (!db || !user) return;
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
     
-    const contactInfo = contacts?.map(c => `${c.name} (${c.phoneNumber || c.email})`).join(', ') || 'Emergency Services';
+    // Explicitly identify the phone numbers in the rescue network
+    const phoneContacts = contacts?.filter(c => c.phoneNumber).map(c => `${c.name} (${c.phoneNumber})`) || [];
+    const contactInfoString = phoneContacts.length > 0 ? phoneContacts.join(', ') : 'Emergency Services';
     
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
       alertType: `Critical Hyperthermia (Attempt ${attempt}/3)`,
-      messageContent: `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature exceeded 40.0°C. SMS alerts and Emergency Voice Link initiated to rescue network: ${contactInfo}.`,
+      messageContent: `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): User core temperature exceeded 40.0°C. SMS alerts and Emergency Voice Link initiated to rescue network: ${contactInfoString}.`,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
       locationAtAlertLatitude: 40.7128,
