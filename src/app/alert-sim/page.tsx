@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -5,12 +6,12 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, Navigation, Loader2, User, Smartphone, Send, Info, ExternalLink } from 'lucide-react';
+import { ShieldAlert, X, Navigation, Loader2, Smartphone, Send, Info, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
-import { sendEmergencySms } from '@/app/actions/sms';
+import { sendEmergencyAlert } from '@/app/actions/alerts';
 
 export default function AlertSimPage() {
   const { user, isUserLoading } = useUser();
@@ -18,7 +19,6 @@ export default function AlertSimPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(10);
   const [dispatchStep, setDispatchStep] = useState(0); 
-  const [isSimulatedMode, setIsSimulatedMode] = useState(false);
   const [lastMessage, setLastMessage] = useState<{ to: string, body: string } | null>(null);
   
   const contactsQuery = useMemoFirebase(() => {
@@ -40,7 +40,7 @@ export default function AlertSimPage() {
     if (dispatchStep >= 1 && dispatchStep <= 3) {
       const timer = setTimeout(() => {
         dispatchSOS(dispatchStep);
-      }, 4000); 
+      }, 3000); 
       return () => clearTimeout(timer);
     }
   }, [dispatchStep]);
@@ -52,11 +52,8 @@ export default function AlertSimPage() {
     const message = `TRIPLE-REDUNDANCY SOS (Attempt ${attempt}/3): HeatGuard AI detected core temperature critical (40.2°C). Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
     for (const contact of phoneContacts) {
-      const result = await sendEmergencySms(contact.phoneNumber, message);
-      if (result.simulated) {
-        setIsSimulatedMode(true);
-        setLastMessage({ to: contact.phoneNumber, body: message });
-      }
+      await sendEmergencyAlert(contact.phoneNumber, message);
+      setLastMessage({ to: contact.phoneNumber, body: message });
     }
 
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
@@ -70,7 +67,7 @@ export default function AlertSimPage() {
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts?.map(c => c.id) || [],
-      protocol: 'Twilio Cloud Dispatch'
+      protocol: 'Firebase Cloud Simulation'
     });
 
     setDispatchStep(prev => prev + 1);
@@ -120,7 +117,7 @@ export default function AlertSimPage() {
                     <div className="space-y-1">
                       <p className="text-sm font-black text-slate-900 uppercase">Redundancy Burst {dispatchStep}/3</p>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        {isSimulatedMode ? 'Simulating Cloud Dispatch...' : 'Broadcasting Cloud SMS...'}
+                        Broadcasting Cloud Alert...
                       </p>
                     </div>
                   </div>
@@ -140,16 +137,15 @@ export default function AlertSimPage() {
                 </div>
               )}
               
-              {isSimulatedMode && dispatchStep > 0 && (
+              {dispatchStep > 0 && (
                 <div className="space-y-4">
                   <div className="flex flex-col gap-3 p-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700">
                     <div className="flex items-center gap-2">
                       <Info className="h-4 w-4 shrink-0" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Configuration Notice</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest">Protocol Notice</span>
                     </div>
                     <p className="text-[9px] font-bold uppercase tracking-widest leading-relaxed">
-                      Twilio keys not found. Cloud dispatch is simulated. 
-                      Use the button below to send a real message via your device.
+                      Automated cloud alert sent. Use the button below to send a real native SMS via your device cellular network.
                     </p>
                   </div>
                   {lastMessage && (

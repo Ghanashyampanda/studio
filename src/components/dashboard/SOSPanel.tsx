@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -8,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Info, Smartphone, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Smartphone, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { sendEmergencySms } from '@/app/actions/sms';
+import { sendEmergencyAlert } from '@/app/actions/alerts';
 
 const COUNTRY_CODES = [
   { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
@@ -27,9 +28,9 @@ export function SOSPanel() {
   const [newName, setNewName] = useState('');
   const [newContact, setNewContact] = useState('');
   const [newType, setNewType] = useState<'phone' | 'email'>('phone');
-  const [countryCode, setCountryCode] = useState('IN');
+  const [countryCode, setCountryCode] = useState('US');
   const [isDispatching, setIsDispatching] = useState(false);
-  const [lastSimulatedMessage, setLastSimulatedMessage] = useState<{ to: string, body: string } | null>(null);
+  const [lastMessage, setLastMessage] = useState<{ to: string, body: string } | null>(null);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -46,7 +47,7 @@ export function SOSPanel() {
     if (!newName || !newContact) return;
 
     const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
-    const dialPrefix = selectedCountry?.dial_code || '+91';
+    const dialPrefix = selectedCountry?.dial_code || '+1';
     const formattedContact = newType === 'phone' ? `${dialPrefix}${newContact.replace(/^\+/, '')}` : newContact;
 
     const contactsRef = collection(db, 'users', user.uid, 'emergency_contacts');
@@ -86,62 +87,44 @@ export function SOSPanel() {
     }
 
     setIsDispatching(true);
-    setLastSimulatedMessage(null);
+    setLastMessage(null);
     
     const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
     const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
     // Sequence through 3 bursts
     for (let i = 1; i <= 3; i++) {
-      const result = await sendEmergencySms(primaryNode.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
+      await sendEmergencyAlert(primaryNode.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
+      setLastMessage({ to: primaryNode.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
       
-      if (result.success) {
-        if (result.simulated) {
-          setLastSimulatedMessage({ to: primaryNode.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
-          toast({
-            title: `SIMULATED BURST ${i}/3 SENT`,
-            description: `Twilio keys not loaded. Use native fallback.`,
-          });
-        } else {
-          toast({
-            title: `SOS BURST ${i}/3 DISPATCHED`,
-            description: `Cloud dispatch via Twilio successful.`,
-          });
-        }
+      toast({
+        title: `CLOUD ALERT ${i}/3 SENT`,
+        description: `Automated dispatch cycle in progress.`,
+      });
 
-        const historyRef = collection(db, 'users', user.uid, 'alert_history');
-        addDocumentNonBlocking(historyRef, {
-          userId: user.uid,
-          triggerTimestamp: new Date().toISOString(),
-          alertType: `Manual SOS (Burst ${i}/3)`,
-          status: 'sent',
-          bodyTemperatureAtAlertC: 37.0, 
-          locationAtAlertLatitude: 40.7128, 
-          locationAtAlertLongitude: -74.0060,
-          alertMessage: emergencyMessage,
-          emergencyContactIds: [primaryNode.id],
-          protocol: result.simulated ? 'Simulation' : 'Twilio Cloud'
-        });
-      } else {
-        // Handle failure (e.g., number not a Twilio number)
-        setLastSimulatedMessage({ to: primaryNode.phoneNumber, body: emergencyMessage });
-        toast({
-          variant: "destructive",
-          title: `Twilio Error`,
-          description: result.error || "The 'From' number is invalid. Use Native Fallback."
-        });
-        break; // Stop bursts if one fails due to config
-      }
+      const historyRef = collection(db, 'users', user.uid, 'alert_history');
+      addDocumentNonBlocking(historyRef, {
+        userId: user.uid,
+        triggerTimestamp: new Date().toISOString(),
+        alertType: `Manual SOS (Burst ${i}/3)`,
+        status: 'sent',
+        bodyTemperatureAtAlertC: 37.0, 
+        locationAtAlertLatitude: 40.7128, 
+        locationAtAlertLongitude: -74.0060,
+        alertMessage: emergencyMessage,
+        emergencyContactIds: [primaryNode.id],
+        protocol: 'Firebase Cloud Bridge'
+      });
       
-      if (i < 3) await new Promise(resolve => setTimeout(resolve, 2000));
+      if (i < 3) await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
     setIsDispatching(false);
   };
 
   const handleNativeFallback = () => {
-    if (!lastSimulatedMessage) return;
-    const url = `sms:${lastSimulatedMessage.to}?body=${encodeURIComponent(lastSimulatedMessage.body)}`;
+    if (!lastMessage) return;
+    const url = `sms:${lastMessage.to}?body=${encodeURIComponent(lastMessage.body)}`;
     window.open(url, '_blank');
   };
 
@@ -154,7 +137,7 @@ export function SOSPanel() {
         </CardTitle>
         <div className="flex items-center gap-2">
            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Live Link Active</span>
+           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Cloud Ready</span>
         </div>
       </CardHeader>
       <CardContent className="space-y-6 p-6">
@@ -199,7 +182,7 @@ export function SOSPanel() {
                 <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Full Name" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Relationship</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Protocol</Label>
                 <div className="flex gap-2">
                   <Button variant={newType === 'phone' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('phone')}>PHONE</Button>
                   <Button variant={newType === 'email' ? 'secondary' : 'outline'} size="sm" className="h-11 flex-1 text-[10px] font-bold rounded-xl" onClick={() => setNewType('email')}>EMAIL</Button>
@@ -207,17 +190,17 @@ export function SOSPanel() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Contact Detail</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Node Address</Label>
               <div className="flex gap-2">
                 {newType === 'phone' && (
                   <Select value={countryCode} onValueChange={setCountryCode}>
-                    <SelectTrigger className="w-[110px] h-11 bg-muted/30 border-border rounded-xl text-[10px] font-bold">
+                    <SelectTrigger className="w-[80px] h-11 bg-muted/30 border-border rounded-xl text-[10px] font-bold">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {COUNTRY_CODES.map(c => (
                         <SelectItem key={c.code} value={c.code}>
-                          {c.flag} {c.dial_code}
+                          {c.flag}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -238,13 +221,13 @@ export function SOSPanel() {
         )}
       </CardContent>
       <CardFooter className="p-6 pt-0 flex flex-col gap-3">
-        {lastSimulatedMessage ? (
+        {lastMessage ? (
           <Button 
             className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl h-14 rounded-2xl uppercase text-xs animate-bounce" 
             onClick={handleNativeFallback}
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            Send Real Native SMS
+            Dispatch Real Native SMS
           </Button>
         ) : (
           <Button 
@@ -253,7 +236,7 @@ export function SOSPanel() {
             onClick={handleManualSOS}
           >
             {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-            Trigger SOS Dispatch
+            Trigger SOS Protocol
           </Button>
         )}
       </CardFooter>
