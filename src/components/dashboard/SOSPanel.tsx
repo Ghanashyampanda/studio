@@ -21,7 +21,7 @@ const COUNTRY_CODES = [
   { name: "Germany", dial_code: "+49", code: "DE", flag: "🇩🇪" },
   { name: "France", dial_code: "+33", code: "FR", flag: "🇫🇷" },
   { name: "Japan", dial_code: "+81", code: "JP", flag: "🇯🇵" },
-  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧6" },
+  { name: "Brazil", dial_code: "+55", code: "BR", flag: "🇧🇷" },
   { name: "China", dial_code: "+86", code: "CN", flag: "🇨🇳" },
   { name: "South Africa", dial_code: "+27", code: "ZA", flag: "🇿🇦" },
   { name: "Mexico", dial_code: "+52", code: "MX", flag: "🇲🇽" },
@@ -86,14 +86,17 @@ export function SOSPanel() {
   const handleManualSOS = () => {
     if (!db || !user) return;
     
+    // Identify all phone contacts for the broadcast message
     const phoneContacts = contacts?.filter(c => c.phoneNumber).map(c => `${c.name} (${c.phoneNumber})`) || [];
     const contactInfoString = phoneContacts.length > 0 ? phoneContacts.join(', ') : 'Emergency Services';
     
+    // Identify primary contact for immediate dial
     const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
     const dialNumber = primaryContact?.phoneNumber || '911';
 
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
     
+    // Log the triple-redundancy event
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
@@ -113,6 +116,7 @@ export function SOSPanel() {
       description: `3-Burst SMS Synchronized to: ${contactInfoString}. Initiating voice link...`
     });
 
+    // Actually trigger the phone call
     window.location.href = `tel:${dialNumber}`;
   };
 

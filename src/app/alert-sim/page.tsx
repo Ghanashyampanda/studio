@@ -18,8 +18,7 @@ export default function AlertSimPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(10);
   const [dispatchStep, setDispatchStep] = useState(0); // 0: countdown, 1: attempt 1, 2: attempt 2, 3: attempt 3, 4: complete
-  const hasLogged = useRef(false);
-
+  
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'emergency_contacts');
