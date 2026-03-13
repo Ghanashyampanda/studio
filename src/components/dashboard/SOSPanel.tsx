@@ -8,16 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Smartphone, ExternalLink, CheckCircle2, BellRing } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Smartphone, ExternalLink, CheckCircle2, BellRing, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { sendEmergencyFcm, sendEmergencyAlert } from '@/app/actions/alerts';
 
 const COUNTRY_CODES = [
+  { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
   { name: "United States", dial_code: "+1", code: "US", flag: "🇺🇸" },
   { name: "United Kingdom", dial_code: "+44", code: "GB", flag: "🇬🇧" },
   { name: "Australia", dial_code: "+61", code: "AU", flag: "🇦🇺" },
-  { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
 ];
 
 export function SOSPanel() {
@@ -39,8 +39,8 @@ export function SOSPanel() {
 
   const handleAdd = () => {
     if (!db || !user) return;
-    if (contacts && contacts.length >= 3) {
-      toast({ title: "Limit reached", description: "System restricted to 3 emergency nodes.", variant: "destructive" });
+    if (contacts && contacts.length >= 5) {
+      toast({ title: "Limit reached", description: "System restricted to 5 rescue nodes.", variant: "destructive" });
       return;
     }
     if (!newName || !newContact) return;
@@ -48,7 +48,7 @@ export function SOSPanel() {
     let formattedContact = newContact;
     if (newType === 'phone') {
       const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode);
-      const dialPrefix = selectedCountry?.dial_code || '+1';
+      const dialPrefix = selectedCountry?.dial_code || '+91';
       formattedContact = `${dialPrefix}${newContact.replace(/^\+/, '')}`;
     }
 
@@ -90,17 +90,19 @@ export function SOSPanel() {
     
     const emergencyMessage = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
+    // Perform simulated triple-redundancy cycle
     for (let i = 1; i <= 3; i++) {
       for (const contact of contacts) {
         if (contact.type === 'fcm' && contact.fcmToken) {
           await sendEmergencyFcm(contact.fcmToken, `[BURST ${i}/3] ${emergencyMessage}`);
         } else if (contact.phoneNumber) {
+          // Cloud SMS is simulated. Native button is for REAL delivery.
           await sendEmergencyAlert(contact.phoneNumber, `[BURST ${i}/3] ${emergencyMessage}`);
-          setLastMessage({ to: contact.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
+          setLastMessage({ to: contact.phoneNumber, body: emergencyMessage });
         }
       }
       
-      toast({ title: `CLOUD DISPATCH ${i}/3`, description: `Triple-redundancy cycle in progress.` });
+      toast({ title: `CLOUD DISPATCH ${i}/3`, description: `Simulated triple-redundancy cycle active.` });
       if (i < 3) await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
@@ -156,7 +158,7 @@ export function SOSPanel() {
           )}
         </div>
 
-        {(!contacts || contacts.length < 3) && (
+        {(!contacts || contacts.length < 5) && (
           <div className="space-y-4 pt-6 border-t border-border">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -170,9 +172,9 @@ export function SOSPanel() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="phone">Phone/SMS</SelectItem>
-                    <SelectItem value="fcm">Firebase Push</SelectItem>
-                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="phone">PHONE/SMS</SelectItem>
+                    <SelectItem value="fcm">FIREBASE PUSH</SelectItem>
+                    <SelectItem value="email">EMAIL</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -204,11 +206,19 @@ export function SOSPanel() {
           </div>
         )}
       </CardContent>
-      <CardFooter className="p-6 pt-0 flex flex-col gap-3">
+      <CardFooter className="p-6 pt-0 flex flex-col gap-4">
         {lastMessage ? (
-          <Button className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl h-14 rounded-2xl uppercase text-xs animate-bounce" onClick={handleNativeFallback}>
-            <ExternalLink className="mr-2 h-4 w-4" /> Dispatch Real Native SMS
-          </Button>
+          <div className="w-full space-y-3">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl h-14 rounded-2xl uppercase text-xs" onClick={handleNativeFallback}>
+              <ExternalLink className="mr-2 h-4 w-4" /> Dispatch Real Native SMS
+            </Button>
+            <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+              <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+              <p className="text-[9px] text-blue-600 font-bold uppercase leading-tight">
+                Automated Cloud SMS is simulated. Click the blue button above to send a real message via your device's cellular network.
+              </p>
+            </div>
+          </div>
         ) : (
           <Button disabled={isDispatching} className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl h-14 rounded-2xl uppercase text-[10px]" onClick={handleManualSOS}>
             {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
