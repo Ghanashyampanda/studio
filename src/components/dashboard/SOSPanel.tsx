@@ -90,7 +90,7 @@ export function SOSPanel() {
     const primaryContact = contacts?.find(c => c.isPrimary) || (contacts && contacts[0]);
     const emergencyNumber = primaryContact?.phoneNumber || '911';
 
-    // Log the alert to history
+    // Log the alert to history with explicit SMS and Call mention
     const historyRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
@@ -100,14 +100,14 @@ export function SOSPanel() {
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: 40.7128, 
       locationAtAlertLongitude: -74.0060,
-      alertMessage: `Manual SOS triggered by user. Contacting: ${primaryContact?.name || 'Emergency Services'} at ${emergencyNumber}`,
+      alertMessage: `Manual SOS. Dispatched SMS alerts and Emergency Voice Link to: ${primaryContact?.name || 'Emergency Services'} (${emergencyNumber}).`,
       emergencyContactIds: primaryContact ? [primaryContact.id] : []
     });
 
     toast({
       variant: "destructive",
       title: "SOS PROTOCOL ACTIVE",
-      description: `Initiating emergency call to ${emergencyNumber}...`
+      description: `Dispatched SMS. Dialing ${emergencyNumber} now...`
     });
 
     // Trigger device call functionality
@@ -208,7 +208,7 @@ export function SOSPanel() {
           className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-xs" 
           onClick={handleManualSOS}
         >
-          Trigger Manual SOS
+          Trigger Manual SOS (Call + SMS)
         </Button>
       </CardFooter>
     </Card>

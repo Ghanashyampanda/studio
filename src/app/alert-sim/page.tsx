@@ -6,7 +6,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, BellRing, Navigation, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, X, BellRing, Navigation, AlertTriangle, Phone, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -43,7 +43,7 @@ export default function AlertSimPage() {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
       alertType: 'Critical Hyperthermia',
-      messageContent: `EMERGENCY: User core temperature exceeded 40.0°C. Rescuers notified.`,
+      messageContent: `EMERGENCY: User core temperature exceeded 40.0°C. SMS alerts and Emergency Voice Link initiated to rescue network.`,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
       locationAtAlertLatitude: 40.7128,
@@ -76,11 +76,23 @@ export default function AlertSimPage() {
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Dispatching Rescue Nodes...</p>
                 </div>
               ) : (
-                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-4">
-                  <BellRing className="h-8 w-8 text-emerald-600 mx-auto animate-bounce" />
-                  <p className="text-sm font-black text-emerald-700 uppercase">SOS Dispatched Successfully</p>
+                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-6">
+                  <div className="flex justify-center gap-4">
+                    <Phone className="h-6 w-6 text-emerald-600 animate-bounce" />
+                    <MessageSquare className="h-6 w-6 text-emerald-600 animate-bounce delay-100" />
+                  </div>
                   <div className="space-y-1">
-                    {contacts?.map(c => <p key={c.id} className="text-[9px] text-emerald-600 font-bold uppercase tracking-tight">{c.name} notified via SMS</p>)}
+                    <p className="text-sm font-black text-emerald-700 uppercase">Emergency Protocol Deployed</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Call + SMS Link Active</p>
+                  </div>
+                  <div className="space-y-2 border-t border-emerald-100 pt-4">
+                    {contacts?.map(c => (
+                      <div key={c.id} className="text-[9px] text-emerald-500 font-bold uppercase tracking-tight flex items-center justify-center gap-2">
+                        <span>{c.name}</span>
+                        <span className="h-1 w-1 bg-emerald-300 rounded-full" />
+                        <span>SMS & Call Dispatched</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
