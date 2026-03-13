@@ -18,8 +18,8 @@ export default function AlertSimPage() {
   const db = useFirestore();
   const router = useRouter();
   const [countdown, setCountdown] = useState(10);
-  const [dispatchStep, setDispatchStep] = useState(0); 
   const [isSignaling, setIsSignaling] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -28,28 +28,19 @@ export default function AlertSimPage() {
   const { data: contacts } = useCollection(contactsQuery);
 
   useEffect(() => {
-    if (countdown > 0 && dispatchStep === 0) {
+    if (countdown > 0 && !isSignaling && !isComplete) {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0 && dispatchStep === 0) {
-      setDispatchStep(1);
-      setIsSignaling(true);
+    } else if (countdown === 0 && !isSignaling && !isComplete) {
+      startRescueProtocol();
     }
-  }, [countdown, dispatchStep]);
+  }, [countdown, isSignaling, isComplete]);
 
-  useEffect(() => {
-    if (dispatchStep >= 1 && dispatchStep <= 3) {
-      const timer = setTimeout(() => {
-        dispatchRescue(dispatchStep);
-      }, 3000); 
-      return () => clearTimeout(timer);
-    }
-  }, [dispatchStep]);
-
-  const dispatchRescue = async (attempt: number) => {
+  const startRescueProtocol = async () => {
+    setIsSignaling(true);
     if (!db || !user || !contacts) return;
     
-    const message = `RESCUE BURST ${attempt}/3: HeatGuard AI detected critical core temperature (40.2°C). Rescue required. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `RESCUE ALERT: HeatGuard AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
     // Signally all FCM nodes
     for (const contact of contacts) {
@@ -58,12 +49,12 @@ export default function AlertSimPage() {
       }
     }
 
-    // Log the burst to forensic audit
+    // Log the incident to forensic audit
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: `Automated Rescue Burst ${attempt}/3`,
+      alertType: `Automated Rescue Trigger`,
       messageContent: message,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
@@ -73,13 +64,13 @@ export default function AlertSimPage() {
       protocol: 'FCM High-Priority Signaling'
     });
 
-    if (attempt === 3) {
+    setTimeout(() => {
       setIsSignaling(false);
-    }
-    setDispatchStep(prev => prev + 1);
+      setIsComplete(true);
+    }, 2500);
   };
 
-  const handleNativeSMSHandoff = () => {
+  const handleNativeSMSDispatch = () => {
     if (!contacts) return;
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (!primaryPhone) return;
@@ -103,30 +94,22 @@ export default function AlertSimPage() {
               </motion.div>
               <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Rescue Protocol</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <Zap className="h-3 w-3" /> Signaling Sequence Active
+                <Zap className="h-3 w-3" /> Signaling Active
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
-              {dispatchStep === 0 ? (
+              {!isSignaling && !isComplete ? (
                 <div className="text-center space-y-4">
                   <div className="text-8xl font-black text-slate-900 tracking-tighter tabular-nums">{countdown}</div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Rescue Signaling...</p>
                 </div>
               ) : isSignaling ? (
                 <div className="text-center space-y-6">
-                  <div className="flex justify-center gap-3">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className={cn(
-                        "h-3 w-12 rounded-full transition-all duration-500",
-                        dispatchStep >= i ? "bg-destructive" : "bg-slate-100"
-                      )} />
-                    ))}
-                  </div>
                   <div className="space-y-4">
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-slate-900 uppercase">Signaling Burst {Math.min(dispatchStep, 3)}/3</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">FCM App Nodes Signaling...</p>
+                      <p className="text-sm font-black text-slate-900 uppercase">FCM Broadcast Active</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Signaling High-Priority Nodes...</p>
                     </div>
                   </div>
                 </div>
@@ -141,9 +124,9 @@ export default function AlertSimPage() {
                   <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-4">
                     <div className="space-y-1">
                       <p className="text-sm font-black text-primary uppercase">Direct Rescue Ready</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send the tactical SOS payload to your primary cellular responder.</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send the rescue payload to your primary cellular responder.</p>
                     </div>
-                    <Button onClick={handleNativeSMSHandoff} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
+                    <Button onClick={handleNativeSMSDispatch} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
                       Dispatch Rescue SMS
                     </Button>
                   </div>
@@ -162,7 +145,7 @@ export default function AlertSimPage() {
               </div>
 
               <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs" onClick={() => router.push('/dashboard')}>
-                <X className="mr-2 h-4 w-4" /> Exit Rescue Flow
+                <X className="mr-2 h-4 w-4" /> Cancel Protocol
               </Button>
             </CardContent>
           </Card>

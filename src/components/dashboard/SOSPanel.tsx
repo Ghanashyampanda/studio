@@ -9,12 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Zap } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Zap, Navigation } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
-import { initializeFirebase } from '@/firebase';
-import { getToken } from 'firebase/messaging';
 
 const COUNTRY_CODES = [
   { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
@@ -101,17 +99,17 @@ export function SOSPanel() {
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: 'Direct Rescue Trigger',
+      alertType: 'Rescue Protocol Triggered',
       status: 'sent',
-      bodyTemperatureAtAlertC: 37.0,
+      bodyTemperatureAtAlertC: 40.2,
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: 'FCM + Direct Cellular',
+      protocol: 'FCM High-Priority + Cellular',
       alertMessage: message
     });
 
-    // 3. Direct Cellular Handoff (Real-world delivery)
+    // 3. Direct Cellular Delivery
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (primaryPhone) {
       const smsUrl = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
@@ -120,7 +118,7 @@ export function SOSPanel() {
 
     setTimeout(() => {
       setIsDispatching(false);
-      toast({ title: "Rescue Protocol Active", description: "Cloud nodes signaled and cellular handoff complete." });
+      toast({ title: "Rescue Protocol Active", description: "All rescue nodes signaled successfully." });
     }, 1000);
   };
 
@@ -128,12 +126,12 @@ export function SOSPanel() {
     <Card className="bg-white border-border shadow-sm rounded-3xl overflow-hidden h-full flex flex-col">
       <CardHeader className="bg-muted/30 border-b border-border p-6 flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center gap-3 font-bold tracking-tight uppercase text-foreground">
-          <ShieldAlert className="h-5 w-5 text-secondary" />
+          <ShieldAlert className="h-5 w-5 text-destructive" />
           Rescue Network
         </CardTitle>
         <div className="flex items-center gap-2">
            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Active Sync</span>
+           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Nodes Synced</span>
         </div>
       </CardHeader>
       <CardContent className="flex-1 space-y-6 p-6">
@@ -151,7 +149,7 @@ export function SOSPanel() {
                       {contact.isPrimary && <CheckCircle2 className="h-3 w-3 text-primary" />}
                     </div>
                     <p className="text-[9px] font-mono text-muted-foreground uppercase truncate">
-                      {contact.type === 'fcm' ? 'Cloud Push Node' : contact.phoneNumber || contact.email}
+                      {contact.type === 'fcm' ? 'App Push Node' : contact.phoneNumber || contact.email}
                     </p>
                   </div>
                 </div>
@@ -163,7 +161,7 @@ export function SOSPanel() {
             {(!contacts || contacts.length === 0) && (
               <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 bg-muted/20 rounded-2xl border-2 border-dashed border-muted">
                 <Smartphone className="h-10 w-10 text-muted-foreground opacity-30" />
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">No Rescue Nodes Synced</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">No Rescue Nodes Configured</p>
               </div>
             )}
           </div>
@@ -172,8 +170,8 @@ export function SOSPanel() {
             <div className="space-y-4 pt-6 border-t border-border">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Identity</Label>
-                  <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Responder" />
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Responder Name</Label>
+                  <Input className="h-11 bg-muted/30 border-border rounded-xl text-sm" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Name" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Protocol</Label>
@@ -183,14 +181,14 @@ export function SOSPanel() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="phone">PHONE NODE</SelectItem>
-                      <SelectItem value="fcm">CLOUD PUSH (FCM)</SelectItem>
+                      <SelectItem value="fcm">APP PUSH (FCM)</SelectItem>
                       <SelectItem value="email">EMAIL NODE</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Contact Node</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Contact Detail</Label>
                 <div className="flex gap-2">
                   {newType === 'phone' && (
                     <Select value={countryCode} onValueChange={setCountryCode}>
