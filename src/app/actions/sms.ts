@@ -21,8 +21,9 @@ export async function sendEmergencySms(to: string, message: string) {
   }
 
   try {
-    // Dynamic import to ensure Twilio is only loaded in the server environment
-    const twilio = (await import('twilio')).default;
+    // Robust dynamic import to handle both CJS and ESM environments for Twilio SDK
+    const twilioModule = await import('twilio');
+    const twilio = (twilioModule as any).default || twilioModule;
     const client = twilio(accountSid, authToken);
     
     const response = await client.messages.create({
