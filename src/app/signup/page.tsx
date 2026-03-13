@@ -113,7 +113,7 @@ export default function SignupPage() {
       toast({
         variant: "destructive",
         title: "Google Sign-Up Failed",
-        description: error.message
+        description: error.message || "Could not complete Google Sign-Up."
       });
     }
   };
@@ -153,7 +153,7 @@ export default function SignupPage() {
             type="button"
             variant="outline"
             onClick={handleGoogleSignup}
-            className="w-full h-12 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all text-sm"
+            className="w-full h-11 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all text-sm"
           >
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +22,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -44,16 +47,37 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    if (!auth) return;
+    if (!auth || !db) return;
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Ensure user profile and settings exist upon Google login
+      await setDoc(doc(db, 'users', user.uid), {
+        id: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        dateCreated: new Date().toISOString()
+      }, { merge: true });
+
+      await setDoc(doc(db, 'users', user.uid, 'user_settings', 'current'), {
+        id: 'current',
+        userId: user.uid,
+        maxBodyTemperatureThresholdC: 39.5,
+        maxHeartRateThresholdBPM: 140,
+        minHeartRateThresholdBPM: 50,
+        notificationSensitivity: 'medium',
+        enableAutomatedAlerts: true,
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+
       router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Google Sign-In Failed",
-        description: error.message
+        description: error.message || "Could not complete Google Sign-In."
       });
     }
   };
@@ -82,7 +106,7 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             onClick={handleGoogleLogin}
-            className="w-full h-12 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all text-sm"
+            className="w-full h-11 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all text-sm"
           >
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
