@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, X, Navigation, Loader2, Smartphone, Send, Info, ExternalLink, BellRing, Zap } from 'lucide-react';
+import { ShieldAlert, X, Navigation, Loader2, Smartphone, Send, Info, ExternalLink, BellRing, Zap, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -18,7 +19,7 @@ export default function AlertSimPage() {
   const router = useRouter();
   const [countdown, setCountdown] = useState(10);
   const [dispatchStep, setDispatchStep] = useState(0); 
-  const [protocolStatus, setProtocolStatus] = useState<'idle' | 'broadcasting' | 'cellular_handoff' | 'complete'>('idle');
+  const [isSignaling, setIsSignaling] = useState(false);
   
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -32,7 +33,7 @@ export default function AlertSimPage() {
       return () => clearTimeout(timer);
     } else if (countdown === 0 && dispatchStep === 0) {
       setDispatchStep(1);
-      setProtocolStatus('broadcasting');
+      setIsSignaling(true);
     }
   }, [countdown, dispatchStep]);
 
@@ -50,10 +51,10 @@ export default function AlertSimPage() {
     
     const message = `RESCUE PROTOCOL (Burst ${attempt}/3): HeatGuard AI detected critical core temperature (40.2°C). Rescue required immediately. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Signally all FCM nodes
+    // Signally all FCM nodes in background
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
-        await sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+        sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
       }
     }
 
@@ -73,7 +74,7 @@ export default function AlertSimPage() {
     });
 
     if (attempt === 3) {
-      setProtocolStatus('cellular_handoff');
+      setIsSignaling(false);
     }
     setDispatchStep(prev => prev + 1);
   };
@@ -86,7 +87,6 @@ export default function AlertSimPage() {
     const message = `HEATGUARD RESCUE: Critical thermal emergency detected. Rescue required. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
     const url = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
-    setProtocolStatus('complete');
   };
 
   if (isUserLoading) return null;
@@ -103,7 +103,7 @@ export default function AlertSimPage() {
               </motion.div>
               <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Emergency Protocol</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <Zap className="h-3 w-3" /> Signaling Rescue Nodes
+                <Zap className="h-3 w-3" /> Rescue Sequence Active
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
@@ -112,7 +112,7 @@ export default function AlertSimPage() {
                   <div className="text-8xl font-black text-slate-900 tracking-tighter tabular-nums">{countdown}</div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Rescue Signaling...</p>
                 </div>
-              ) : protocolStatus === 'broadcasting' ? (
+              ) : isSignaling ? (
                 <div className="text-center space-y-6">
                   <div className="flex justify-center gap-3">
                     {[1, 2, 3].map(i => (
@@ -125,31 +125,27 @@ export default function AlertSimPage() {
                   <div className="space-y-4">
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-slate-900 uppercase">FCM Broadcast {Math.min(dispatchStep, 3)}/3</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Signaling Cloud App Nodes...</p>
+                      <p className="text-sm font-black text-slate-900 uppercase">Signaling Burst {Math.min(dispatchStep, 3)}/3</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">FCM App Nodes Synchronizing...</p>
                     </div>
                   </div>
                 </div>
-              ) : protocolStatus === 'cellular_handoff' ? (
-                <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-6">
-                  <div className="flex justify-center gap-4 text-primary">
-                    <Smartphone className="h-8 w-8 animate-bounce" />
-                    <Send className="h-8 w-8 animate-bounce delay-100" />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-black text-primary uppercase leading-tight">Handing off to Cellular Node</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Cloud signaling complete. Dispatch real SMS to your primary responder via cellular link.</p>
-                  </div>
-                  <Button onClick={handleNativeSMSHandoff} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
-                    Dispatch Real-World SMS
-                  </Button>
-                </div>
               ) : (
-                <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-4">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-black text-emerald-700 uppercase">Rescue Network Logged</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Incident forensics archived in Firestore.</p>
+                <div className="space-y-6">
+                  <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-2">
+                    <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
+                    <p className="text-sm font-black text-emerald-700 uppercase">Cloud Signaling Complete</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">Incident archived in forensics.</p>
+                  </div>
+                  
+                  <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-sm font-black text-primary uppercase">Cellular Dispatch Ready</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send the final tactical payload to your primary responder.</p>
+                    </div>
+                    <Button onClick={handleNativeSMSHandoff} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
+                      Dispatch Rescue SMS
+                    </Button>
                   </div>
                 </div>
               )}
@@ -166,7 +162,7 @@ export default function AlertSimPage() {
               </div>
 
               <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs" onClick={() => router.push('/dashboard')}>
-                <X className="mr-2 h-4 w-4" /> Abort Protocol
+                <X className="mr-2 h-4 w-4" /> Exit Sequence
               </Button>
             </CardContent>
           </Card>
