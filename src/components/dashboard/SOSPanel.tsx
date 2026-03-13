@@ -134,7 +134,7 @@ export function SOSPanel() {
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 space-y-8 p-8 overflow-y-auto">
+      <CardContent className="flex-1 space-y-6 px-8 pt-8 pb-4 overflow-y-auto">
         {/* Contact List Node Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -180,14 +180,14 @@ export function SOSPanel() {
 
         {/* Configuration Section */}
         {(!contacts || contacts.length < 5) && (
-          <div className="space-y-6 pt-8 border-t border-slate-100">
+          <div className="space-y-4 pt-6 border-t border-slate-100">
             <div className="flex items-center gap-2 text-primary">
               <Plus className="h-3 w-3" />
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Configure New Node</h4>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
                 <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Responder Identity</Label>
                 <Input 
                   className="h-11 bg-slate-50 border-transparent rounded-xl text-xs font-bold focus:bg-white focus:border-primary transition-all" 
@@ -196,7 +196,7 @@ export function SOSPanel() {
                   placeholder="e.g. Primary Care" 
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Dispatch Protocol</Label>
                 <Select value={newType} onValueChange={(v: any) => setNewType(v)}>
                   <SelectTrigger className="h-11 bg-slate-50 border-transparent rounded-xl text-[10px] font-black uppercase tracking-wider focus:bg-white focus:border-primary">
@@ -211,7 +211,7 @@ export function SOSPanel() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Signal Destination</Label>
               <div className="flex gap-2">
                 {newType === 'phone' && (
