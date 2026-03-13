@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -17,11 +16,13 @@ export async function sendEmergencySms(to: string, message: string) {
   if (!accountSid || !authToken || !twilioPhone) {
     console.warn(`[SMS SIMULATION] To: ${to} | Message: ${message}`);
     // Simulate network latency
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    await new Promise(resolve => setTimeout(resolve, 800));
     return { 
       success: true, 
       simulated: true,
-      error: 'Twilio not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER for live dispatches.' 
+      configMissing: true,
+      messagePreview: message,
+      error: 'Twilio not configured. Please set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER for live cloud dispatches.' 
     };
   }
 
@@ -37,9 +38,9 @@ export async function sendEmergencySms(to: string, message: string) {
       to: to,
     });
     
-    return { success: true, simulated: false, sid: response.sid };
+    return { success: true, simulated: false, configMissing: false, sid: response.sid };
   } catch (error: any) {
     console.error('Twilio Dispatch Error:', error);
-    return { success: false, simulated: false, error: error.message || 'Unknown Twilio error' };
+    return { success: false, simulated: false, configMissing: false, error: error.message || 'Unknown Twilio error' };
   }
 }

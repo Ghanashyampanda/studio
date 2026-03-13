@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Info } from 'lucide-react';
+import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Send, Loader2, Info, Smartphone, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { sendEmergencySms } from '@/app/actions/sms';
@@ -30,6 +29,7 @@ export function SOSPanel() {
   const [newType, setNewType] = useState<'phone' | 'email'>('phone');
   const [countryCode, setCountryCode] = useState('US');
   const [isDispatching, setIsDispatching] = useState(false);
+  const [lastSimulatedMessage, setLastSimulatedMessage] = useState<{ to: string, body: string } | null>(null);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -86,6 +86,8 @@ export function SOSPanel() {
     }
 
     setIsDispatching(true);
+    setLastSimulatedMessage(null);
+    
     const primaryNode = phoneNodes.find(c => c.isPrimary) || phoneNodes[0];
     const emergencyMessage = `CRITICAL TRIPLE-REDUNDANCY SOS: HeatGuard AI detected a thermal emergency. I need immediate assistance. Current Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
@@ -95,9 +97,10 @@ export function SOSPanel() {
       
       if (result.success) {
         if (result.simulated) {
+          setLastSimulatedMessage({ to: primaryNode.phoneNumber, body: `[BURST ${i}/3] ${emergencyMessage}` });
           toast({
             title: `SIMULATED BURST ${i}/3 SENT`,
-            description: `Twilio simulated for ${primaryNode.phoneNumber}. See action logs for details.`,
+            description: `Twilio not configured. Using simulation fallback.`,
           });
         } else {
           toast({
@@ -125,23 +128,33 @@ export function SOSPanel() {
           title: `Dispatch Burst ${i} Failed`,
           description: result.error || "Twilio communication error."
         });
-        break; // Stop bursts if one actually fails hard
+        break;
       }
       
-      // Short delay between bursts
-      if (i < 3) await new Promise(resolve => setTimeout(resolve, 2000));
+      if (i < 3) await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
     setIsDispatching(false);
   };
 
+  const handleNativeFallback = () => {
+    if (!lastSimulatedMessage) return;
+    const url = `sms:${lastSimulatedMessage.to}?body=${encodeURIComponent(lastSimulatedMessage.body)}`;
+    window.open(url, '_blank');
+    setLastSimulatedMessage(null);
+  };
+
   return (
     <Card className="bg-white border-border shadow-sm rounded-3xl overflow-hidden h-full">
-      <CardHeader className="bg-muted/30 border-b border-border p-6">
+      <CardHeader className="bg-muted/30 border-b border-border p-6 flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center gap-3 font-bold tracking-tight uppercase text-foreground">
           <ShieldAlert className="h-5 w-5 text-secondary" />
           SOS Network
         </CardTitle>
+        <div className="flex items-center gap-2">
+           <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+           <span className="text-[8px] font-black uppercase text-emerald-600 tracking-widest">Nodes Active</span>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6 p-6">
         <div className="space-y-3">
@@ -152,7 +165,10 @@ export function SOSPanel() {
                   {contact.phoneNumber ? <Phone className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">{contact.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-foreground">{contact.name}</p>
+                    {contact.isPrimary && <CheckCircle2 className="h-3 w-3 text-primary" />}
+                  </div>
                   <p className="text-[10px] font-mono text-muted-foreground uppercase">{contact.phoneNumber || contact.email}</p>
                 </div>
               </div>
@@ -168,8 +184,9 @@ export function SOSPanel() {
           ))}
           {(!contacts || contacts.length === 0) && (
             <div className="flex flex-col items-center justify-center py-10 text-center space-y-3 bg-muted/20 rounded-2xl border-2 border-dashed border-muted">
-              <UserPlus className="h-10 w-10 text-muted-foreground opacity-30" />
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Network Offline</p>
+              <Smartphone className="h-10 w-10 text-muted-foreground opacity-30" />
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Rescue Network Offline</p>
+              <p className="text-[9px] text-muted-foreground uppercase px-6">Add a phone number to enable cellular SOS protocols.</p>
             </div>
           )}
         </div>
@@ -216,7 +233,7 @@ export function SOSPanel() {
                   placeholder={newType === 'phone' ? 'Phone Number' : 'Email Address'} 
                 />
                 <Button size="icon" className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-md shadow-primary/10" onClick={handleAdd} disabled={!newName || !newContact}>
-                  <PlusCircle className="h-5 w-5" />
+                  <UserPlus className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -224,17 +241,34 @@ export function SOSPanel() {
         )}
       </CardContent>
       <CardFooter className="p-6 pt-0 flex flex-col gap-3">
-        <Button 
-          disabled={isDispatching}
-          className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
-          onClick={handleManualSOS}
-        >
-          {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-          Trigger Triple-Redundancy SOS
-        </Button>
-        <div className="flex items-center gap-2 text-[8px] font-black uppercase text-muted-foreground tracking-widest bg-muted/20 p-3 rounded-xl border border-dashed">
-          <Info className="h-3 w-3" />
-          Prototyping Mode: SMS dispatches are simulated if Twilio keys are missing.
+        {lastSimulatedMessage ? (
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 text-white font-black tracking-widest shadow-xl shadow-primary/20 h-14 rounded-2xl uppercase text-xs animate-bounce" 
+            onClick={handleNativeFallback}
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Send Real Native SMS Now
+          </Button>
+        ) : (
+          <Button 
+            disabled={isDispatching}
+            className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold tracking-widest shadow-xl shadow-secondary/10 h-14 rounded-2xl uppercase text-[10px]" 
+            onClick={handleManualSOS}
+          >
+            {isDispatching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+            Trigger Triple-Redundancy SOS
+          </Button>
+        )}
+        
+        <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 space-y-2">
+          <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-700 tracking-widest">
+            <Info className="h-3.5 w-3.5" />
+            Communication Status
+          </div>
+          <p className="text-[8px] text-blue-600 font-bold uppercase leading-relaxed">
+            Twilio keys not detected. System is currently in Simulation Mode. 
+            Use the "Native SMS" fallback to send real messages via your device.
+          </p>
         </div>
       </CardFooter>
     </Card>
