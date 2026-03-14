@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Shield, Brain, ArrowRight, Activity, Thermometer, Bell, Smartphone, Heart } from 'lucide-react';
+import { Shield, Brain, ArrowRight, Activity, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUser } from '@/firebase';
 import { AuthModals } from '@/components/auth/AuthModals';
@@ -66,7 +66,11 @@ export default function Home() {
             >
               Get Started <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" size="lg" className="h-14 px-10 text-sm font-black border-border hover:bg-muted w-full sm:w-auto rounded-2xl uppercase tracking-widest">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="h-14 px-10 text-sm font-black border-border bg-background hover:bg-muted text-foreground w-full sm:w-auto rounded-2xl uppercase tracking-widest"
+            >
               Learn More
             </Button>
           </motion.div>
