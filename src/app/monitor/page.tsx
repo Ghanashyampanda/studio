@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -33,13 +32,13 @@ export default function MonitorPage() {
   };
 
   if (isUserLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pt-32 pb-20 font-body">
+    <div className="min-h-screen bg-background pt-32 pb-20 font-body">
       <main className="max-w-7xl mx-auto px-6 space-y-12">
         
         {/* Monitor Header */}
@@ -52,11 +51,11 @@ export default function MonitorPage() {
             <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
               Biometric <span className="text-primary">Monitor</span>
             </h1>
-            <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
+            <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
               Live high-frequency surveillance of your core health metrics.
             </p>
           </div>
-          <div className="bg-emerald-100 text-emerald-600 px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-sm">
+          <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest shadow-sm border border-emerald-200 dark:border-emerald-800">
             <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
             Signal Synced
           </div>
@@ -90,13 +89,13 @@ export default function MonitorPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="xl:col-span-2 space-y-8">
              <VitalsHistoryChart data={vitalsData || []} />
-             <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-10">
+             <div className="bg-card p-10 rounded-[3rem] border border-border shadow-sm flex flex-col md:flex-row items-center gap-10">
                 <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary shrink-0">
                   <Shield className="h-10 w-10" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-lg font-black uppercase tracking-tight text-slate-900">Security & Privacy</h4>
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed uppercase tracking-widest">
+                  <h4 className="text-lg font-black uppercase tracking-tight text-foreground">Security & Privacy</h4>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
                     All biometric telemetry is encrypted end-to-end and stored in compliance with medical data privacy protocols. Only authorized emergency nodes can access your live location during a critical thermal event.
                   </p>
                 </div>
@@ -104,7 +103,7 @@ export default function MonitorPage() {
           </div>
           <div className="space-y-8">
             <ConfigPanel />
-            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white space-y-6">
+            <div className="bg-slate-900 dark:bg-card p-8 rounded-[2.5rem] text-white dark:text-foreground border dark:border-border space-y-6">
               <h3 className="text-xl font-black uppercase tracking-tight">System Status</h3>
               <div className="space-y-4">
                 <StatusItem label="Neural Engine" status="Online" />
@@ -122,8 +121,8 @@ export default function MonitorPage() {
 
 function StatusItem({ label, status }: { label: string, status: string }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
-      <span className="text-[10px] font-black uppercase tracking-widest text-white/50">{label}</span>
+    <div className="flex items-center justify-between py-3 border-b border-white/10 dark:border-border last:border-0">
+      <span className="text-[10px] font-black uppercase tracking-widest text-white/50 dark:text-muted-foreground">{label}</span>
       <span className="text-[10px] font-bold uppercase tracking-tight text-primary">{status}</span>
     </div>
   );

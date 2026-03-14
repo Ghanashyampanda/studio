@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -63,7 +62,7 @@ export default function DashboardPage() {
 
   if (isUserLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -73,7 +72,7 @@ export default function DashboardPage() {
   const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 20 ? 'warning' : 'normal';
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-foreground pt-24 pb-12">
+    <div className="min-h-screen bg-background text-foreground pt-24 pb-12">
       <main className="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1 text-center md:text-left">
@@ -88,12 +87,12 @@ export default function DashboardPage() {
               Live Biometrics for {user.displayName || 'Active User'}
             </p>
           </div>
-          <div className="flex items-center justify-center gap-4 bg-white p-3 rounded-2xl border shadow-sm">
+          <div className="flex items-center justify-center gap-4 bg-card p-3 rounded-2xl border shadow-sm">
             <div className="flex items-center gap-2 px-3 border-r pr-4">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">AI Link Active</span>
             </div>
-            <button className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+            <button className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
               <Bell className="h-5 w-5" />
             </button>
           </div>

@@ -4,49 +4,48 @@
 
 @layer base {
   :root {
-    /* Professional Medical Theme (Pure White Background) */
     --background: 0 0% 100%;
-    --foreground: 215 28% 17%; /* Dark Gray #1F2937 */
-    --card: 220 33% 97%; /* Soft Gray #F5F7FA */
-    --card-foreground: 215 28% 17%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
-    --primary: 221 83% 53%; /* Medical Blue #2563EB */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 16 100% 60%; /* Deep Orange #FF6B35 */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 33% 97%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 40 100% 67%; /* Sun Yellow #FFC857 */
-    --accent-foreground: 215 28% 17%;
-    --destructive: 0 84% 60%; /* Critical Red #EF4444 */
-    --destructive-foreground: 0 0% 100%;
-    --border: 215 32% 91%;
-    --input: 215 32% 91%;
-    --ring: 221 83% 53%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 16 100% 60%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 40 100% 67%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 32% 91%;
+    --input: 214.3 32% 91%;
+    --ring: 221.2 83.2% 53.3%;
     --radius: 1rem;
   }
 
   .dark {
-    --background: 222 47% 11%;
+    --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 16 100% 60%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
     --accent: 40 100% 67%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62% 30%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 224 76% 48%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -57,22 +56,22 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
     background-image: 
-      radial-gradient(circle at 0% 0%, hsla(221, 83%, 53%, 0.02) 0%, transparent 45%),
-      radial-gradient(circle at 100% 100%, hsla(16, 100%, 60%, 0.02) 0%, transparent 45%);
+      radial-gradient(circle at 0% 0%, hsla(221, 83%, 53%, 0.03) 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, hsla(16, 100%, 60%, 0.03) 0%, transparent 45%);
     background-attachment: fixed;
   }
 }
 
 .glass {
-  @apply backdrop-blur-md bg-white/70 border border-white/20 shadow-sm;
+  @apply backdrop-blur-md bg-background/70 border border-border shadow-sm;
 }
 
 .shadow-medical {
   box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.05), 0 8px 10px -6px rgba(37, 99, 235, 0.05);
 }
 
-.text-gradient-medical {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+.dark .shadow-medical {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes pulse-red {

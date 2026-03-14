@@ -1,4 +1,3 @@
-
 "use client";
 
 import { LucideIcon } from 'lucide-react';
@@ -15,13 +14,13 @@ interface VitalsCardProps {
 
 export function VitalsCard({ title, value, unit, icon: Icon, status }: VitalsCardProps) {
   const statusColors = {
-    normal: 'text-emerald-600 bg-emerald-50',
+    normal: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400',
     warning: 'text-secondary bg-secondary/10',
     critical: 'text-destructive bg-destructive/10',
   };
 
   const borderColors = {
-    normal: 'border-slate-200',
+    normal: 'border-border',
     warning: 'border-secondary/20',
     critical: 'border-destructive/20',
   };
@@ -37,23 +36,23 @@ export function VitalsCard({ title, value, unit, icon: Icon, status }: VitalsCar
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={cn(
-        "p-6 rounded-[2rem] bg-white border shadow-sm flex flex-col justify-between h-full transition-colors",
+        "p-6 rounded-[2rem] bg-card border shadow-sm flex flex-col justify-between h-full transition-colors",
         borderColors[status]
       )}
     >
       <div className="flex items-center justify-between mb-4">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{title}</span>
-        <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center bg-slate-50", iconColors[status])}>
+        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{title}</span>
+        <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center bg-muted", iconColors[status])}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
       
       <div className="space-y-1">
         <div className="flex items-baseline gap-1">
-          <span className={cn("text-3xl font-black tracking-tighter", status === 'normal' ? 'text-slate-900' : iconColors[status])}>
+          <span className={cn("text-3xl font-black tracking-tighter", status === 'normal' ? 'text-foreground' : iconColors[status])}>
             {typeof value === 'number' ? value.toFixed(1) : value}
           </span>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{unit}</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{unit}</span>
         </div>
         
         <div className={cn(

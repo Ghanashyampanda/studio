@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -82,13 +81,13 @@ export default function HealthTipsPage() {
   };
 
   if (isUserLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pt-24 pb-20 font-body">
+    <div className="min-h-screen bg-background pt-24 pb-20 font-body">
       <main className="max-w-6xl mx-auto px-6 space-y-12">
         
         {/* Header Section */}
@@ -101,14 +100,15 @@ export default function HealthTipsPage() {
             <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
               Health <span className="text-primary">& Safety Tips</span>
             </h1>
-            <p className="text-sm text-slate-500 font-bold uppercase tracking-widest max-w-lg">
+            <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest max-w-lg">
               AI-generated recommendations tailored to your current physiological state.
             </p>
           </div>
           <Button 
             onClick={fetchTips} 
             disabled={loading}
-            className="h-12 px-6 rounded-2xl bg-white border border-slate-200 text-slate-900 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all shadow-sm"
+            variant="outline"
+            className="h-12 px-6 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-sm"
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh Analysis
@@ -119,7 +119,7 @@ export default function HealthTipsPage() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-primary p-8 rounded-[3rem] text-white shadow-2xl shadow-primary/20 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden"
+          className="bg-primary p-8 rounded-[3rem] text-primary-foreground shadow-2xl shadow-primary/20 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20" />
           <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center shrink-0">
@@ -149,7 +149,7 @@ export default function HealthTipsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="rounded-[2.5rem] border-slate-100 p-8 space-y-4">
+              <Card key={i} className="rounded-[2.5rem] p-8 space-y-4">
                 <Skeleton className="h-12 w-12 rounded-2xl" />
                 <Skeleton className="h-6 w-1/2" />
                 <div className="space-y-2">
@@ -165,15 +165,16 @@ export default function HealthTipsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
+                className="h-full"
               >
-                <Card className="h-full bg-white border-slate-100 hover:border-primary/20 transition-all rounded-[2.5rem] p-8 shadow-sm group">
-                  <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                <Card className="h-full hover:border-primary/20 transition-all rounded-[2.5rem] p-8 shadow-sm group">
+                  <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                     {getIcon(category.icon)}
                   </div>
                   <h3 className="text-xl font-black uppercase tracking-tight mb-4">{category.title}</h3>
                   <ul className="space-y-4">
                     {category.tips.map((tip, tIdx) => (
-                      <li key={tIdx} className="flex gap-3 text-xs font-bold text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
+                      <li key={tIdx} className="flex gap-3 text-xs font-bold text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors">
                         <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                         {tip}
                       </li>
@@ -186,19 +187,19 @@ export default function HealthTipsPage() {
         </div>
 
         {/* Static Prevention Guide */}
-        <section className="space-y-8 pt-12 border-t border-slate-100">
+        <section className="space-y-8 pt-12 border-t border-border">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-black uppercase tracking-tighter">Sunstroke <span className="text-primary">Prevention Guide</span></h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Essential protocols for extreme environments</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Essential protocols for extreme environments</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-slate-900 rounded-[3rem] p-10 text-white space-y-6">
+            <div className="bg-slate-900 dark:bg-card rounded-[3rem] p-10 text-white dark:text-foreground border dark:border-border space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 text-primary text-[9px] font-black uppercase tracking-widest">
                 <GlassWater className="h-3 w-3" /> Hydration Protocol
               </div>
               <h3 className="text-2xl font-black uppercase tracking-tight">The 20-Minute Rule</h3>
-              <p className="text-sm text-slate-400 font-medium leading-relaxed">
+              <p className="text-sm text-slate-400 dark:text-muted-foreground font-medium leading-relaxed">
                 Drink 250ml of water every 20 minutes of moderate activity in heat, even if you don't feel thirsty. Thirst is a late indicator of dehydration.
               </p>
               <ul className="space-y-3">
@@ -211,22 +212,22 @@ export default function HealthTipsPage() {
               </ul>
             </div>
 
-            <div className="bg-white border-2 border-slate-100 rounded-[3rem] p-10 space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase tracking-widest">
+            <div className="bg-card border-2 border-border rounded-[3rem] p-10 space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
                 <ShieldCheck className="h-3 w-3" /> Defense Protocol
               </div>
-              <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">Clothing & Protection</h3>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-foreground">Clothing & Protection</h3>
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                 Wear light-colored, loose-fitting, breathable clothing. Natural fibers like cotton or high-performance moisture-wicking synthetics are recommended.
               </p>
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="p-4 bg-muted rounded-2xl border border-border">
                   <Shirt className="h-5 w-5 text-primary mb-2" />
-                  <p className="text-[10px] font-black uppercase tracking-tight text-slate-700">Breathable Fabrics</p>
+                  <p className="text-[10px] font-black uppercase tracking-tight text-foreground">Breathable Fabrics</p>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="p-4 bg-muted rounded-2xl border border-border">
                   <Sun className="h-5 w-5 text-secondary mb-2" />
-                  <p className="text-[10px] font-black uppercase tracking-tight text-slate-700">UV Protection</p>
+                  <p className="text-[10px] font-black uppercase tracking-tight text-foreground">UV Protection</p>
                 </div>
               </div>
             </div>
@@ -234,13 +235,13 @@ export default function HealthTipsPage() {
         </section>
 
         {/* Footer Info */}
-        <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 flex flex-col md:flex-row items-center gap-10">
-          <div className="h-20 w-20 rounded-full bg-white shadow-sm flex items-center justify-center text-primary shrink-0">
+        <div className="bg-muted/50 p-10 rounded-[3rem] border border-border flex flex-col md:flex-row items-center gap-10">
+          <div className="h-20 w-20 rounded-full bg-background shadow-sm flex items-center justify-center text-primary shrink-0">
             <Stethoscope className="h-10 w-10" />
           </div>
           <div className="space-y-2">
-            <h4 className="text-lg font-black uppercase tracking-tight text-slate-900">Medical Disclaimer</h4>
-            <p className="text-xs text-slate-500 font-medium leading-relaxed uppercase tracking-widest">
+            <h4 className="text-lg font-black uppercase tracking-tight text-foreground">Medical Disclaimer</h4>
+            <p className="text-xs text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
               AI health tips are for informational purposes only and do not replace professional medical advice. If you suspect heat stroke, seek emergency medical care immediately by dialing emergency services.
             </p>
           </div>

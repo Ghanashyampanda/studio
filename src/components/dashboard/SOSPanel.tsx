@@ -119,58 +119,57 @@ export function SOSPanel() {
   };
 
   return (
-    <Card className="bg-white border-slate-200 shadow-medical rounded-[2.5rem] overflow-hidden h-full flex flex-col border">
-      <CardHeader className="bg-slate-50/80 border-b border-slate-100 p-6 flex flex-row items-center justify-between">
+    <Card className="bg-card border-border shadow-medical rounded-[2.5rem] overflow-hidden h-full flex flex-col border">
+      <CardHeader className="bg-muted/30 border-b border-border p-6 flex flex-row items-center justify-between">
         <div className="space-y-1">
-          <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight uppercase text-slate-900">
+          <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight uppercase text-foreground">
             <ShieldAlert className="h-5 w-5 text-destructive" />
             Rescue Network
           </CardTitle>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Node Management Hub</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Node Management Hub</p>
         </div>
-        <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+        <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800">
            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[9px] font-black uppercase text-emerald-600 tracking-widest">Active Sync</span>
+           <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest">Active Sync</span>
         </div>
       </CardHeader>
       
       <CardContent className="flex-1 space-y-6 px-8 pt-8 pb-10 overflow-y-auto">
-        {/* Contact List Node Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Established Nodes</h4>
-            <span className="text-[9px] font-black text-slate-300 uppercase">{contacts?.length || 0} / 5</span>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Established Nodes</h4>
+            <span className="text-[9px] font-black text-muted uppercase">{contacts?.length || 0} / 5</span>
           </div>
           
           <div className="space-y-2.5">
             {contacts?.map(contact => (
-              <div key={contact.id} className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl bg-slate-50/50 group hover:bg-white hover:border-primary/20 hover:shadow-sm transition-all">
+              <div key={contact.id} className="flex items-center justify-between p-4 border border-border rounded-2xl bg-muted/20 group hover:bg-muted/40 hover:border-primary/20 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     {contact.type === 'fcm' ? <BellRing className="h-5 w-5" /> : contact.phoneNumber ? <Phone className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
                   </div>
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs font-black text-slate-900 uppercase tracking-tight truncate max-w-[120px]">{contact.name}</p>
+                      <p className="text-xs font-black text-foreground uppercase tracking-tight truncate max-w-[120px]">{contact.name}</p>
                       {contact.isPrimary && <CheckCircle2 className="h-3 w-3 text-primary" />}
                     </div>
-                    <p className="text-[9px] font-mono font-bold text-slate-400 uppercase truncate max-w-[140px]">
+                    <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase truncate max-w-[140px]">
                       {contact.type === 'fcm' ? 'Cloud Push Token' : contact.phoneNumber || contact.email}
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-slate-300 hover:text-destructive hover:bg-destructive/5" onClick={() => handleDelete(contact.id)}>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-muted hover:text-destructive hover:bg-destructive/5" onClick={() => handleDelete(contact.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             ))}
             
             {(!contacts || contacts.length === 0) && (
-              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100">
-                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 bg-muted/10 rounded-[2rem] border-2 border-dashed border-border">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                   <Smartphone className="h-6 w-6" />
                 </div>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-relaxed">
                   No Emergency Nodes Established.<br />Configure below to activate network.
                 </p>
               </div>
@@ -178,9 +177,8 @@ export function SOSPanel() {
           </div>
         </div>
 
-        {/* Configuration Section */}
         {(!contacts || contacts.length < 5) && (
-          <div className="space-y-4 pt-6 border-t border-slate-100">
+          <div className="space-y-4 pt-6 border-t border-border">
             <div className="flex items-center gap-2 text-primary">
               <Plus className="h-3 w-3" />
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Configure New Node</h4>
@@ -188,21 +186,21 @@ export function SOSPanel() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Responder Identity</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Responder Identity</Label>
                 <Input 
-                  className="h-11 bg-slate-50 border-transparent rounded-xl text-xs font-bold focus:bg-white focus:border-primary transition-all" 
+                  className="h-11 bg-muted/30 border-transparent rounded-xl text-xs font-bold focus:bg-background focus:border-primary transition-all" 
                   value={newName} 
                   onChange={e => setNewName(e.target.value)} 
                   placeholder="e.g. Primary Care" 
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Dispatch Protocol</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Dispatch Protocol</Label>
                 <Select value={newType} onValueChange={(v: any) => setNewType(v)}>
-                  <SelectTrigger className="h-11 bg-slate-50 border-transparent rounded-xl text-[10px] font-black uppercase tracking-wider focus:bg-white focus:border-primary">
+                  <SelectTrigger className="h-11 bg-muted/30 border-transparent rounded-xl text-[10px] font-black uppercase tracking-wider focus:bg-background focus:border-primary">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                  <SelectContent className="rounded-xl border-border shadow-xl">
                     <SelectItem value="phone" className="text-[10px] font-black uppercase">Cellular Node (SMS)</SelectItem>
                     <SelectItem value="fcm" className="text-[10px] font-black uppercase">Cloud Push (FCM)</SelectItem>
                     <SelectItem value="email" className="text-[10px] font-black uppercase">Email Signal</SelectItem>
@@ -212,14 +210,14 @@ export function SOSPanel() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Signal Destination</Label>
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Signal Destination</Label>
               <div className="flex gap-2">
                 {newType === 'phone' && (
                   <Select value={countryCode} onValueChange={setCountryCode}>
-                    <SelectTrigger className="w-[85px] h-11 bg-slate-50 border-transparent rounded-xl text-xs font-bold">
+                    <SelectTrigger className="w-[85px] h-11 bg-muted/30 border-transparent rounded-xl text-xs font-bold">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                    <SelectContent className="rounded-xl border-border shadow-xl">
                       {COUNTRY_CODES.map(c => (
                         <SelectItem key={c.code} value={c.code} className="text-[10px] font-black uppercase">
                           {c.flag} {c.dial_code}
@@ -229,14 +227,14 @@ export function SOSPanel() {
                   </Select>
                 )}
                 <Input 
-                  className="h-11 bg-slate-50 border-transparent rounded-xl text-xs font-bold flex-1 focus:bg-white focus:border-primary transition-all" 
+                  className="h-11 bg-muted/30 border-transparent rounded-xl text-xs font-bold flex-1 focus:bg-background focus:border-primary transition-all" 
                   value={newContact} 
                   onChange={e => setNewContact(e.target.value)} 
                   placeholder={newType === 'phone' ? 'Phone Number' : newType === 'fcm' ? 'Registration Token' : 'Email Address'} 
                 />
                 <Button 
                   size="icon" 
-                  className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95" 
+                  className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95" 
                   onClick={handleAdd} 
                   disabled={!newName || !newContact}
                 >
@@ -247,11 +245,10 @@ export function SOSPanel() {
           </div>
         )}
 
-        {/* SOS Trigger Protocol Button - Moved into CardContent for tighter layout */}
-        <div className="pt-4 border-t border-slate-50">
+        <div className="pt-4 border-t border-border">
           <Button 
             disabled={isDispatching}
-            className="w-full bg-destructive hover:bg-destructive/90 text-white font-black tracking-[0.2em] shadow-2xl h-16 rounded-[2rem] uppercase text-[11px] transition-all active:scale-[0.98]" 
+            className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground font-black tracking-[0.2em] shadow-2xl h-16 rounded-[2rem] uppercase text-[11px] transition-all active:scale-[0.98]" 
             onClick={triggerRescueProtocol}
           >
             {isDispatching ? (

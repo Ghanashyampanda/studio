@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -23,7 +22,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-white text-slate-900 font-body">
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground font-body">
       {/* Abstract background elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/5 rounded-full blur-[120px]" />
@@ -50,7 +49,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed"
+            className="text-lg text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed"
           >
             Utilizing advanced biometric analysis and real-time environmental telemetry to protect users from heat-related health emergencies.
           </motion.p>
@@ -63,18 +62,18 @@ export default function Home() {
             <Button 
               onClick={handleGetStarted} 
               size="lg" 
-              className="h-14 px-10 text-sm font-black bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 w-full sm:w-auto rounded-2xl uppercase tracking-widest"
+              className="h-14 px-10 text-sm font-black bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl shadow-primary/20 w-full sm:w-auto rounded-2xl uppercase tracking-widest"
             >
               Get Started <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" size="lg" className="h-14 px-10 text-sm font-black border-slate-200 hover:bg-slate-50 w-full sm:w-auto rounded-2xl uppercase tracking-widest">
+            <Button variant="outline" size="lg" className="h-14 px-10 text-sm font-black border-border hover:bg-muted w-full sm:w-auto rounded-2xl uppercase tracking-widest">
               Learn More
             </Button>
           </motion.div>
         </div>
       </section>
 
-      <section id="features" className="py-24 px-6 bg-slate-50/50">
+      <section id="features" className="py-24 px-6 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
@@ -96,13 +95,13 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="py-12 px-6 border-t border-slate-100">
+      <footer className="py-12 px-6 border-t border-border">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
             <span className="text-lg font-bold tracking-tight">HeatGuard <span className="text-primary">AI</span></span>
           </div>
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">© 2026 HeatGuard Systems. All Rights Reserved.</p>
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">© 2026 HeatGuard Systems. All Rights Reserved.</p>
         </div>
       </footer>
 
@@ -117,12 +116,12 @@ export default function Home() {
 
 function FeatureCard({ icon: Icon, title, description }: { icon: any, title: string, description: string }) {
   return (
-    <div className="p-10 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group">
-      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-8 group-hover:bg-primary group-hover:text-white transition-all">
+    <div className="p-10 rounded-[2.5rem] bg-card border border-border shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group">
+      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-8 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
         <Icon className="h-6 w-6" />
       </div>
       <h3 className="text-xl font-black uppercase tracking-tight mb-3">{title}</h3>
-      <p className="text-sm text-slate-500 font-medium leading-relaxed">{description}</p>
+      <p className="text-sm text-muted-foreground font-medium leading-relaxed">{description}</p>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -83,21 +82,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[400px] bg-white rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden"
+        className="w-full max-w-[400px] bg-card rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden border border-border"
       >
         <div className="p-6 sm:p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <Link href="/">
-              <div className="h-9 w-9 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 hover:bg-gray-100 transition-colors">
-                <ChevronLeft className="h-4 w-4 text-gray-700" />
+              <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center border border-border hover:bg-muted/80 transition-colors">
+                <ChevronLeft className="h-4 w-4 text-foreground" />
               </div>
             </Link>
-            <h1 className="text-lg font-bold text-gray-900">Login</h1>
+            <h1 className="text-lg font-bold text-foreground">Login</h1>
             <div className="w-9" />
           </div>
 
@@ -106,7 +105,7 @@ export default function LoginPage() {
             type="button"
             variant="outline"
             onClick={handleGoogleLogin}
-            className="w-full h-11 rounded-2xl bg-white border-gray-200 text-gray-900 font-bold hover:bg-gray-50 flex items-center justify-center gap-3 transition-all text-sm"
+            className="w-full h-11 rounded-2xl bg-card border-border text-foreground font-bold hover:bg-muted flex items-center justify-center gap-3 transition-all text-sm"
           >
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -119,21 +118,21 @@ export default function LoginPage() {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-200" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-gray-500 font-bold uppercase tracking-wider text-[10px]">or sign in with</span>
+              <span className="bg-card px-3 text-muted-foreground font-bold uppercase tracking-wider text-[10px]">or sign in with</span>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Email Address</label>
               <Input
                 type="email"
                 required
-                className="h-12 bg-gray-50 border-transparent rounded-2xl px-4 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900 text-sm"
+                className="h-12 bg-muted/30 border-transparent rounded-2xl px-4 focus:bg-background focus:border-primary transition-all placeholder:text-muted-foreground text-foreground text-sm"
                 placeholder="Rhebek@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -142,8 +141,8 @@ export default function LoginPage() {
 
             <div className="space-y-1">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-widest">Password</label>
-                <Link href="/forgot-password" title="Recover Password" className="text-[10px] font-bold text-[#2563EB] hover:underline">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Password</label>
+                <Link href="/forgot-password" title="Recover Password" className="text-[10px] font-bold text-primary hover:underline">
                   Forgot Password?
                 </Link>
               </div>
@@ -151,7 +150,7 @@ export default function LoginPage() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   required
-                  className="h-12 bg-gray-50 border-transparent rounded-2xl px-4 pr-10 focus:bg-white focus:border-[#2563EB] transition-all placeholder:text-gray-400 text-gray-900 text-sm"
+                  className="h-12 bg-muted/30 border-transparent rounded-2xl px-4 pr-10 focus:bg-background focus:border-primary transition-all placeholder:text-muted-foreground text-foreground text-sm"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -159,7 +158,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -170,7 +169,7 @@ export default function LoginPage() {
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 text-[10px] font-bold text-[#FF6B35] bg-orange-50 p-2.5 rounded-xl border border-orange-100"
+                className="flex items-center gap-2 text-[10px] font-bold text-secondary bg-secondary/10 p-2.5 rounded-xl border border-secondary/20"
               >
                 <AlertCircle className="h-3.5 w-3.5" />
                 {error}
@@ -178,8 +177,8 @@ export default function LoginPage() {
             )}
 
             <div className="flex items-center space-x-2 py-0.5 ml-1">
-              <Checkbox id="remember" className="h-3.5 w-3.5 rounded-sm border-gray-300 data-[state=checked]:bg-[#2563EB] data-[state=checked]:border-[#2563EB]" />
-              <label htmlFor="remember" className="text-[10px] font-bold text-gray-700 cursor-pointer select-none">
+              <Checkbox id="remember" className="h-3.5 w-3.5 rounded-sm border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
+              <label htmlFor="remember" className="text-[10px] font-bold text-muted-foreground cursor-pointer select-none">
                 Keep me signed in
               </label>
             </div>
@@ -187,14 +186,14 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all mt-2"
+              className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-lg shadow-primary/20 transition-all mt-2"
             >
               {isLoading ? "Signing in..." : "Login"}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs font-bold text-gray-700">
-            Don't have an Account? <Link href="/signup" className="text-[#2563EB] font-bold hover:underline">Sign up here</Link>
+          <p className="mt-6 text-center text-xs font-bold text-muted-foreground">
+            Don't have an Account? <Link href="/signup" className="text-primary font-bold hover:underline">Sign up here</Link>
           </p>
         </div>
       </motion.div>

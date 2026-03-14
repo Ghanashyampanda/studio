@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
@@ -61,7 +60,7 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
   }, [vitals.bodyTemperatureC, vitals.heartRateBPM, vitals.activityLevel]);
 
   const riskStyles = {
-    low: 'text-emerald-600 border-emerald-100',
+    low: 'text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
     moderate: 'text-accent-foreground border-accent/20',
     high: 'text-secondary border-secondary/20',
     critical: 'text-destructive border-destructive/20',
@@ -77,17 +76,17 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
   const Icon = assessment ? riskIcons[assessment.riskLevel] : Activity;
 
   return (
-    <div className="bg-white border rounded-[2.5rem] shadow-sm overflow-hidden border-slate-200">
-      <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+    <div className="bg-card border rounded-[2.5rem] shadow-sm overflow-hidden border-border">
+      <div className="p-8 border-b border-border flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-primary">
             <BrainCircuit className="h-5 w-5" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Neural Engine</span>
           </div>
-          <h3 className="text-xl font-black uppercase tracking-tight">Risk <span className="text-primary">Analysis</span></h3>
+          <h3 className="text-xl font-black uppercase tracking-tight text-foreground">Risk <span className="text-primary">Analysis</span></h3>
         </div>
         {!loading && assessment && (
-          <Badge variant="outline" className={cn("px-4 py-1.5 rounded-full font-bold uppercase tracking-widest text-[10px]", riskStyles[assessment.riskLevel])}>
+          <Badge variant="outline" className={cn("px-4 py-1.5 rounded-full font-bold uppercase tracking-widest text-[10px] border", riskStyles[assessment.riskLevel])}>
             <Icon className="h-3.5 w-3.5 mr-2" />
             {assessment.riskLevel}
           </Badge>
@@ -110,8 +109,8 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
           </div>
         ) : assessment ? (
           <div className="space-y-6">
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100">
-              <p className="text-sm leading-relaxed text-slate-600 font-medium">
+            <div className="p-5 rounded-2xl bg-muted border border-border">
+              <p className="text-sm leading-relaxed text-muted-foreground font-medium">
                 {assessment.explanation}
               </p>
             </div>
@@ -122,9 +121,9 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
               </h4>
               <div className="grid grid-cols-1 gap-3">
                 {assessment.preventativeAdvice.slice(0, 2).map((advice, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-100 group hover:border-primary/30 transition-all shadow-sm">
+                  <div key={idx} className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border group hover:border-primary/30 transition-all shadow-sm">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                    <span className="text-xs font-bold text-slate-700 leading-tight">{advice}</span>
+                    <span className="text-xs font-bold text-foreground leading-tight">{advice}</span>
                   </div>
                 ))}
               </div>

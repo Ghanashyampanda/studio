@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore } from '@/firebase';
@@ -67,9 +66,9 @@ export function ConfigPanel() {
   };
 
   return (
-    <Card className="bg-white border rounded-[2.5rem] shadow-sm overflow-hidden border-slate-200">
-      <CardHeader className="bg-slate-50 border-b border-slate-100 p-6">
-        <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight uppercase">
+    <Card className="bg-card border rounded-[2.5rem] shadow-sm overflow-hidden border-border">
+      <CardHeader className="bg-muted/30 border-b border-border p-6">
+        <CardTitle className="text-lg flex items-center gap-3 font-black tracking-tight uppercase text-foreground">
           <Settings className="h-5 w-5 text-primary" />
           System Input
         </CardTitle>
@@ -82,10 +81,10 @@ export function ConfigPanel() {
           {/* Body Temp */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-slate-500">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                 <Thermometer className="h-4 w-4" /> Core Temperature
               </Label>
-              <span className={`text-sm font-black font-mono px-3 py-1 rounded-lg bg-slate-100 ${currentTemp > 39 ? 'text-secondary' : 'text-primary'}`}>
+              <span className={`text-sm font-black font-mono px-3 py-1 rounded-lg bg-muted ${currentTemp > 39 ? 'text-secondary' : 'text-primary'}`}>
                 {currentTemp.toFixed(1)}°C
               </span>
             </div>
@@ -101,10 +100,10 @@ export function ConfigPanel() {
           {/* Ambient Temp */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-slate-500">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                 <Waves className="h-4 w-4" /> Ambient Environment
               </Label>
-              <span className="text-sm font-black font-mono px-3 py-1 rounded-lg bg-slate-100 text-slate-700">
+              <span className="text-sm font-black font-mono px-3 py-1 rounded-lg bg-muted text-foreground">
                 {ambientTemp.toFixed(1)}°C
               </span>
             </div>
@@ -117,10 +116,10 @@ export function ConfigPanel() {
             />
           </div>
 
-          <div className="pt-6 border-t border-slate-100 space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+          <div className="pt-6 border-t border-border space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border">
               <div className="space-y-1">
-                <Label className="text-xs font-black tracking-tight uppercase">Simulation Mode</Label>
+                <Label className="text-xs font-black tracking-tight uppercase text-foreground">Simulation Mode</Label>
                 <p className="text-[9px] text-muted-foreground font-bold uppercase">Dynamic flux (15s cycles)</p>
               </div>
               <Switch checked={isSimulating} onCheckedChange={setIsSimulating} />

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -160,18 +159,6 @@ export default function LocationPage() {
     }, 1500);
   };
 
-  const getGoogleMapsUrl = () => {
-    const origin = `${coords.lat},${coords.lng}`;
-    const mapType = currentLayer === 'satellite' ? 'k' : 'm';
-    if (selectedHospital) {
-      const dest = `${selectedHospital.lat},${selectedHospital.lng}`;
-      // Standard Google Maps directions embed
-      return `https://www.google.com/maps/embed/v1/directions?key=&origin=${origin}&destination=${dest}&mode=driving&maptype=${currentLayer === 'satellite' ? 'satellite' : 'roadmap'}`;
-    }
-    return `https://www.google.com/maps/embed/v1/view?key=&center=${origin}&zoom=15&maptype=${currentLayer === 'satellite' ? 'satellite' : 'roadmap'}`;
-  };
-
-  // Note: Since we don't have a real API Key, we use the free search embed which handles directions partially or we use coordinates
   const getFallbackMapUrl = () => {
     const mapType = currentLayer === 'satellite' ? 'k' : 'm';
     if (selectedHospital) {
@@ -183,10 +170,10 @@ export default function LocationPage() {
   if (isUserLoading) return null;
 
   return (
-    <div className="min-h-screen bg-white pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
+    <div className="min-h-screen bg-background pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
       {/* Sidebar: Proximity Nodes */}
-      <aside className="w-full lg:w-[420px] bg-white z-20 shadow-xl flex flex-col border-r border-slate-100 h-[50vh] lg:h-auto overflow-y-auto shrink-0">
-        <div className="p-8 border-b border-slate-50 space-y-4">
+      <aside className="w-full lg:w-[420px] bg-card z-20 shadow-xl flex flex-col border-r border-border h-[50vh] lg:h-auto overflow-y-auto shrink-0">
+        <div className="p-8 border-b border-border space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-primary">
               <Navigation className="h-4 w-4" />
@@ -199,7 +186,7 @@ export default function LocationPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black uppercase tracking-tight leading-none">Nearby <span className="text-primary">Care</span></h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">Discovery of High-Capacity Nodes</p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Discovery of High-Capacity Nodes</p>
           </div>
         </div>
 
@@ -212,35 +199,35 @@ export default function LocationPage() {
                 "w-full text-left p-6 rounded-3xl transition-all border-2 group flex items-center justify-between",
                 selectedHospital?.id === hospital.id 
                 ? 'bg-primary/5 border-primary' 
-                : 'bg-white border-slate-50 hover:border-slate-100 shadow-sm'
+                : 'bg-card border-border hover:border-primary/20 shadow-sm'
               )}
             >
               <div className="flex items-center gap-4">
                 <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", 
-                  selectedHospital?.id === hospital.id ? "bg-primary text-white" : "bg-slate-50 text-slate-400")}>
+                  selectedHospital?.id === hospital.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
                   {hospital.size === 'Big' ? <Building2 className="h-5 w-5" /> : <Building className="h-5 w-5" />}
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-black uppercase tracking-tight truncate max-w-[180px] text-slate-900">{hospital.name}</p>
-                    <Badge className={cn("text-[7px] font-black uppercase px-2 py-0", 
-                      hospital.size === 'Big' ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600")}>
+                    <p className="text-xs font-black uppercase tracking-tight truncate max-w-[180px] text-foreground">{hospital.name}</p>
+                    <Badge className={cn("text-[7px] font-black uppercase px-2 py-0 border-none", 
+                      hospital.size === 'Big' ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" : "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400")}>
                       {hospital.size}
                     </Badge>
                   </div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{hospital.distance} • {hospital.time} ETA</p>
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{hospital.distance} • {hospital.time} ETA</p>
                 </div>
               </div>
-              <ChevronRight className={cn("h-4 w-4 transition-transform", selectedHospital?.id === hospital.id ? "text-primary translate-x-1" : "text-slate-200")} />
+              <ChevronRight className={cn("h-4 w-4 transition-transform", selectedHospital?.id === hospital.id ? "text-primary translate-x-1" : "text-muted")} />
             </button>
           ))}
         </div>
 
-        <div className="p-8 bg-slate-50 border-t border-slate-100 mt-auto">
+        <div className="p-8 bg-muted/30 border-t border-border mt-auto">
           <Button 
             onClick={handleBroadcast}
             disabled={isBroadcasting}
-            className="w-full h-14 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-[10px] shadow-2xl transition-all"
+            className="w-full h-14 rounded-[2rem] bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-2xl transition-all"
           >
             {isBroadcasting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
             Broadcast SOS Telemetry
@@ -249,7 +236,7 @@ export default function LocationPage() {
       </aside>
 
       {/* Main Map Content */}
-      <main className="flex-1 relative bg-slate-100 overflow-hidden min-h-[500px] lg:min-h-0">
+      <main className="flex-1 relative bg-muted overflow-hidden min-h-[500px] lg:min-h-0">
         <iframe 
           key={`${coords.lat}-${coords.lng}-${selectedHospital?.id}-${currentLayer}`}
           width="100%" 
@@ -274,33 +261,33 @@ export default function LocationPage() {
                   exit={{ y: -20, opacity: 0 }}
                   className="pointer-events-auto"
                 >
-                  <Card className="bg-white/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+                  <Card className="bg-background/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-border flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
                     <div className="absolute top-0 left-0 w-1 bg-primary h-full" />
                     <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-[1.5rem] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                      <div className="h-14 w-14 rounded-[1.5rem] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                         <RouteIcon className="h-7 w-7" />
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Badge className="bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest border-none px-2">Navigation Active</Badge>
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Routing to:</span>
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Routing to:</span>
                         </div>
-                        <h3 className="text-xl font-black uppercase tracking-tight text-slate-900">{selectedHospital.name}</h3>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedHospital.specialty}</p>
+                        <h3 className="text-xl font-black uppercase tracking-tight text-foreground">{selectedHospital.name}</h3>
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{selectedHospital.specialty}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-8 md:border-l md:pl-8 border-slate-100">
+                    <div className="flex items-center gap-8 md:border-l md:pl-8 border-border">
                       <div className="text-center md:text-left">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Distance</p>
-                        <p className="text-2xl font-black text-slate-900 tracking-tighter">{selectedHospital.distance}</p>
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Distance</p>
+                        <p className="text-2xl font-black text-foreground tracking-tighter">{selectedHospital.distance}</p>
                       </div>
                       <div className="text-center md:text-left">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Live ETA</p>
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Live ETA</p>
                         <p className="text-2xl font-black text-primary tracking-tighter">{selectedHospital.time}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedHospital(null)} className="h-10 w-10 rounded-full hover:bg-slate-100">
-                        <CloseIcon className="h-5 w-5 text-slate-300" />
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedHospital(null)} className="h-10 w-10 rounded-full hover:bg-muted">
+                        <CloseIcon className="h-5 w-5 text-muted-foreground" />
                       </Button>
                     </div>
                   </Card>
@@ -311,13 +298,13 @@ export default function LocationPage() {
                   animate={{ opacity: 1 }}
                   className="pointer-events-auto max-w-sm"
                 >
-                  <Card className="bg-white/90 backdrop-blur-xl p-5 rounded-[2rem] shadow-xl border border-white flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                  <Card className="bg-background/90 backdrop-blur-xl p-5 rounded-[2rem] shadow-xl border border-border flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
                       <Info className="h-5 w-5" />
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-900">System Ready</p>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Select a facility to begin routing.</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-foreground">System Ready</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Select a facility to begin routing.</p>
                     </div>
                   </Card>
                 </motion.div>
@@ -330,19 +317,19 @@ export default function LocationPage() {
         <div className="absolute bottom-10 right-10 flex flex-col gap-3 pointer-events-auto z-40">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" className="h-14 w-14 rounded-2xl bg-white text-slate-900 shadow-2xl border-none hover:bg-slate-50 transition-all">
+              <Button size="icon" className="h-14 w-14 rounded-2xl bg-background text-foreground shadow-2xl border border-border hover:bg-muted transition-all">
                 <Layers className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 rounded-[2rem] p-3 bg-white border-none shadow-2xl">
-              <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-3">Map Layers</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-48 rounded-[2rem] p-3 bg-background border border-border shadow-2xl">
+              <DropdownMenuLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-3 pb-3">Map Layers</DropdownMenuLabel>
               {MAP_LAYERS.map(layer => (
                 <DropdownMenuItem 
                   key={layer.id}
                   onClick={() => setCurrentLayer(layer.id)}
                   className={cn(
                     "rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between mb-1 transition-colors",
-                    currentLayer === layer.id ? "bg-primary/10 text-primary" : "text-slate-600 hover:bg-slate-50"
+                    currentLayer === layer.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -351,12 +338,12 @@ export default function LocationPage() {
                   </div>
                 </DropdownMenuItem>
               ))}
-              <DropdownMenuSeparator className="my-2 bg-slate-100" />
+              <DropdownMenuSeparator className="my-2 bg-border" />
               <DropdownMenuItem 
                 onClick={() => setIsTacticalMode(!isTacticalMode)}
                 className={cn(
                   "rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between transition-colors",
-                  isTacticalMode ? "bg-orange-100 text-orange-600" : "text-slate-600 hover:bg-slate-50"
+                  isTacticalMode ? "bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400" : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -367,7 +354,7 @@ export default function LocationPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button size="icon" onClick={findMe} className="h-14 w-14 rounded-2xl bg-white text-slate-900 shadow-2xl border-none hover:bg-slate-50 transition-all">
+          <Button size="icon" onClick={findMe} className="h-14 w-14 rounded-2xl bg-background text-foreground shadow-2xl border border-border hover:bg-muted transition-all">
             <Crosshair className={cn("h-6 w-6", isLocating && "animate-spin")} />
           </Button>
         </div>
@@ -380,8 +367,8 @@ export default function LocationPage() {
               transition={{ repeat: Infinity, duration: 2.5 }}
               className="absolute inset-0 bg-primary rounded-full -m-10"
             />
-            <div className="h-10 w-10 bg-primary rounded-full border-[4px] border-white shadow-2xl relative z-10 flex items-center justify-center">
-              <div className="h-2 w-2 bg-white rounded-full" />
+            <div className="h-10 w-10 bg-primary rounded-full border-[4px] border-background shadow-2xl relative z-10 flex items-center justify-center">
+              <div className="h-2 w-2 bg-background rounded-full" />
             </div>
           </div>
         </div>

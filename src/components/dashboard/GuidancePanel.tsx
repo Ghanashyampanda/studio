@@ -54,7 +54,7 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
   }, [vitals.bodyTemperatureC]);
 
   return (
-    <Card className="bg-white border-border shadow-sm rounded-3xl overflow-hidden">
+    <Card className="bg-card border-border shadow-sm rounded-3xl overflow-hidden">
       <CardHeader className="bg-muted/30 border-b border-border flex flex-row items-center justify-between p-6">
         <div>
           <CardTitle className="text-lg flex items-center gap-3 font-bold tracking-tight uppercase text-foreground">
@@ -80,14 +80,14 @@ export function GuidancePanel({ vitals }: GuidancePanelProps) {
             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{error}</p>
           </div>
         ) : guidance ? (
-          <div className="prose prose-blue max-w-none">
+          <div className="prose prose-blue dark:prose-invert max-w-none">
             <div className="whitespace-pre-line leading-relaxed text-muted-foreground font-medium text-base">
               {guidance}
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-4">
-            <Info className="h-12 w-12 text-muted opacity-50" />
+            <Info className="h-12 w-12 text-muted-foreground opacity-30" />
             <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">Initialize Protocol Scan</p>
           </div>
         )}
