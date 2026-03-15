@@ -16,7 +16,9 @@ import {
   Sparkles,
   Info,
   Activity,
-  Bell
+  Bell,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -26,6 +28,14 @@ import {
   SheetHeader, 
   SheetTitle 
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -161,12 +171,44 @@ export function Navbar() {
                     <Bell className="h-4 w-4" />
                     <span className="absolute top-2 right-2 h-1.5 w-1.5 bg-destructive rounded-full" />
                   </button>
-                  <div 
-                    onClick={handleLogout}
-                    className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all text-xs"
-                  >
-                    {user.displayName?.[0] || user.email?.[0] || 'U'}
-                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all text-xs">
+                        {user.displayName?.[0] || user.email?.[0] || 'U'}
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64 rounded-[1.5rem] p-2 bg-background border border-border shadow-2xl z-[110]">
+                      <DropdownMenuLabel className="px-4 py-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Authenticated Node</span>
+                          <span className="text-xs font-black text-foreground truncate">{user.displayName || 'Active User'}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground truncate">{user.email}</span>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator className="bg-border mx-2" />
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="flex items-center gap-3 px-4 py-2.5 cursor-pointer rounded-xl hover:bg-muted transition-colors">
+                          <LayoutDashboard className="h-4 w-4 text-primary" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Command Center</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/monitor" className="flex items-center gap-3 px-4 py-2.5 cursor-pointer rounded-xl hover:bg-muted transition-colors">
+                          <Activity className="h-4 w-4 text-primary" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Live Telemetry</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-border mx-2" />
+                      <DropdownMenuItem 
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 focus:bg-destructive/10 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Terminate Session</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               )}
             </AnimatePresence>
