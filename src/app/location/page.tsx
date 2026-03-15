@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -43,7 +43,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card } from '@/components/ui/card';
 
-// Hospital Database with scale markers
 const FACILITY_DATABASE = [
   { name: 'City General Medical Center', type: 'Level 1 Trauma Center', size: 'Big', specialty: 'Full Emergency' },
   { name: 'St. Jude Trauma Hub', type: 'Regional Hospital', size: 'Big', specialty: 'Hyperthermia Unit' },
@@ -64,16 +63,14 @@ export default function LocationPage() {
   const { toast } = useToast();
   
   const [coords, setCoords] = useState({ lat: 40.7128, lng: -74.0060 });
-  const [hospitals, setHospitals] = useState<any[]>([]);
-  const [selectedHospital, setSelectedHospital] = useState<any>(null);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [currentLayer, setCurrentLayer] = useState('roadmap');
   const [isTacticalMode, setIsTacticalMode] = useState(false);
 
-  // Haversine formula for distance calculation
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -81,18 +78,17 @@ export default function LocationPage() {
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const d = R * c; 
-    return d;
+    return R * c; 
   };
 
-  const generateDynamicHospitals = (lat: number, lng: number) => {
+  const hospitals = useMemo(() => {
     return FACILITY_DATABASE.map((facility, index) => {
-      const offsetLat = (Math.random() - 0.5) * 0.04;
-      const offsetLng = (Math.random() - 0.5) * 0.04;
-      const hLat = lat + offsetLat;
-      const hLng = lng + offsetLng;
-      const dist = calculateDistance(lat, lng, hLat, hLng);
-      const timeMin = Math.round((dist / 35) * 60) + 2; // Average 35km/h in city
+      const offsetLat = (Math.sin(index) * 0.02);
+      const offsetLng = (Math.cos(index) * 0.02);
+      const hLat = coords.lat + offsetLat;
+      const hLng = coords.lng + offsetLng;
+      const dist = calculateDistance(coords.lat, coords.lng, hLat, hLng);
+      const timeMin = Math.round((dist / 35) * 60) + 2;
 
       return {
         id: `h-${index}`,
@@ -105,28 +101,29 @@ export default function LocationPage() {
         phone: `555-0${100 + index}`,
       };
     }).sort((a, b) => a.distanceVal - b.distanceVal);
-  };
+  }, [coords.lat, coords.lng]);
+
+  const selectedHospital = useMemo(() => 
+    hospitals.find(h => h.id === selectedHospitalId), 
+  [hospitals, selectedHospitalId]);
 
   const findMe = () => {
     setIsLocating(true);
     if (typeof window !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const newLat = position.coords.latitude;
-          const newLng = position.coords.longitude;
-          setCoords({ lat: newLat, lng: newLng });
-          const nearby = generateDynamicHospitals(newLat, newLng);
-          setHospitals(nearby);
+          setCoords({ 
+            lat: position.coords.latitude, 
+            lng: position.coords.longitude 
+          });
           setIsLocating(false);
           toast({ 
             title: "GPS Sync Successful", 
-            description: `Telemetry locked at ${newLat.toFixed(4)}, ${newLng.toFixed(4)}`,
+            description: "Telemetry locked for rescue proximity.",
           });
         },
         () => {
           setIsLocating(false);
-          const nearby = generateDynamicHospitals(coords.lat, coords.lng);
-          setHospitals(nearby);
           toast({ title: "GPS Timeout", description: "Using last known coordinates.", variant: "destructive" });
         },
         { enableHighAccuracy: true, timeout: 5000 }
@@ -171,7 +168,6 @@ export default function LocationPage() {
 
   return (
     <div className="min-h-screen bg-background pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
-      {/* Sidebar: Proximity Nodes */}
       <aside className="w-full lg:w-[420px] bg-card z-20 shadow-xl flex flex-col border-r border-border h-[50vh] lg:h-auto overflow-y-auto shrink-0">
         <div className="p-8 border-b border-border space-y-4">
           <div className="flex items-center justify-between">
@@ -194,17 +190,17 @@ export default function LocationPage() {
           {hospitals.map(hospital => (
             <button
               key={hospital.id}
-              onClick={() => setSelectedHospital(hospital)}
+              onClick={() => setSelectedHospitalId(hospital.id)}
               className={cn(
                 "w-full text-left p-6 rounded-3xl transition-all border-2 group flex items-center justify-between",
-                selectedHospital?.id === hospital.id 
+                selectedHospitalId === hospital.id 
                 ? 'bg-primary/5 border-primary' 
                 : 'bg-card border-border hover:border-primary/20 shadow-sm'
               )}
             >
               <div className="flex items-center gap-4">
                 <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", 
-                  selectedHospital?.id === hospital.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                  selectedHospitalId === hospital.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
                   {hospital.size === 'Big' ? <Building2 className="h-5 w-5" /> : <Building className="h-5 w-5" />}
                 </div>
                 <div className="space-y-1">
@@ -218,7 +214,7 @@ export default function LocationPage() {
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{hospital.distance} • {hospital.time} ETA</p>
                 </div>
               </div>
-              <ChevronRight className={cn("h-4 w-4 transition-transform", selectedHospital?.id === hospital.id ? "text-primary translate-x-1" : "text-muted")} />
+              <ChevronRight className={cn("h-4 w-4 transition-transform", selectedHospitalId === hospital.id ? "text-primary translate-x-1" : "text-muted")} />
             </button>
           ))}
         </div>
@@ -235,10 +231,9 @@ export default function LocationPage() {
         </div>
       </aside>
 
-      {/* Main Map Content */}
       <main className="flex-1 relative bg-muted overflow-hidden min-h-[500px] lg:min-h-0">
         <iframe 
-          key={`${coords.lat}-${coords.lng}-${selectedHospital?.id}-${currentLayer}`}
+          key={`${coords.lat}-${coords.lng}-${selectedHospitalId}-${currentLayer}`}
           width="100%" 
           height="100%" 
           frameBorder="0" 
@@ -250,7 +245,6 @@ export default function LocationPage() {
           )}
         />
 
-        {/* Floating Navigation Dashboard */}
         <div className="absolute top-6 left-6 right-6 pointer-events-none z-30">
           <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
             <AnimatePresence mode="wait">
@@ -286,7 +280,7 @@ export default function LocationPage() {
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Live ETA</p>
                         <p className="text-2xl font-black text-primary tracking-tighter">{selectedHospital.time}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedHospital(null)} className="h-10 w-10 rounded-full hover:bg-muted">
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedHospitalId(null)} className="h-10 w-10 rounded-full hover:bg-muted">
                         <CloseIcon className="h-5 w-5 text-muted-foreground" />
                       </Button>
                     </div>
@@ -313,7 +307,6 @@ export default function LocationPage() {
           </div>
         </div>
 
-        {/* Map Controls */}
         <div className="absolute bottom-10 right-10 flex flex-col gap-3 pointer-events-auto z-40">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -359,7 +352,6 @@ export default function LocationPage() {
           </Button>
         </div>
 
-        {/* Custom Marker (User) */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
           <div className="relative">
             <motion.div 

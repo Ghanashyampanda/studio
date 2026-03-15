@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { 
   AreaChart, 
   Area, 
@@ -17,11 +18,22 @@ interface VitalsHistoryChartProps {
 }
 
 export function VitalsHistoryChart({ data }: VitalsHistoryChartProps) {
-  const chartData = [...data].reverse().map(reading => ({
-    time: new Date(reading.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    temp: reading.bodyTemperatureC,
-    outside: reading.outsideTemperatureC,
-  }));
+  const chartData = useMemo(() => {
+    if (!data?.length) return [];
+    
+    // Efficiently transform data by avoiding double iterations (reverse + map)
+    // We iterate backwards through the array to build the forward-time chart sequence
+    const result = new Array(data.length);
+    for (let i = 0; i < data.length; i++) {
+      const reading = data[data.length - 1 - i];
+      result[i] = {
+        time: new Date(reading.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temp: reading.bodyTemperatureC,
+        outside: reading.outsideTemperatureC,
+      };
+    }
+    return result;
+  }, [data]);
 
   return (
     <div className="bg-card border rounded-[2.5rem] shadow-sm overflow-hidden border-border">
@@ -39,61 +51,67 @@ export function VitalsHistoryChart({ data }: VitalsHistoryChartProps) {
         </div>
       </div>
       <div className="p-8 h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#2563EB" stopOpacity={0.1}/>
-                <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" />
-            <XAxis 
-              dataKey="time" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 700, fill: 'currentColor' }}
-              className="text-muted-foreground"
-              dy={10}
-            />
-            <YAxis 
-              domain={[35, 42]} 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 700, fill: 'currentColor' }}
-              className="text-muted-foreground"
-            />
-            <Tooltip 
-              contentStyle={{ 
-                borderRadius: '1rem', 
-                backgroundColor: 'hsl(var(--background))',
-                borderColor: 'hsl(var(--border))',
-                fontSize: '12px',
-                fontWeight: '700',
-                color: 'hsl(var(--foreground))'
-              }} 
-            />
-            <Area 
-              type="monotone" 
-              dataKey="temp" 
-              stroke="#2563EB" 
-              strokeWidth={3} 
-              fillOpacity={1} 
-              fill="url(#colorTemp)" 
-              name="Core Temp"
-            />
-            <Area 
-              type="monotone" 
-              dataKey="outside" 
-              stroke="currentColor" 
-              className="text-muted-foreground"
-              strokeWidth={2} 
-              strokeDasharray="5 5"
-              fill="transparent"
-              name="Ambient Temp"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border" />
+              <XAxis 
+                dataKey="time" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 10, fontWeight: 700, fill: 'currentColor' }}
+                className="text-muted-foreground"
+                dy={10}
+              />
+              <YAxis 
+                domain={[35, 42]} 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 10, fontWeight: 700, fill: 'currentColor' }}
+                className="text-muted-foreground"
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '1rem', 
+                  backgroundColor: 'hsl(var(--background))',
+                  borderColor: 'hsl(var(--border))',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  color: 'hsl(var(--foreground))'
+                }} 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="temp" 
+                stroke="#2563EB" 
+                strokeWidth={3} 
+                fillOpacity={1} 
+                fill="url(#colorTemp)" 
+                name="Core Temp"
+              />
+              <Area 
+                type="monotone" 
+                dataKey="outside" 
+                stroke="currentColor" 
+                className="text-muted-foreground"
+                strokeWidth={2} 
+                strokeDasharray="5 5"
+                fill="transparent"
+                name="Ambient Temp"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-full w-full flex items-center justify-center text-muted-foreground uppercase text-[10px] font-black tracking-widest">
+            Insufficient Telemetry
+          </div>
+        )}
       </div>
     </div>
   );
