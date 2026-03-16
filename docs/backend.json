@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -71,47 +70,33 @@
     "providers": ["password", "google"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "User profile document."
-        }
-      },
-      {
-        "path": "/users/{userId}/habits/{habitId}",
-        "definition": {
-          "entityName": "Habit",
-          "schema": { "$ref": "#/backend/entities/Habit" },
-          "description": "User health habits."
-        }
-      },
-      {
-        "path": "/users/{userId}/tasks/{taskId}",
-        "definition": {
-          "entityName": "Task",
-          "schema": { "$ref": "#/backend/entities/Task" },
-          "description": "User daily tasks."
-        }
-      },
-      {
-        "path": "/users/{userId}/emergency_contacts/{contactId}",
-        "definition": {
-          "entityName": "EmergencyContact",
-          "schema": { "$ref": "#/backend/entities/EmergencyContact" },
-          "description": "Emergency contacts."
-        }
-      },
-      {
-        "path": "/users/{userId}/vital_sign_data/{vitalsId}",
-        "definition": {
-          "entityName": "VitalSignData",
-          "schema": { "$ref": "#/backend/entities/VitalSignData" },
-          "description": "Vitals telemetry."
-        }
-      }
-    ]
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
+      "description": "User profile document."
+    },
+    "/users/{userId}/habits/{habitId}": {
+      "schema": { "$ref": "#/backend/entities/Habit" },
+      "description": "User health habits tracker."
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/backend/entities/Task" },
+      "description": "User daily one-time tasks."
+    },
+    "/users/{userId}/emergency_contacts/{contactId}": {
+      "schema": { "$ref": "#/backend/entities/EmergencyContact" },
+      "description": "Emergency responder nodes."
+    },
+    "/users/{userId}/vital_sign_data/{vitalsId}": {
+      "schema": { "$ref": "#/backend/entities/VitalSignData" },
+      "description": "Historical biometric telemetry records."
+    },
+    "/users/{userId}/user_settings/{settingId}": {
+      "schema": { "type": "object" },
+      "description": "User configuration and alert thresholds."
+    },
+    "/users/{userId}/alert_history/{alertId}": {
+      "schema": { "type": "object" },
+      "description": "Audit log of triggered rescue events."
+    }
   }
 }
