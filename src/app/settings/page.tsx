@@ -180,7 +180,7 @@ export default function SettingsPage() {
                     <AlertDialogFooter className="mt-8 gap-4">
                       <AlertDialogCancel className="h-12 rounded-xl border-border text-[10px] font-black uppercase tracking-widest">Cancel</AlertDialogCancel>
                       <AlertDialogAction onClick={handleDeleteAccount} className="h-12 rounded-xl bg-destructive text-destructive-foreground text-[10px] font-black uppercase tracking-widest">
-                        Yes, Wipe Account
+                        YES, DELETE ACCOUNT
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
