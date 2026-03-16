@@ -156,7 +156,7 @@ export default function SettingsPage() {
                   <AlertTriangle className="h-8 w-8" />
                 </div>
                 <div className="space-y-2 text-center md:text-left">
-                  <h4 className="text-sm font-black uppercase tracking-tight text-foreground">Wipe Profile & Telemetry</h4>
+                  <h4 className="text-sm font-black uppercase tracking-tight text-foreground">DELETE PROFILE PERMANENTLY</h4>
                   <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl">
                     By activating this protocol, your account will be deleted from the authentication server and all associated physiological telemetry, habit grids, and emergency contacts will be permanently purged from the Firestore nodes.
                   </p>
