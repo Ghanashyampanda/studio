@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -77,7 +78,7 @@ export function HabitsTracker() {
           <Input 
             placeholder="New Habit (e.g. Hydration)" 
             value={newHabit} 
-            onChange={(e) => setNewTask(e.target.value)}
+            onChange={(e) => setNewHabit(e.target.value)}
             className="h-11 rounded-xl bg-muted/50 border-transparent text-xs font-bold"
           />
           <Button onClick={addHabit} size="icon" className="h-11 w-11 shrink-0 rounded-xl bg-primary text-white shadow-lg">

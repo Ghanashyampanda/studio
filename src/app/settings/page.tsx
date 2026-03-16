@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
@@ -51,21 +52,22 @@ export default function SettingsPage() {
       toast({ title: "Account Terminated", description: "Your profile and data have been wiped from the system." });
       router.push('/');
     } catch (error: any) {
-      // Surfacing contextual error for Security Rules debugging
-      const permissionError = new FirestorePermissionError({
-        path: userDocRef.path,
-        operation: 'delete',
-      });
-      
-      errorEmitter.emit('permission-error', permissionError);
-      
-      toast({ 
-        title: "Protocol Error", 
-        description: error.code === 'auth/requires-recent-login' 
-          ? "For security, please logout and log back in before deleting your account." 
-          : "Could not complete account removal. Check system logs.", 
-        variant: "destructive" 
-      });
+      // Only emit permission error if it's actually a Firestore permission issue
+      if (error.code === 'permission-denied' || error.message?.includes('permission')) {
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      } else {
+        toast({ 
+          title: "Protocol Error", 
+          description: error.code === 'auth/requires-recent-login' 
+            ? "For security, please logout and log back in before deleting your account." 
+            : "Could not complete account removal. Check system logs.", 
+          variant: "destructive" 
+        });
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -101,7 +103,6 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          {/* View Section */}
           <Card className="rounded-[3rem] border border-border shadow-sm overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border p-8">
               <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
@@ -148,7 +149,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Remove Section */}
           <Card className="rounded-[3rem] border-destructive/20 border-2 shadow-sm overflow-hidden bg-destructive/5">
             <CardHeader className="p-8 border-b border-destructive/10">
               <CardTitle className="text-xl font-black uppercase tracking-tight text-destructive flex items-center gap-3">
@@ -167,7 +167,7 @@ export default function SettingsPage() {
                 <div className="space-y-2 text-center md:text-left">
                   <h4 className="text-sm font-black uppercase tracking-tight text-foreground">DELETE PROFILE PERMANENTLY</h4>
                   <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl">
-                    By activating this protocol, your account will be deleted from the authentication server and all associated physiological telemetry, habit grids, and emergency contacts will be permanently purged from the Firestore nodes.
+                    By activating this protocol, your account will be deleted and all associated physiological telemetry, habit grids, and emergency contacts will be permanently purged.
                   </p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-2xl font-black uppercase tracking-tight">Confirm Deletion</AlertDialogTitle>
                       <AlertDialogDescription className="text-sm font-medium leading-relaxed">
-                        This action cannot be undone. All telemetry history and emergency nodes will be wiped from the HeatGuard network. Are you sure you want to proceed?
+                        This action cannot be undone. All telemetry history and emergency nodes will be wiped from the HeatGuard network. Are you sure?
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-8 gap-4">
