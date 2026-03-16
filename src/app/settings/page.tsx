@@ -3,13 +3,13 @@
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
-import { deleteUser, signOut } from 'firebase/auth';
+import { deleteUser } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Shield, User, Mail, Calendar, Trash2, AlertTriangle, ShieldAlert, Settings as SettingsIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -30,6 +30,12 @@ export default function SettingsPage() {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, 'users', user.uid);
@@ -47,6 +53,7 @@ export default function SettingsPage() {
       await deleteDoc(userDocRef);
       
       // 2. AUTH TERMINATION: Permanently delete the user's authentication account
+      // deleteUser(user) also signs the user out automatically
       await deleteUser(user);
       
       toast({ 
@@ -82,15 +89,12 @@ export default function SettingsPage() {
     }
   };
 
-  if (isUserLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="h-10 w-10 animate-spin text-primary" />
-    </div>
-  );
-
-  if (!user) {
-    router.push('/');
-    return null;
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
