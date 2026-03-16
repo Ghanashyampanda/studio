@@ -87,13 +87,17 @@ export function SOSPanel() {
     
     const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Dispatch to ALL contacts in the network
+    // SEQUENTIAL BROADCAST: Dispatch to EVERY person in the Established Nodes list
     for (const contact of contacts) {
-      if (contact.type === 'fcm' || contact.fcmToken) {
-        sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
-      }
-      if (contact.type === 'phone' || contact.phoneNumber) {
-        sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
+      try {
+        if (contact.type === 'fcm' || contact.fcmToken) {
+          await sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+        }
+        if (contact.type === 'phone' || contact.phoneNumber) {
+          await sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
+        }
+      } catch (err) {
+        console.error(`Failed to signal node: ${contact.name}`, err);
       }
     }
 
@@ -107,21 +111,19 @@ export function SOSPanel() {
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: 'Broadcast to All Nodes (FCM + SMS)',
+      protocol: `Broadcast to ${contacts.length} Nodes (FCM + SMS)`,
       alertMessage: message
     });
 
-    // Also trigger native SMS for the primary contact as a final direct-user fallback
+    // Final direct user confirmation for primary contact
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (primaryPhone) {
       const smsUrl = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
       window.open(smsUrl, '_blank');
     }
 
-    setTimeout(() => {
-      setIsDispatching(false);
-      toast({ title: "Rescue Protocol Active", description: `Broadcasted to ${contacts.length} rescue nodes.` });
-    }, 1000);
+    setIsDispatching(false);
+    toast({ title: "Broadcast Complete", description: `Signaled all ${contacts.length} rescue nodes in the network.` });
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +20,10 @@ export default function AlertSimPage() {
   const [countdown, setCountdown] = useState(10);
   const [isSignaling, setIsSignaling] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [currentNodeName, setCurrentNodeName] = useState<string | null>(null);
   
+  const hasTriggered = useRef(false);
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
@@ -37,25 +40,38 @@ export default function AlertSimPage() {
     if (countdown > 0 && !isSignaling && !isComplete && user) {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0 && !isSignaling && !isComplete && user) {
+    } else if (countdown === 0 && !isSignaling && !isComplete && user && !hasTriggered.current) {
       startRescueProtocol();
     }
   }, [countdown, isSignaling, isComplete, user]);
 
   const startRescueProtocol = async () => {
+    if (hasTriggered.current) return;
+    hasTriggered.current = true;
+    
     setIsSignaling(true);
-    if (!db || !user || !contacts) return;
+    if (!db || !user || !contacts) {
+      setIsSignaling(false);
+      return;
+    }
     
     const message = `RESCUE ALERT: SunCare Alert AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Loop through all contacts and signal every available node
+    // SEQUENTIAL BROADCAST: Loop through all contacts and signal every established node
     for (const contact of contacts) {
-      if (contact.type === 'fcm' || contact.fcmToken) {
-        sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+      setCurrentNodeName(contact.name);
+      try {
+        if (contact.type === 'fcm' || contact.fcmToken) {
+          await sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+        }
+        if (contact.type === 'phone' || contact.phoneNumber) {
+          await sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
+        }
+      } catch (err) {
+        console.error(`Alert Sim: Failed to signal ${contact.name}`, err);
       }
-      if (contact.type === 'phone' || contact.phoneNumber) {
-        sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
-      }
+      // Brief delay between nodes for realistic simulation
+      await new Promise(r => setTimeout(r, 400));
     }
 
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
@@ -69,13 +85,11 @@ export default function AlertSimPage() {
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: 'Multi-Node Broadcast (FCM + SMS Simulation)'
+      protocol: `Multi-Node Broadcast to all ${contacts.length} Responders`
     });
 
-    setTimeout(() => {
-      setIsSignaling(false);
-      setIsComplete(true);
-    }, 2500);
+    setIsSignaling(false);
+    setIsComplete(true);
   };
 
   const handleNativeSMSDispatch = () => {
@@ -123,7 +137,9 @@ export default function AlertSimPage() {
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
                       <p className="text-sm font-black text-slate-900 uppercase">Broadcast Active</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Signaling All Emergency Nodes...</p>
+                      <p className="text-[10px] text-primary font-bold uppercase tracking-widest animate-pulse">
+                        Signaling Responder: {currentNodeName || 'Establishing Link'}...
+                      </p>
                     </div>
                   </div>
                 </div>
