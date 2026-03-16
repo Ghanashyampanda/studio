@@ -10,7 +10,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get, create, update: if isOwner(userId);
+      // Allow user to get, create, update, and delete their own profile document
+      allow get, create, update, delete: if isOwner(userId);
       
       match /habits/{habitId} {
         allow read, write: if isOwner(userId);
