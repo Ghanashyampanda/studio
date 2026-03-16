@@ -43,7 +43,7 @@ export default function Home() {
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl font-black tracking-tighter leading-none"
           >
-            AI-Based Sunstroke Detection <br /><span className="text-primary">& Emergency Alert System</span>
+            Sunstroke Detection <br /><span className="text-primary">& Emergency Alert System</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
