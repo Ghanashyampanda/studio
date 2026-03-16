@@ -44,11 +44,9 @@ export default function SettingsPage() {
 
     try {
       // 1. DATA WIPE: Remove the primary profile node from Firestore first
-      // This requires the user to still be authenticated
       await deleteDoc(userDocRef);
       
       // 2. AUTH TERMINATION: Permanently delete the user's authentication account
-      // deleteUser(user) also signs the user out automatically
       await deleteUser(user);
       
       toast({ 
@@ -58,13 +56,11 @@ export default function SettingsPage() {
       
       router.push('/');
     } catch (error: any) {
-      console.error("Deletion protocol failed:", error);
-
       // Handle re-authentication requirement for sensitive operations
       if (error.code === 'auth/requires-recent-login') {
         toast({ 
           title: "Re-authentication Required", 
-          description: "For security, please logout and log back in before deleting your account.",
+          description: "For security, please logout and log back in to verify your identity before deleting your account.",
           variant: "destructive" 
         });
       } else if (error.code === 'permission-denied' || error.message?.includes('permission')) {
@@ -76,8 +72,8 @@ export default function SettingsPage() {
         errorEmitter.emit('permission-error', permissionError);
       } else {
         toast({ 
-          title: "System Error", 
-          description: "An unexpected error occurred during account termination.",
+          title: "Deletion Protocol Failed", 
+          description: "An unexpected error occurred. Please try again or contact support.",
           variant: "destructive" 
         });
       }
