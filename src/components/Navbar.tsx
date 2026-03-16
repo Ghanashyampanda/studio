@@ -18,8 +18,7 @@ import {
   Activity,
   Bell,
   LogOut,
-  Settings,
-  User as UserIcon
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 

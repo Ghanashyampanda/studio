@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -20,7 +19,7 @@ export async function sendEmergencySms(to: string, message: string) {
   return { 
     success: true, 
     simulated: true,
-    provider: 'HeatGuard Cloud Bridge (FCM Signaling)',
+    provider: 'SunCare Alert Cloud Bridge (FCM Signaling)',
     messagePreview: message,
     timestamp: new Date().toISOString()
   };

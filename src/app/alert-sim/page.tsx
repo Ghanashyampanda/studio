@@ -45,7 +45,7 @@ export default function AlertSimPage() {
     setIsSignaling(true);
     if (!db || !user || !contacts) return;
     
-    const message = `RESCUE ALERT: HeatGuard AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `RESCUE ALERT: SunCare Alert AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
@@ -78,7 +78,7 @@ export default function AlertSimPage() {
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (!primaryPhone) return;
 
-    const message = `HEATGUARD SOS: Critical thermal emergency. Rescue required. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `SUNCARE ALERT SOS: Critical thermal emergency. Rescue required. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
     const url = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

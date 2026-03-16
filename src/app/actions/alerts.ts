@@ -35,7 +35,7 @@ export async function sendEmergencyAlert(to: string, message: string) {
   return { 
     success: true, 
     simulated: true,
-    provider: 'HeatGuard Cloud Bridge (Simulation)',
+    provider: 'SunCare Alert Cloud Bridge (Simulation)',
     messagePreview: message
   };
 }

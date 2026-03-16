@@ -84,7 +84,7 @@ export function SOSPanel() {
 
     setIsDispatching(true);
     
-    const message = `CRITICAL SOS: HeatGuard AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
