@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
+import { sendEmergencySms } from '@/app/actions/sms';
 
 export default function AlertSimPage() {
   const { user, isUserLoading } = useUser();
@@ -47,9 +48,13 @@ export default function AlertSimPage() {
     
     const message = `RESCUE ALERT: SunCare Alert AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
+    // Loop through all contacts and signal every available node
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
         sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+      }
+      if (contact.type === 'phone' || contact.phoneNumber) {
+        sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
       }
     }
 
@@ -64,7 +69,7 @@ export default function AlertSimPage() {
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: 'FCM High-Priority Signaling'
+      protocol: 'Multi-Node Broadcast (FCM + SMS Simulation)'
     });
 
     setTimeout(() => {
@@ -103,7 +108,7 @@ export default function AlertSimPage() {
               </motion.div>
               <CardTitle className="text-3xl font-black text-destructive tracking-tighter uppercase mb-2">Rescue Protocol</CardTitle>
               <div className="flex items-center justify-center gap-2 text-destructive/80 font-bold uppercase tracking-widest text-[10px]">
-                <Zap className="h-3 w-3" /> Signaling Active
+                <Zap className="h-3 w-3" /> Signaling All Nodes
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
@@ -117,8 +122,8 @@ export default function AlertSimPage() {
                   <div className="space-y-4">
                     <Loader2 className="h-8 w-8 text-destructive animate-spin mx-auto" />
                     <div className="space-y-1">
-                      <p className="text-sm font-black text-slate-900 uppercase">FCM Broadcast Active</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Signaling High-Priority Nodes...</p>
+                      <p className="text-sm font-black text-slate-900 uppercase">Broadcast Active</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Signaling All Emergency Nodes...</p>
                     </div>
                   </div>
                 </div>
@@ -126,17 +131,17 @@ export default function AlertSimPage() {
                 <div className="space-y-6">
                   <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-2">
                     <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
-                    <p className="text-sm font-black text-emerald-700 uppercase">Cloud Signaling Complete</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">All nodes archived in forensics.</p>
+                    <p className="text-sm font-black text-emerald-700 uppercase">Broadcast Complete</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">All {contacts?.length || 0} nodes have been signaled.</p>
                   </div>
                   
                   <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-4">
                     <div className="space-y-1">
                       <p className="text-sm font-black text-primary uppercase">Direct Rescue Ready</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send the rescue payload to your primary cellular responder.</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Trigger direct cellular confirmation for primary node.</p>
                     </div>
                     <Button onClick={handleNativeSMSDispatch} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
-                      Dispatch Rescue SMS
+                      Confirm Primary SMS
                     </Button>
                   </div>
                 </div>

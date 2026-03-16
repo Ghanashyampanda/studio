@@ -12,6 +12,7 @@ import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckC
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
+import { sendEmergencySms } from '@/app/actions/sms';
 
 const COUNTRY_CODES = [
   { name: "India", dial_code: "+91", code: "IN", flag: "🇮🇳" },
@@ -86,9 +87,13 @@ export function SOSPanel() {
     
     const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
+    // Dispatch to ALL contacts in the network
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
         sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+      }
+      if (contact.type === 'phone' || contact.phoneNumber) {
+        sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
       }
     }
 
@@ -102,10 +107,11 @@ export function SOSPanel() {
       locationAtAlertLatitude: 40.7128,
       locationAtAlertLongitude: -74.0060,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: 'FCM High-Priority + Cellular',
+      protocol: 'Broadcast to All Nodes (FCM + SMS)',
       alertMessage: message
     });
 
+    // Also trigger native SMS for the primary contact as a final direct-user fallback
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (primaryPhone) {
       const smsUrl = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
@@ -114,7 +120,7 @@ export function SOSPanel() {
 
     setTimeout(() => {
       setIsDispatching(false);
-      toast({ title: "Rescue Protocol Active", description: "All rescue nodes signaled successfully." });
+      toast({ title: "Rescue Protocol Active", description: `Broadcasted to ${contacts.length} rescue nodes.` });
     }, 1000);
   };
 
