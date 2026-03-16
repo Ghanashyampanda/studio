@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/firebase';
 import { sendEmailVerification } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Mail, RefreshCcw, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Mail, RefreshCcw, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -15,10 +15,30 @@ export default function VerifyEmailPage() {
   const [isResending, setIsResending] = useState(false);
   const [checking, setChecking] = useState(false);
 
+  // Automatic verification status polling
   useEffect(() => {
-    if (!isUserLoading && user?.emailVerified) {
+    if (isUserLoading || !user) return;
+
+    // If already verified, redirect immediately
+    if (user.emailVerified) {
       router.push('/dashboard');
+      return;
     }
+
+    // Set up a polling interval to reload the user object and check verification status
+    const interval = setInterval(async () => {
+      try {
+        await user.reload();
+        if (user.emailVerified) {
+          clearInterval(interval);
+          router.push('/dashboard');
+        }
+      } catch (error) {
+        console.error("Auto-verification check failed:", error);
+      }
+    }, 3000); // Check every 3 seconds
+
+    return () => clearInterval(interval);
   }, [user, isUserLoading, router]);
 
   const handleResend = async () => {
@@ -29,6 +49,7 @@ export default function VerifyEmailPage() {
     } catch (e) {
       console.error(e);
     } finally {
+      // Prevent spamming the resend button
       setTimeout(() => setIsResending(false), 10000); 
     }
   };
@@ -48,7 +69,13 @@ export default function VerifyEmailPage() {
     }
   };
 
-  if (isUserLoading) return null;
+  if (isUserLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 sm:p-6 text-foreground">
@@ -78,6 +105,12 @@ export default function VerifyEmailPage() {
           </div>
 
           <div className="space-y-4">
+            <div className="p-4 bg-muted/30 rounded-2xl border border-dashed border-border text-center">
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">
+                Auto-sync active: Redirecting on verification...
+              </p>
+            </div>
+
             <Button
               onClick={handleCheckStatus}
               disabled={checking}
