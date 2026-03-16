@@ -191,7 +191,7 @@ export function SOSPanel() {
                   className="h-10 bg-muted/30 border-transparent rounded-xl text-xs font-bold focus:bg-background focus:border-primary transition-all" 
                   value={newName} 
                   onChange={e => setNewName(e.target.value)} 
-                  placeholder="e.g. Primary Care" 
+                  placeholder="Write Your Name" 
                 />
               </div>
               <div className="space-y-1">
