@@ -2,6 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Utility functions for security and ownership
     function isSignedIn() {
       return request.auth != null;
     }
@@ -9,12 +10,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // User profile and subcollection hierarchy
     match /users/{userId} {
-      // Allow the owner full access to their own profile document
-      // Explicitly listing operations for clarity and debugging
-      allow read, create, update, delete: if isOwner(userId);
+      // Grant full authority to the owner for their own profile document
+      // Using 'write' to explicitly include 'delete' permissions
+      allow read, write: if isOwner(userId);
       
-      // Recursively allow the owner full access to any subcollections
+      // Recursively grant full authority to the owner for all nested telemetry and records
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId);
       }
