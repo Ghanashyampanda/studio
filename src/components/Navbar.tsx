@@ -18,6 +18,7 @@ import {
   Activity,
   Bell,
   LogOut,
+  Settings,
   User as UserIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -199,6 +200,12 @@ export function Navbar() {
                           <span className="text-[10px] font-black uppercase tracking-widest">Live Telemetry</span>
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 cursor-pointer rounded-xl hover:bg-muted transition-colors">
+                          <Settings className="h-4 w-4 text-primary" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Account Settings</span>
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-border mx-2" />
                       <DropdownMenuItem 
                         onClick={handleLogout}
@@ -251,7 +258,12 @@ export function Navbar() {
                       <Button onClick={() => setAuthMode('signup')} className="w-full h-12 rounded-xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest">Signup</Button>
                     </div>
                   ) : (
-                    <Button onClick={handleLogout} variant="destructive" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Logout</Button>
+                    <div className="flex flex-col gap-2">
+                      <Link href="/settings" className="w-full">
+                        <Button variant="outline" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Settings</Button>
+                      </Link>
+                      <Button onClick={handleLogout} variant="destructive" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Logout</Button>
+                    </div>
                   )}
                 </div>
               </SheetContent>
