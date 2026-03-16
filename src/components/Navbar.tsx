@@ -120,7 +120,7 @@ export function Navbar() {
               <Sun className="h-3.5 w-3.5 text-primary-foreground absolute" />
             </div>
             <span className="text-lg font-black tracking-tighter text-foreground hidden sm:inline-block uppercase">
-              HEATGUARD <span className="text-primary">AI</span>
+              SunCare <span className="text-primary">Alert</span>
             </span>
           </Link>
 
@@ -239,7 +239,7 @@ export function Navbar() {
                 <SheetHeader className="p-6 border-b">
                   <SheetTitle className="flex items-center gap-3">
                     <Shield className="h-8 w-8 text-primary" />
-                    <span className="text-xl font-black tracking-tighter uppercase">HEATGUARD AI</span>
+                    <span className="text-xl font-black tracking-tighter uppercase">SunCare <span className="text-primary">Alert</span></span>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col p-4 gap-1">
