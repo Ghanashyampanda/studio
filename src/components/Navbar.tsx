@@ -212,7 +212,7 @@ export function Navbar() {
                         className="flex items-center gap-3 px-4 py-2.5 cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 focus:bg-destructive/10 transition-colors"
                       >
                         <LogOut className="h-4 w-4" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Terminate Session</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">LogOut Session</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
