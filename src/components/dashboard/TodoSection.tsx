@@ -1,15 +1,14 @@
-
 "use client";
 
 import { useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
+import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ListTodo, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { ListTodo, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function TodoSection() {
@@ -40,13 +39,13 @@ export function TodoSection() {
   const toggleTask = (taskId: string, currentStatus: boolean) => {
     if (!db || !user) return;
     const taskRef = doc(db, 'users', user.uid, 'tasks', taskId);
-    updateDoc(taskRef, { completed: !currentStatus });
+    updateDocumentNonBlocking(taskRef, { completed: !currentStatus });
   };
 
   const deleteTask = (taskId: string) => {
     if (!db || !user) return;
     const taskRef = doc(db, 'users', user.uid, 'tasks', taskId);
-    deleteDoc(taskRef);
+    deleteDocumentNonBlocking(taskRef);
     toast({ title: "Task Terminated", description: "Entry removed from queue." });
   };
 

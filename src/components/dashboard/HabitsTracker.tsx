@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc } from 'firebase/firestore';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +48,7 @@ export function HabitsTracker() {
     const habitRef = doc(db, 'users', user.uid, 'habits', habit.id);
     const newStreak = habit.streak + 1;
     
-    updateDoc(habitRef, {
+    updateDocumentNonBlocking(habitRef, {
       streak: newStreak,
       lastCheckInDate: today
     });
@@ -78,7 +77,7 @@ export function HabitsTracker() {
           <Input 
             placeholder="New Habit (e.g. Hydration)" 
             value={newHabit} 
-            onChange={(e) => setNewHabit(e.target.value)}
+            onChange={(e) => setNewTask(e.target.value)}
             className="h-11 rounded-xl bg-muted/50 border-transparent text-xs font-bold"
           />
           <Button onClick={addHabit} size="icon" className="h-11 w-11 shrink-0 rounded-xl bg-primary text-white shadow-lg">

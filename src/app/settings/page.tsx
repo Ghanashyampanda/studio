@@ -1,12 +1,11 @@
 "use client";
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { deleteUser } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Shield, User, Mail, Calendar, Trash2, AlertTriangle, ShieldAlert, LogOut, Settings as SettingsIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Shield, User, Mail, Calendar, Trash2, AlertTriangle, ShieldAlert, Settings as SettingsIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -39,9 +38,12 @@ export default function SettingsPage() {
   const handleDeleteAccount = async () => {
     if (!user || !db) return;
     setIsDeleting(true);
+    
+    const userDocRef = doc(db, 'users', user.uid);
+
     try {
-      // 1. Delete Firestore Data
-      await deleteDoc(doc(db, 'users', user.uid));
+      // 1. Attempt to delete Firestore Data
+      await deleteDoc(userDocRef);
       
       // 2. Delete Auth Account
       await deleteUser(user);
@@ -49,12 +51,19 @@ export default function SettingsPage() {
       toast({ title: "Account Terminated", description: "Your profile and data have been wiped from the system." });
       router.push('/');
     } catch (error: any) {
-      console.error(error);
+      // Surfacing contextual error for Security Rules debugging
+      const permissionError = new FirestorePermissionError({
+        path: userDocRef.path,
+        operation: 'delete',
+      });
+      
+      errorEmitter.emit('permission-error', permissionError);
+      
       toast({ 
         title: "Protocol Error", 
         description: error.code === 'auth/requires-recent-login' 
           ? "For security, please logout and log back in before deleting your account." 
-          : "Could not complete account removal.", 
+          : "Could not complete account removal. Check system logs.", 
         variant: "destructive" 
       });
     } finally {
