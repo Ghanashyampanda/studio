@@ -119,9 +119,7 @@ export function Navbar() {
               <Shield className="h-7 w-7 text-primary" />
               <Sun className="h-3.5 w-3.5 text-primary-foreground absolute" />
             </div>
-            <span className="text-lg font-black tracking-tighter text-foreground hidden sm:inline-block uppercase">
-              SunCare <span className="text-primary">Alert</span>
-            </span>
+            <span className="text-lg font-black tracking-tighter text-foreground hidden sm:inline-block uppercase">SunCare <span className="text-primary">Alert</span></span>
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">

@@ -21,7 +21,7 @@ export default function AboutPage() {
             Advanced Thermal <span className="text-primary">Defense</span>
           </h1>
           <p className="text-lg text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
-            HeatGuard AI is a medical-grade physiological monitoring platform designed to protect individuals and workers from hyperthermia in extreme environments.
+            SunCare Alert is a medical-grade physiological monitoring platform designed to protect individuals and workers from hyperthermia in extreme environments.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function AboutPage() {
               As global temperatures reach historic highs, heat-related illnesses like sunstroke have become a significant public health challenge. Traditional monitoring is often manual and reactive—by the time symptoms appear, the risk is already critical.
             </p>
             <p>
-              <strong>HeatGuard AI</strong> solves this through proactive, automated surveillance. By integrating with medical-grade biometric sensors and real-time environmental APIs, we create a defensive barrier that works 24/7 to ensure thermal stability.
+              <strong>SunCare Alert</strong> solves this through proactive, automated surveillance. By integrating with medical-grade biometric sensors and real-time environmental APIs, we create a defensive barrier that works 24/7 to ensure thermal stability.
             </p>
           </div>
           <div className="pt-8 border-t border-border flex items-center gap-6">

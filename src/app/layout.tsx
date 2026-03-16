@@ -4,7 +4,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Navbar } from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'HeatGuard AI | Sunstroke Detection & Emergency Alert System',
+  title: 'SunCare Alert | AI-Powered Sunstroke Detection',
   description: 'AI-powered real-time sunstroke risk assessment and emergency alert system using wearable health data.',
 };
 

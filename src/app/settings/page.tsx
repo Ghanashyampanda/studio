@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
@@ -53,7 +52,6 @@ export default function SettingsPage() {
       await deleteDoc(userDocRef);
       
       // 2. AUTH TERMINATION: Permanently delete the user's authentication account
-      // deleteUser(user) also signs the user out automatically
       await deleteUser(user);
       
       toast({ 
@@ -70,7 +68,7 @@ export default function SettingsPage() {
           description: "For security, please logout and log back in to verify your identity before deleting your account.",
           variant: "destructive" 
         });
-      } else if (error.code === 'permission-denied' || error.message?.includes('permission')) {
+      } else if (error.code?.includes('permission-denied') || error.message?.toLowerCase().includes('permission')) {
         // Emit contextual error for Security Rules debugging
         const permissionError = new FirestorePermissionError({
           path: userDocRef.path,
@@ -203,7 +201,7 @@ export default function SettingsPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-2xl font-black uppercase tracking-tight text-foreground">Confirm Deletion</AlertDialogTitle>
                       <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground">
-                        This action cannot be undone. All telemetry history, habits, and emergency nodes will be wiped from the HeatGuard network permanently.
+                        This action cannot be undone. All telemetry history, habits, and emergency nodes will be wiped from the SunCare Alert network permanently.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-8 gap-4">

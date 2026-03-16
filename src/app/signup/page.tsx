@@ -246,7 +246,7 @@ export default function SignupPage() {
             <div className="flex items-start space-x-3 py-1 ml-1">
               <Checkbox id="terms" required className="mt-0.5 h-3.5 w-3.5 rounded-sm border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
               <label htmlFor="terms" className="text-[9px] font-bold text-muted-foreground leading-tight select-none">
-                By Creating an Account, I accept HeatGuard AI <Link href="#" className="text-primary hover:underline">Terms of Use</Link> and <Link href="#" className="text-primary hover:underline">Privacy Policy</Link>
+                By Creating an Account, I accept SunCare Alert <Link href="#" className="text-primary hover:underline">Terms of Use</Link> and <Link href="#" className="text-primary hover:underline">Privacy Policy</Link>
               </label>
             </div>
 

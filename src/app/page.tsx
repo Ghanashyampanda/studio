@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Shield, 
@@ -25,12 +24,12 @@ import {
   Linkedin,
   Mail
 } from 'lucide-react';
-import { motion, useAnimation, useInView } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { useUser } from '@/firebase';
 import { AuthModals } from '@/components/auth/AuthModals';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useRef } from 'react';
+import Link from 'next/link';
 
 function Counter({ value, suffix = "" }: { value: number, suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -145,7 +144,7 @@ export default function Home() {
               number="01" 
               icon={Smartphone} 
               title="Identity Sync" 
-              description="Login to the HeatGuard nexus to establish your health profile." 
+              description="Login to the SunCare nexus to establish your health profile." 
             />
             <WorkflowStep 
               number="02" 
@@ -280,7 +279,7 @@ export default function Home() {
             </div>
             <h2 className="text-5xl font-black uppercase tracking-tighter leading-none">Automated <span className="text-primary">Wearable Link</span></h2>
             <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-              Future-proof your safety with seamless smartwatch integration. HeatGuard AI is engineering a bridge to medical-grade wearables for continuous, automated telemetry without manual interaction.
+              Future-proof your safety with seamless smartwatch integration. SunCare Alert is engineering a bridge to medical-grade wearables for continuous, automated telemetry without manual interaction.
             </p>
             <ul className="space-y-4">
               <li className="flex items-center gap-4">
@@ -367,7 +366,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Improved Footer */}
+      {/* Footer */}
       <footer className="pt-32 pb-12 px-6 border-t border-border bg-card">
         <div className="max-w-7xl mx-auto space-y-20">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -377,9 +376,7 @@ export default function Home() {
                   <Shield className="h-8 w-8 text-primary" />
                   <Sun className="h-4 w-4 text-primary-foreground absolute" />
                 </div>
-                <span className="text-xl font-black tracking-tighter text-foreground uppercase">
-                  HEATGUARD <span className="text-primary">AI</span>
-                </span>
+                <span className="text-xl font-black tracking-tighter text-foreground uppercase">SunCare <span className="text-primary">Alert</span></span>
               </Link>
               <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                 Advanced thermal defense systems utilizing neural biometrics for global health safety.
@@ -416,7 +413,7 @@ export default function Home() {
               <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground mb-6">Contact Nexus</h4>
               <ul className="space-y-4">
                 <li className="text-sm font-medium text-muted-foreground">Emergency Hub: +1 (800) HEAT-SOS</li>
-                <li className="text-sm font-medium text-muted-foreground">Tech Ops: ops@heatguard.ai</li>
+                <li className="text-sm font-medium text-muted-foreground">Tech Ops: ops@suncarealert.ai</li>
                 <li className="text-sm font-medium text-muted-foreground">Headquarters: Silicon Valley, CA</li>
               </ul>
             </div>
@@ -424,7 +421,7 @@ export default function Home() {
           
           <div className="pt-12 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              © 2026 HeatGuard Systems Group. All physiological data is end-to-end encrypted.
+              © 2026 SunCare Alert Systems Group. All physiological data is end-to-end encrypted.
             </p>
             <div className="flex gap-8">
               <Link href="#" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">Privacy Node</Link>
@@ -502,8 +499,4 @@ function FooterLink({ label, href }: { label: string, href: string }) {
       </Link>
     </li>
   );
-}
-
-function Link({ href, children, className }: any) {
-  return <a href={href} className={className}>{children}</a>;
 }
