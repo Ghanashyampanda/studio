@@ -167,7 +167,7 @@ export default function SettingsPage() {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-destructive/20 w-full sm:w-auto">
-                      <Trash2 className="mr-2 h-4 w-4" /> Terminate Account Protocol
+                      <Trash2 className="mr-2 h-4 w-4" /> DELETE YOUR ACCOUNT
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-background p-8">
