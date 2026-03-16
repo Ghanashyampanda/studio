@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -8,6 +9,8 @@ import { SOSPanel } from '@/components/dashboard/SOSPanel';
 import { GuidancePanel } from '@/components/dashboard/GuidancePanel';
 import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
+import { HabitsTracker } from '@/components/dashboard/HabitsTracker';
+import { TodoSection } from '@/components/dashboard/TodoSection';
 import { Shield, Thermometer, Activity, LayoutDashboard, Bell } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect } from 'react';
@@ -134,6 +137,10 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <RiskAssessment vitals={latestVitals} />
               <GuidancePanel vitals={latestVitals} />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <HabitsTracker />
+              <TodoSection />
             </div>
             <VitalsHistoryChart data={vitalsData || []} />
           </div>
