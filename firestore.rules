@@ -10,25 +10,11 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Allow user to get, create, update, and delete their own profile document
-      allow get, create, update, delete: if isOwner(userId);
+      // Allow the owner full access to their own profile document
+      allow read, write: if isOwner(userId);
       
-      match /habits/{habitId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /tasks/{taskId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /emergency_contacts/{contactId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /vital_sign_data/{vitalsId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /user_settings/{settingId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /alert_history/{alertId} {
+      // Recursively allow the owner full access to any subcollections (habits, tasks, vitals, etc.)
+      match /{allSubcollections=**} {
         allow read, write: if isOwner(userId);
       }
     }
