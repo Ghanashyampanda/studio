@@ -38,16 +38,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { signOut } from 'firebase/auth';
 import { AuthModals } from './auth/AuthModals';
 
 export function Navbar() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [authMode, setAuthMode] = useState<'login' | 'signup' | null>(null);
@@ -56,7 +57,6 @@ export function Navbar() {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     
-    // Theme initialization
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const initialTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     setTheme(initialTheme);
@@ -78,11 +78,15 @@ export function Navbar() {
     }
   };
 
-  const handleLogout = () => {
-    if (auth) signOut(auth);
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/');
+    }
   };
 
-  const menuItems = [
+  // Define menu items based on Auth state
+  const menuItems = user ? [
     { label: 'Home', href: '/', icon: Home },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Monitor', href: '/monitor', icon: Activity },
@@ -91,9 +95,12 @@ export function Navbar() {
     { label: 'History', href: '/alerts', icon: History },
     { label: 'Tips', href: '/tips', icon: Sparkles },
     { label: 'About', href: '/about', icon: Info },
+  ] : [
+    { label: 'Home', href: '/', icon: Home },
+    { label: 'About', href: '/about', icon: Info },
   ];
 
-  const authRoutes = ['/login', '/signup'];
+  const authRoutes = ['/login', '/signup', '/forgot-password', '/verify-email'];
   const isAuthPage = authRoutes.includes(pathname);
 
   if (isAuthPage) return null;
@@ -112,7 +119,7 @@ export function Navbar() {
               <Shield className="h-7 w-7 text-primary" />
               <Sun className="h-3.5 w-3.5 text-primary-foreground absolute" />
             </div>
-            <span className="text-lg font-black tracking-tighter text-foreground hidden sm:inline-block">
+            <span className="text-lg font-black tracking-tighter text-foreground hidden sm:inline-block uppercase">
               HEATGUARD <span className="text-primary">AI</span>
             </span>
           </Link>
@@ -150,7 +157,9 @@ export function Navbar() {
             </Button>
 
             <AnimatePresence mode="wait">
-              {!user ? (
+              {isUserLoading ? (
+                <div className="h-9 w-9 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+              ) : !user ? (
                 <div className="flex items-center gap-2">
                   <Button 
                     variant="ghost" 
@@ -230,7 +239,7 @@ export function Navbar() {
                 <SheetHeader className="p-6 border-b">
                   <SheetTitle className="flex items-center gap-3">
                     <Shield className="h-8 w-8 text-primary" />
-                    <span className="text-xl font-black tracking-tighter">HEATGUARD AI</span>
+                    <span className="text-xl font-black tracking-tighter uppercase">HEATGUARD AI</span>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col p-4 gap-1">

@@ -3,14 +3,23 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { VitalsCard } from '@/components/dashboard/VitalsCard';
-import { Activity, Thermometer, Waves, Zap, Heart, Shield } from 'lucide-react';
+import { Activity, Thermometer, Waves, Zap, Heart, Shield, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function MonitorPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const vitalsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -31,11 +40,13 @@ export default function MonitorPage() {
     activityLevel: 'light'
   };
 
-  if (isUserLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-20 font-body">

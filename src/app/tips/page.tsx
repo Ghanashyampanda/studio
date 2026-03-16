@@ -17,7 +17,8 @@ import {
   GlassWater,
   ShieldCheck,
   ChevronRight,
-  Stethoscope
+  Stethoscope,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,15 +26,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import * as LucideIcons from 'lucide-react';
 
 export default function HealthTipsPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const router = useRouter();
   const [tips, setTips] = useState<HealthTipsOutput | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Latest Vitals for personalized tips
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
   const vitalsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -52,6 +60,7 @@ export default function HealthTipsPage() {
   };
 
   const fetchTips = async () => {
+    if (!user) return;
     setLoading(true);
     try {
       const result = await generateHealthTips({
@@ -69,10 +78,10 @@ export default function HealthTipsPage() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !isUserLoading) {
       fetchTips();
     }
-  }, [user, latestVitals.bodyTemperatureC]);
+  }, [user, isUserLoading, latestVitals.bodyTemperatureC]);
 
   const getIcon = (name: string) => {
     // @ts-ignore
@@ -80,11 +89,13 @@ export default function HealthTipsPage() {
     return <IconComponent className="h-6 w-6" />;
   };
 
-  if (isUserLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-20 font-body">

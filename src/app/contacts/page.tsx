@@ -15,10 +15,11 @@ import {
   UserPlus,
   Star,
   Pencil,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +50,12 @@ export default function ContactsPage() {
     email: '',
     relationship: 'Family'
   });
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -127,7 +134,13 @@ export default function ContactsPage() {
     toast({ title: "Primary Updated", description: "Primary responder designated." });
   };
 
-  if (isUserLoading) return null;
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-20 font-body">

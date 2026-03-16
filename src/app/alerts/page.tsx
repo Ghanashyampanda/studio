@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { 
   Table, 
   TableBody, 
@@ -11,16 +11,25 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { History as AuditIcon, ShieldAlert, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { History as AuditIcon, ShieldAlert, CheckCircle2, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AlertHistoryPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const alertsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, 'users', user.uid, 'alert_history'), orderBy('triggerTimestamp', 'desc'));
+    return query(collection(db, 'users', user.uid, 'alert_history'), orderBy('triggerTimestamp', 'desc'), limit(100));
   }, [db, user]);
   const { data: alerts, isLoading: isAlertsLoading } = useCollection(alertsQuery);
 
@@ -32,7 +41,13 @@ export default function AlertHistoryPage() {
     }
   };
 
-  if (isUserLoading) return null;
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-20 font-body">

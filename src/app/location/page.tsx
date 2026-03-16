@@ -33,6 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +62,7 @@ export default function LocationPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [coords, setCoords] = useState({ lat: 40.7128, lng: -74.0060 });
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
@@ -68,6 +70,12 @@ export default function LocationPage() {
   const [isLocating, setIsLocating] = useState(false);
   const [currentLayer, setCurrentLayer] = useState('roadmap');
   const [isTacticalMode, setIsTacticalMode] = useState(false);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; 
@@ -164,7 +172,13 @@ export default function LocationPage() {
     return `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&t=${mapType}&z=15&output=embed`;
   };
 
-  if (isUserLoading) return null;
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-16 flex flex-col lg:flex-row font-body overflow-hidden">

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -11,7 +10,7 @@ import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { HabitsTracker } from '@/components/dashboard/HabitsTracker';
 import { TodoSection } from '@/components/dashboard/TodoSection';
-import { Shield, Thermometer, Activity, LayoutDashboard, Bell } from 'lucide-react';
+import { Shield, Thermometer, Activity, LayoutDashboard, Bell, Loader2 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,7 +22,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/');
+      router.push('/login');
     }
   }, [user, isUserLoading, router]);
 
@@ -66,7 +65,7 @@ export default function DashboardPage() {
   if (isUserLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }

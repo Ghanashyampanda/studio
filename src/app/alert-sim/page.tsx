@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -21,6 +20,12 @@ export default function AlertSimPage() {
   const [isSignaling, setIsSignaling] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'emergency_contacts');
@@ -28,13 +33,13 @@ export default function AlertSimPage() {
   const { data: contacts } = useCollection(contactsQuery);
 
   useEffect(() => {
-    if (countdown > 0 && !isSignaling && !isComplete) {
+    if (countdown > 0 && !isSignaling && !isComplete && user) {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0 && !isSignaling && !isComplete) {
+    } else if (countdown === 0 && !isSignaling && !isComplete && user) {
       startRescueProtocol();
     }
-  }, [countdown, isSignaling, isComplete]);
+  }, [countdown, isSignaling, isComplete, user]);
 
   const startRescueProtocol = async () => {
     setIsSignaling(true);
@@ -42,14 +47,12 @@ export default function AlertSimPage() {
     
     const message = `RESCUE ALERT: HeatGuard AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
 
-    // Signally all FCM nodes
     for (const contact of contacts) {
       if (contact.type === 'fcm' || contact.fcmToken) {
         sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
       }
     }
 
-    // Log the incident to forensic audit
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(alertRef, {
       userId: user.uid,
@@ -80,7 +83,13 @@ export default function AlertSimPage() {
     window.open(url, '_blank');
   };
 
-  if (isUserLoading) return null;
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6 relative overflow-hidden font-body text-slate-900">
