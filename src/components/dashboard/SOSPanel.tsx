@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Phone, Mail, ShieldAlert, UserPlus, Loader2, Smartphone, CheckCircle2, BellRing, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
 import { sendEmergencySms } from '@/app/actions/sms';
 
@@ -30,6 +30,23 @@ export function SOSPanel() {
   const [newType, setNewType] = useState<'phone' | 'fcm' | 'email'>('phone');
   const [countryCode, setCountryCode] = useState('IN');
   const [isDispatching, setIsDispatching] = useState(false);
+  const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Continuous background location sync for rescue readiness
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.warn("SOS Hub: GPS Lock Failed", error),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -85,7 +102,10 @@ export function SOSPanel() {
 
     setIsDispatching(true);
     
-    const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    // Acquire accurate position for the rescue link
+    const lat = currentCoords?.lat ?? 40.7128;
+    const lng = currentCoords?.lng ?? -74.0060;
+    const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=${lat},${lng}`;
 
     // SEQUENTIAL BROADCAST: Dispatch to EVERY person in the Established Nodes list
     for (const contact of contacts) {
@@ -108,8 +128,8 @@ export function SOSPanel() {
       alertType: 'Rescue Protocol Triggered',
       status: 'sent',
       bodyTemperatureAtAlertC: 40.2,
-      locationAtAlertLatitude: 40.7128,
-      locationAtAlertLongitude: -74.0060,
+      locationAtAlertLatitude: lat,
+      locationAtAlertLongitude: lng,
       emergencyContactIds: contacts.map(c => c.id),
       protocol: `Broadcast to ${contacts.length} Nodes (FCM + SMS)`,
       alertMessage: message

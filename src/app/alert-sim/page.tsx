@@ -21,8 +21,25 @@ export default function AlertSimPage() {
   const [isSignaling, setIsSignaling] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [currentNodeName, setCurrentNodeName] = useState<string | null>(null);
+  const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
   
   const hasTriggered = useRef(false);
+
+  // Acquire high-accuracy GPS lock on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.warn("Rescue Protocol: GPS Lock Failed", error),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -55,7 +72,9 @@ export default function AlertSimPage() {
       return;
     }
     
-    const message = `RESCUE ALERT: SunCare Alert AI detected critical thermal emergency. Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const lat = currentCoords?.lat ?? 40.7128;
+    const lng = currentCoords?.lng ?? -74.0060;
+    const message = `RESCUE ALERT: SunCare Alert AI detected critical thermal emergency. Location: https://www.google.com/maps?q=${lat},${lng}`;
 
     // SEQUENTIAL BROADCAST: Loop through all contacts and signal every established node
     for (const contact of contacts) {
@@ -82,8 +101,8 @@ export default function AlertSimPage() {
       messageContent: message,
       bodyTemperatureAtAlertC: 40.2,
       status: 'sent',
-      locationAtAlertLatitude: 40.7128,
-      locationAtAlertLongitude: -74.0060,
+      locationAtAlertLatitude: lat,
+      locationAtAlertLongitude: lng,
       emergencyContactIds: contacts.map(c => c.id),
       protocol: `Multi-Node Broadcast to all ${contacts.length} Responders`
     });
@@ -97,7 +116,9 @@ export default function AlertSimPage() {
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (!primaryPhone) return;
 
-    const message = `SUNCARE ALERT SOS: Critical thermal emergency. Rescue required. Live Location: https://www.google.com/maps?q=40.7128,-74.0060`;
+    const lat = currentCoords?.lat ?? 40.7128;
+    const lng = currentCoords?.lng ?? -74.0060;
+    const message = `SUNCARE ALERT SOS: Critical thermal emergency. Rescue required. Live Location: https://www.google.com/maps?q=${lat},${lng}`;
     const url = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -169,8 +190,8 @@ export default function AlertSimPage() {
                   <div className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono font-bold text-slate-600">
-                  <div>Lat: 40.7128°</div>
-                  <div>Lng: -74.0060°</div>
+                  <div>Lat: {currentCoords?.lat.toFixed(4) ?? '40.7128'}°</div>
+                  <div>Lng: {currentCoords?.lng.toFixed(4) ?? '-74.0060'}°</div>
                 </div>
               </div>
 
