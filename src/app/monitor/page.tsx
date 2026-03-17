@@ -109,12 +109,19 @@ export default function MonitorPage() {
         // Background persistence node
         if (db && user) {
           const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
+          
+          // Calculate Heat Index for AI Schema Compatibility
+          const heatIndex = newPoint.outsideTemp + (prev.humidity > 40 ? (prev.humidity - 40) * 0.15 : 0);
+          
           addDocumentNonBlocking(vitalsRef, {
             userId: user.uid,
             timestamp: new Date().toISOString(),
             bodyTemperatureC: nextTemp,
             heartRateBPM: nextHR,
             outsideTemperatureC: newPoint.outsideTemp,
+            humidityPercentage: prev.humidity,
+            heatIndexC: heatIndex,
+            activityLevel: 'moderate',
             deviceType: 'Demo Monitor v2'
           });
         }

@@ -36,13 +36,19 @@ export default function DashboardPage() {
   }, [db, user]);
   const { data: vitalsData, isLoading: isVitalsLoading } = useCollection(vitalsQuery);
   
-  const latestVitals = vitalsData?.[0] || {
+  // MERGE LOGIC: Ensure mandatory fields for AI Analysis exist via Clinical Defaults
+  const defaultVitals = {
     bodyTemperatureC: 37.0,
     heartRateBPM: 72,
     humidityPercentage: 45,
     outsideTemperatureC: 32,
     heatIndexC: 32,
     activityLevel: 'light'
+  };
+
+  const latestVitals = {
+    ...defaultVitals,
+    ...(vitalsData?.[0] || {})
   };
 
   const prefsRef = useMemoFirebase(() => {
