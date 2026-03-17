@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { predictSunstrokeRisk, type SunstrokeRiskOutput } from '@/ai/flows/risk-prediction-flow';
@@ -13,7 +13,6 @@ import {
   Thermometer, 
   Waves, 
   Activity, 
-  ArrowRight, 
   ShieldAlert, 
   Loader2, 
   RefreshCcw,
@@ -21,16 +20,20 @@ import {
   Wind,
   PlusCircle,
   Stethoscope,
-  Sun
+  Sun,
+  Flame,
+  Info,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-type ActivityLabel = 'Resting' | 'Walking' | 'Heavy work';
-const ACTIVITY_MAPPING: Record<ActivityLabel, 'sedentary' | 'moderate' | 'high'> = {
+type ActivityLabel = 'Resting' | 'Light' | 'Moderate' | 'Heavy';
+const ACTIVITY_MAPPING: Record<ActivityLabel, 'sedentary' | 'light' | 'moderate' | 'high'> = {
   'Resting': 'sedentary',
-  'Walking': 'moderate',
-  'Heavy work': 'high'
+  'Light': 'light',
+  'Moderate': 'moderate',
+  'Heavy': 'high'
 };
 
 export default function SimulatorPage() {
@@ -41,7 +44,7 @@ export default function SimulatorPage() {
   const [outsideTemp, setOutsideTemp] = useState(32.0);
   const [humidity, setHumidity] = useState(45);
   const [heartRate, setHeartRate] = useState(72);
-  const [activity, setActivity] = useState<ActivityLabel>('Walking');
+  const [activity, setActivity] = useState<ActivityLabel>('Moderate');
   
   const [isLoading, setIsLoading] = useState(false);
   const [assessment, setAssessment] = useState<SunstrokeRiskOutput | null>(null);
@@ -53,33 +56,47 @@ export default function SimulatorPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleSimulate = async () => {
+  const handleSimulate = useCallback(async () => {
+    if (!user) return;
     setIsLoading(true);
     try {
-      const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.1 : 0);
+      // Tactical Heat Index Approximation
+      const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.15 : 0);
+      
       const result = await predictSunstrokeRisk({
         bodyTemperature: bodyTemp,
         heartRate: heartRate,
         activityLevel: ACTIVITY_MAPPING[activity],
         humidity: humidity,
-        heatIndex: heatIndex
+        heatIndex: parseFloat(heatIndex.toFixed(1))
       });
+      
       setAssessment(result);
       
-      // Calculate a visual risk score for the UI
+      // Calibrate visual score
       const scoreMap = { low: 15, moderate: 45, high: 75, critical: 95 };
       setRiskScore(scoreMap[result.riskLevel]);
     } catch (error) {
-      console.error("Simulation failed:", error);
+      console.error("Neural Simulation Failed:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, bodyTemp, outsideTemp, humidity, heartRate, activity]);
 
-  // Initial simulation
+  // Initial trigger
   useEffect(() => {
-    if (user) handleSimulate();
-  }, [user]);
+    if (user && !isUserLoading) {
+      handleSimulate();
+    }
+  }, [user, isUserLoading]);
+
+  const resetToBaseline = () => {
+    setBodyTemp(37.0);
+    setOutsideTemp(32.0);
+    setHumidity(45);
+    setHeartRate(72);
+    setActivity('Moderate');
+  };
 
   if (isUserLoading || !user) {
     return (
@@ -89,14 +106,14 @@ export default function SimulatorPage() {
     );
   }
 
-  const riskColor = assessment ? {
-    low: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100',
-    moderate: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-100',
-    high: 'text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-100',
-    critical: 'text-red-600 bg-red-50 dark:bg-red-950/20 border-red-100'
+  const riskStyles = assessment ? {
+    low: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-800',
+    moderate: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-100 dark:border-yellow-800',
+    high: 'text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-800',
+    critical: 'text-red-600 bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-800'
   }[assessment.riskLevel] : 'text-slate-400 bg-slate-50 border-slate-100';
 
-  const riskHighlight = assessment ? {
+  const riskBarColor = assessment ? {
     low: 'bg-emerald-500',
     moderate: 'bg-yellow-500',
     high: 'bg-orange-500',
@@ -104,43 +121,54 @@ export default function SimulatorPage() {
   }[assessment.riskLevel] : 'bg-slate-300';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background pt-24 pb-20 font-body">
-      <main className="max-w-6xl mx-auto px-6 space-y-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-background pt-24 pb-20 font-body transition-colors duration-500">
+      <main className="max-w-7xl mx-auto px-6 space-y-10">
         
-        {/* Header */}
-        <div className="space-y-2 text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2 text-primary">
-            <Zap className="h-5 w-5 fill-primary/20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Diagnostic Playground</span>
+        {/* Tactical Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-primary">
+              <Zap className="h-5 w-5 fill-primary/20" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Medical-Grade Simulation</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-slate-900 dark:text-foreground">
+              Sunstroke <span className="text-primary">Simulator</span>
+            </h1>
+            <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest max-w-xl">
+              Adjust biological and environmental telemetry nodes to observe neural risk assessment.
+            </p>
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase text-slate-900 dark:text-foreground">
-            AI Sunstroke <span className="text-primary">Simulator</span>
-          </h1>
-          <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
-            Neural predictive model for hyperthermia risk analysis.
-          </p>
+          <Button 
+            variant="ghost" 
+            onClick={resetToBaseline}
+            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-10 px-4 rounded-xl border border-transparent hover:border-primary/20"
+          >
+            Reset to Baseline
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Controls Column */}
+          {/* Simulation Controls Column */}
           <div className="lg:col-span-5 space-y-6">
             <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-card overflow-hidden">
               <CardHeader className="bg-slate-50/50 dark:bg-muted/30 border-b p-8">
                 <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
-                  <Activity className="h-5 w-5 text-primary" /> Parameters
+                  <Activity className="h-5 w-5 text-primary" /> Telemetry Nodes
                 </CardTitle>
-                <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Adjust biological and environment nodes</CardDescription>
+                <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Adjust physiological state</CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-10">
                 
                 {/* Body Temp */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Thermometer className="h-4 w-4" /> Body Temp (°C)
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
+                      <Thermometer className="h-4 w-4" /> Core Body Temp
                     </label>
-                    <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-primary">{bodyTemp.toFixed(1)}°</span>
+                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg", bodyTemp > 39 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
+                      {bodyTemp.toFixed(1)}°C
+                    </span>
                   </div>
                   <Slider min={36} max={42} step={0.1} value={[bodyTemp]} onValueChange={([v]) => setBodyTemp(v)} />
                 </div>
@@ -148,10 +176,12 @@ export default function SimulatorPage() {
                 {/* Outside Temp */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Sun className="h-4 w-4" /> Outside Temp (°C)
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
+                      <Sun className="h-4 w-4" /> Ambient Heat
                     </label>
-                    <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-slate-700 dark:text-foreground">{outsideTemp.toFixed(1)}°</span>
+                    <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-slate-700 dark:text-foreground">
+                      {outsideTemp.toFixed(1)}°C
+                    </span>
                   </div>
                   <Slider min={15} max={50} step={0.5} value={[outsideTemp]} onValueChange={([v]) => setOutsideTemp(v)} />
                 </div>
@@ -159,41 +189,33 @@ export default function SimulatorPage() {
                 {/* Humidity */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Waves className="h-4 w-4" /> Humidity (%)
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
+                      <Waves className="h-4 w-4" /> Humidity Index
                     </label>
-                    <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-slate-700 dark:text-foreground">{humidity}%</span>
+                    <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-slate-700 dark:text-foreground">
+                      {humidity}%
+                    </span>
                   </div>
                   <Slider min={0} max={100} step={1} value={[humidity]} onValueChange={([v]) => setHumidity(v)} />
                 </div>
 
-                {/* Heart Rate */}
+                {/* Activity Level Grid */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Activity className="h-4 w-4" /> Heart Rate (BPM)
-                    </label>
-                    <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-slate-700 dark:text-foreground">{heartRate}</span>
-                  </div>
-                  <Slider min={40} max={200} step={1} value={[heartRate]} onValueChange={([v]) => setHeartRate(v)} />
-                </div>
-
-                {/* Activity Level */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Current Activity</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['Resting', 'Walking', 'Heavy work'] as ActivityLabel[]).map((act) => (
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground block mb-2">Physiological Activity</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(Object.keys(ACTIVITY_MAPPING) as ActivityLabel[]).map((act) => (
                       <button
                         key={act}
                         onClick={() => setActivity(act)}
                         className={cn(
-                          "py-3 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all border-2",
+                          "py-3.5 px-4 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all border-2 flex items-center justify-between",
                           activity === act 
                             ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
-                            : "bg-slate-50 dark:bg-muted border-transparent text-slate-500 hover:border-slate-200"
+                            : "bg-slate-50 dark:bg-muted/50 border-transparent text-slate-500 dark:text-muted-foreground hover:border-slate-200"
                         )}
                       >
                         {act}
+                        {activity === act && <ChevronRight className="h-3 w-3" />}
                       </button>
                     ))}
                   </div>
@@ -202,39 +224,43 @@ export default function SimulatorPage() {
                 <Button 
                   onClick={handleSimulate} 
                   disabled={isLoading}
-                  className="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20"
+                  className="w-full h-16 bg-primary hover:bg-primary/90 text-white rounded-[2rem] text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
                 >
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <RefreshCcw className="h-5 w-5 mr-2" />}
-                  Trigger AI Analysis
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin mr-3" />
+                  ) : (
+                    <RefreshCcw className="h-5 w-5 mr-3" />
+                  )}
+                  {isLoading ? 'Processing Telemetry...' : 'Trigger AI Analysis'}
                 </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Results Column */}
+          {/* Neural Analysis Column */}
           <div className="lg:col-span-7 space-y-6">
             <AnimatePresence mode="wait">
               {assessment ? (
                 <motion.div
                   key="results"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
                   <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-card overflow-hidden">
                     <div className="p-10 space-y-10">
                       
-                      {/* Risk Gauge Header */}
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="relative h-40 w-40 flex items-center justify-center shrink-0">
+                      {/* Dashboard HUD */}
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+                        <div className="relative h-48 w-48 flex items-center justify-center shrink-0">
                           <svg className="h-full w-full rotate-[-90deg]">
-                            <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="12" className="text-slate-100 dark:text-muted" />
+                            <circle cx="96" cy="96" r="80" fill="none" stroke="currentColor" strokeWidth="16" className="text-slate-100 dark:text-muted" />
                             <motion.circle 
-                              cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="12" 
-                              strokeDasharray="440"
-                              initial={{ strokeDashoffset: 440 }}
-                              animate={{ strokeDashoffset: 440 - (440 * riskScore / 100) }}
+                              cx="96" cy="96" r="80" fill="none" stroke="currentColor" strokeWidth="16" 
+                              strokeDasharray="502.6"
+                              initial={{ strokeDashoffset: 502.6 }}
+                              animate={{ strokeDashoffset: 502.6 - (502.6 * riskScore / 100) }}
                               transition={{ duration: 1.5, ease: "easeOut" }}
                               className={cn("transition-colors duration-500", 
                                 assessment.riskLevel === 'low' ? 'text-emerald-500' :
@@ -244,73 +270,99 @@ export default function SimulatorPage() {
                             />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-4xl font-black tracking-tighter text-slate-900 dark:text-foreground">{riskScore}%</span>
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Risk Index</span>
+                            <span className="text-5xl font-black tracking-tighter text-slate-900 dark:text-foreground">{riskScore}%</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Risk Coefficient</span>
                           </div>
                         </div>
 
-                        <div className="flex-1 space-y-4 text-center md:text-left">
-                          <Badge className={cn("px-6 py-2 rounded-full text-xs font-black uppercase tracking-[0.2em] border-2", riskColor)}>
-                            <ShieldAlert className="h-4 w-4 mr-2" />
-                            {assessment.riskLevel} STATE
-                          </Badge>
-                          <h2 className="text-3xl font-black tracking-tighter uppercase text-slate-900 dark:text-foreground leading-tight">
-                            Sunstroke Risk Detected: <span className={cn(
-                              assessment.riskLevel === 'low' ? 'text-emerald-500' :
-                              assessment.riskLevel === 'moderate' ? 'text-yellow-500' :
-                              assessment.riskLevel === 'high' ? 'text-orange-500' : 'text-red-500'
-                            )}>{assessment.riskLevel}</span>
-                          </h2>
+                        <div className="flex-1 space-y-6 text-center md:text-left">
+                          <div className="space-y-2">
+                            <Badge className={cn("px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border-2", riskStyles)}>
+                              <ShieldAlert className="h-4 w-4 mr-2" />
+                              {assessment.riskLevel} STATE DETECTED
+                            </Badge>
+                            <h2 className="text-4xl font-black tracking-tighter uppercase text-slate-900 dark:text-foreground leading-tight">
+                              System Status: <span className={cn(
+                                assessment.riskLevel === 'low' ? 'text-emerald-500' :
+                                assessment.riskLevel === 'moderate' ? 'text-yellow-500' :
+                                assessment.riskLevel === 'high' ? 'text-orange-500' : 'text-red-500'
+                              )}>{assessment.riskLevel}</span>
+                            </h2>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+                               <Flame className="h-3.5 w-3.5 text-orange-500" /> Thermal Index Lock
+                             </div>
+                             <div className="h-1 w-1 rounded-full bg-slate-300" />
+                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+                               <Activity className="h-3.5 w-3.5 text-primary" /> Vitals Sync Active
+                             </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Explanation */}
-                      <div className="bg-slate-50 dark:bg-muted/30 p-8 rounded-[2rem] border border-slate-100 dark:border-border">
-                        <p className="text-base text-slate-600 dark:text-muted-foreground font-medium leading-relaxed italic">
+                      {/* AI Rationale */}
+                      <div className="bg-slate-50 dark:bg-muted/30 p-8 rounded-[2.5rem] border border-slate-100 dark:border-border relative">
+                        <div className="absolute -top-3 left-8 bg-white dark:bg-card px-4 text-[9px] font-black uppercase tracking-widest text-primary border rounded-full h-6 flex items-center">Neural Engine Output</div>
+                        <p className="text-lg text-slate-600 dark:text-muted-foreground font-medium leading-relaxed italic pt-2">
                           "{assessment.explanation}"
                         </p>
                       </div>
 
-                      {/* Recommendations */}
+                      {/* Protocol Recommendations */}
                       <div className="space-y-6">
                         <div className="flex items-center gap-3">
                           <PlusCircle className="h-5 w-5 text-primary" />
-                          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Recommended Protocols</h3>
+                          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Response Protocols</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {assessment.preventativeAdvice.map((advice, i) => (
-                            <div key={i} className="flex items-center gap-4 p-5 rounded-2xl bg-white dark:bg-background border-2 border-slate-100 dark:border-border hover:border-primary/20 transition-all group">
-                              <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", riskHighlight + " text-white shadow-lg")}>
-                                {i === 0 ? <Droplets className="h-5 w-5" /> : i === 1 ? <Wind className="h-5 w-5" /> : <Stethoscope className="h-5 w-5" />}
+                            <motion.div 
+                              key={i} 
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.1 }}
+                              className="flex items-center gap-4 p-6 rounded-2xl bg-white dark:bg-background border-2 border-slate-100 dark:border-border hover:border-primary/20 transition-all group"
+                            >
+                              <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center shrink-0 text-white shadow-lg", riskBarColor)}>
+                                {i === 0 ? <Droplets className="h-6 w-6" /> : i === 1 ? <Wind className="h-6 w-6" /> : <Stethoscope className="h-6 w-6" />}
                               </div>
-                              <span className="text-xs font-bold text-slate-700 dark:text-foreground leading-tight uppercase tracking-tight">{advice}</span>
-                            </div>
+                              <span className="text-sm font-black text-slate-700 dark:text-foreground leading-tight uppercase tracking-tight">{advice}</span>
+                            </motion.div>
                           ))}
                         </div>
                       </div>
                     </div>
                   </Card>
 
-                  {/* Safety Notice */}
-                  <div className="p-8 rounded-[2rem] bg-orange-50 dark:bg-orange-950/10 border-2 border-orange-100 dark:border-orange-900/30 flex items-start gap-6">
-                    <div className="h-12 w-12 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
-                      <ShieldAlert className="h-6 w-6" />
+                  {/* Accuracy Warning */}
+                  <div className="p-8 rounded-[3rem] bg-orange-50 dark:bg-orange-950/10 border-2 border-orange-100 dark:border-orange-900/30 flex flex-col md:flex-row items-center gap-8 shadow-sm">
+                    <div className="h-16 w-16 rounded-full bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-xl shadow-orange-500/20">
+                      <Info className="h-8 w-8" />
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-black uppercase tracking-tight text-orange-700 dark:text-orange-400">Simulator Accuracy Disclaimer</h4>
+                    <div className="space-y-2 text-center md:text-left">
+                      <h4 className="text-sm font-black uppercase tracking-tight text-orange-700 dark:text-orange-400">Simulation Threshold Disclaimer</h4>
                       <p className="text-[10px] text-orange-600/80 dark:text-orange-500/80 font-bold uppercase tracking-widest leading-relaxed">
-                        This simulation utilizes neural network approximations. Real-world risk depends on hydration levels, individual BMI, and direct solar exposure. Always seek professional care if symptoms persist.
+                        This environment utilizes neural approximations for educational and diagnostic purposes. Physiological risk is variable and influenced by hydration, metabolism, and radiant heat exposure. Always prioritize professional medical verification.
                       </p>
                     </div>
                   </div>
                 </motion.div>
               ) : (
-                <div className="h-full flex items-center justify-center py-20">
-                  <div className="text-center space-y-6">
-                    <div className="h-20 w-20 rounded-full bg-slate-100 dark:bg-muted flex items-center justify-center mx-auto text-slate-300">
-                      <Zap className="h-10 w-10 animate-pulse" />
+                <div className="h-full flex flex-col items-center justify-center py-32 space-y-8 bg-white dark:bg-card rounded-[3rem] border border-dashed border-slate-200 dark:border-muted-foreground/20">
+                  <div className="relative">
+                    <motion.div 
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
+                    />
+                    <div className="h-24 w-24 rounded-full bg-slate-50 dark:bg-muted flex items-center justify-center relative z-10 border border-slate-100 dark:border-border text-slate-300">
+                      <RefreshCcw className="h-10 w-10 animate-pulse" />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Awaiting Simulation Parameters</p>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Neural Engine Standby</p>
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Adjust parameters and trigger analysis to begin</p>
                   </div>
                 </div>
               )}
