@@ -23,7 +23,10 @@ import {
   Sun,
   Flame,
   Info,
-  ChevronRight
+  ChevronRight,
+  Heart,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -47,6 +50,7 @@ export default function SimulatorPage() {
   const [activity, setActivity] = useState<ActivityLabel>('Moderate');
   
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [assessment, setAssessment] = useState<SunstrokeRiskOutput | null>(null);
   const [riskScore, setRiskScore] = useState(0);
 
@@ -59,6 +63,7 @@ export default function SimulatorPage() {
   const handleSimulate = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
+    setError(null);
     try {
       // Tactical Heat Index Approximation
       const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.15 : 0);
@@ -71,13 +76,18 @@ export default function SimulatorPage() {
         heatIndex: parseFloat(heatIndex.toFixed(1))
       });
       
+      if (!result) {
+        throw new Error("The AI Engine returned an empty telemetry response. Please try again.");
+      }
+
       setAssessment(result);
       
       // Calibrate visual score
       const scoreMap = { low: 15, moderate: 45, high: 75, critical: 95 };
       setRiskScore(scoreMap[result.riskLevel]);
-    } catch (error) {
-      console.error("Neural Simulation Failed:", error);
+    } catch (err: any) {
+      console.error("Neural Simulation Failed:", err);
+      setError(err.message || "An unexpected error occurred during thermal analysis. Verify system connection.");
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +106,9 @@ export default function SimulatorPage() {
     setHumidity(45);
     setHeartRate(72);
     setActivity('Moderate');
+    setAssessment(null);
+    setError(null);
+    setRiskScore(0);
   };
 
   if (isUserLoading || !user) {
@@ -143,7 +156,7 @@ export default function SimulatorPage() {
             onClick={resetToBaseline}
             className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-10 px-4 rounded-xl border border-transparent hover:border-primary/20"
           >
-            Reset to Baseline
+            <RotateCcw className="h-3 w-3 mr-2" /> Reset Baseline
           </Button>
         </div>
 
@@ -171,6 +184,19 @@ export default function SimulatorPage() {
                     </span>
                   </div>
                   <Slider min={36} max={42} step={0.1} value={[bodyTemp]} onValueChange={([v]) => setBodyTemp(v)} />
+                </div>
+
+                {/* Heart Rate */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
+                      <Heart className="h-4 w-4" /> Active Heart Rate
+                    </label>
+                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg", heartRate > 140 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
+                      {heartRate} BPM
+                    </span>
+                  </div>
+                  <Slider min={50} max={180} step={1} value={[heartRate]} onValueChange={([v]) => setHeartRate(v)} />
                 </div>
 
                 {/* Outside Temp */}
@@ -240,7 +266,36 @@ export default function SimulatorPage() {
           {/* Neural Analysis Column */}
           <div className="lg:col-span-7 space-y-6">
             <AnimatePresence mode="wait">
-              {assessment ? (
+              {error ? (
+                <motion.div
+                  key="error"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <Card className="rounded-[3rem] border-2 border-destructive/20 bg-destructive/5 overflow-hidden">
+                    <div className="p-12 text-center space-y-6">
+                      <div className="h-20 w-20 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mx-auto shadow-lg">
+                        <AlertTriangle className="h-10 w-10" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black uppercase tracking-tight text-destructive">Analysis Protocol Failed</h3>
+                        <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-sm mx-auto">
+                          {error}
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={handleSimulate}
+                        variant="outline"
+                        className="rounded-xl border-destructive/20 text-destructive font-black uppercase tracking-widest text-[10px]"
+                      >
+                        Retry Analysis Node
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              ) : assessment ? (
                 <motion.div
                   key="results"
                   initial={{ opacity: 0, y: 20 }}
@@ -320,7 +375,7 @@ export default function SimulatorPage() {
                             <motion.div 
                               key={i} 
                               initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
+                              animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.1 }}
                               className="flex items-center gap-4 p-6 rounded-2xl bg-white dark:bg-background border-2 border-slate-100 dark:border-border hover:border-primary/20 transition-all group"
                             >
@@ -349,7 +404,13 @@ export default function SimulatorPage() {
                   </div>
                 </motion.div>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center py-32 space-y-8 bg-white dark:bg-card rounded-[3rem] border border-dashed border-slate-200 dark:border-muted-foreground/20">
+                <motion.div 
+                  key="standby"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="h-full flex flex-col items-center justify-center py-32 space-y-8 bg-white dark:bg-card rounded-[3rem] border border-dashed border-slate-200 dark:border-muted-foreground/20"
+                >
                   <div className="relative">
                     <motion.div 
                       animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
@@ -357,14 +418,22 @@ export default function SimulatorPage() {
                       className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
                     />
                     <div className="h-24 w-24 rounded-full bg-slate-50 dark:bg-muted flex items-center justify-center relative z-10 border border-slate-100 dark:border-border text-slate-300">
-                      <RefreshCcw className="h-10 w-10 animate-pulse" />
+                      {isLoading ? (
+                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      ) : (
+                        <RefreshCcw className="h-10 w-10 animate-pulse" />
+                      )}
                     </div>
                   </div>
                   <div className="text-center space-y-2">
-                    <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Neural Engine Standby</p>
-                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Adjust parameters and trigger analysis to begin</p>
+                    <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">
+                      {isLoading ? 'Processing Telemetry...' : 'Neural Engine Standby'}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                      {isLoading ? 'Analyzing environmental synergies...' : 'Adjust parameters and trigger analysis to begin'}
+                    </p>
                   </div>
-                </div>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>

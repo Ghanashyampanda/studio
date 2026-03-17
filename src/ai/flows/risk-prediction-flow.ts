@@ -62,7 +62,7 @@ Based on this information, provide a comprehensive sunstroke risk assessment. Fo
 
 Consider the typical thresholds and conditions for sunstroke risk, and apply them to the provided data.
 
-Output your response in the specified JSON format.`,
+Output your response strictly in the specified JSON format. Ensure the explanation is thorough and the preventativeAdvice array contains at least 3 actionable items.`,
 });
 
 const sunstrokeRiskPredictionFlow = ai.defineFlow(
@@ -74,8 +74,12 @@ const sunstrokeRiskPredictionFlow = ai.defineFlow(
   async input => {
     try {
       const {output} = await sunstrokeRiskPredictionPrompt(input);
-      return output!;
+      if (!output) {
+        throw new Error('Neural model failed to generate a valid risk assessment.');
+      }
+      return output;
     } catch (e: any) {
+      console.error("Genkit Flow Error:", e);
       if (e.message?.includes('429') || e.message?.includes('RESOURCE_EXHAUSTED')) {
         return {
           riskLevel: 'low',
