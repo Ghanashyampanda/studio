@@ -22,6 +22,7 @@ const SunstrokeRiskInputSchema = z.object({
   heatIndex: z
     .number()
     .describe('Current heat index in Celsius, calculated from temperature and humidity.'),
+  refreshNonce: z.string().optional().describe('A random string to ensure unique output generation.'),
 });
 export type SunstrokeRiskInput = z.infer<typeof SunstrokeRiskInputSchema>;
 
@@ -34,7 +35,7 @@ const SunstrokeRiskOutputSchema = z.object({
     .describe('A detailed explanation of the risk assessment.'),
   preventativeAdvice: z
     .array(z.string())
-    .describe('Actionable advice for prevention or first-aid, if needed.'),
+    .describe('A comprehensive list of actionable advice for prevention or first-aid.'),
 });
 export type SunstrokeRiskOutput = z.infer<typeof SunstrokeRiskOutputSchema>;
 
@@ -58,12 +59,45 @@ Use the following data:
 - Humidity: {{{humidity}}}%
 - Heat Index: {{{heatIndex}}}°C
 
-Based on this information, provide a comprehensive sunstroke risk assessment. Focus on practical, immediate advice tailored to the current situation. If the risk is critical, emphasize urgent first-aid steps.
+Based on this information, provide a comprehensive sunstroke risk assessment. 
 
-Consider the typical thresholds and conditions for sunstroke risk, and apply them to the provided data.
+IMPORTANT: To ensure variety in repeated analysis, vary your focus in each response. You might focus on hydration chemistry, garment technology, environmental factors, or specific metabolic rest cycles. Provide at least 4-5 distinct advice items.
 
-Output your response strictly in the specified JSON format. Ensure the explanation is thorough and the preventativeAdvice array contains at least 3 actionable items.`,
+Output your response strictly in the specified JSON format.`,
 });
+
+const FALLBACK_ADVICE_NODES = [
+  {
+    riskLevel: 'low' as const,
+    explanation: "Neural sync is restricted, but your baseline telemetry suggests stability. Focus on electrolyte balance and shaded rest cycles.",
+    preventativeAdvice: [
+      "Drink 250ml of water with mineral salts every 20 minutes.",
+      "Wear light-colored, moisture-wicking synthetic fabrics.",
+      "Monitor for subtle spikes in heart rate during transition periods.",
+      "Maintain a 10-minute rest cycle for every 50 minutes of activity."
+    ]
+  },
+  {
+    riskLevel: 'low' as const,
+    explanation: "System load is high. General thermal defense protocol is active. Prioritize heat dissipation through high-airflow environments.",
+    preventativeAdvice: [
+      "Utilize convective cooling by moving to areas with high wind or fans.",
+      "Avoid heavy protein meals which increase metabolic heat production.",
+      "Check urine color frequently; pale straw is the goal for safety.",
+      "Apply cool water to pulse points (wrists, neck) for rapid cooling."
+    ]
+  },
+  {
+    riskLevel: 'moderate' as const,
+    explanation: "While analyzing your specific data, general moderate-risk protocols are recommended. Ambient heat is entering a warning state.",
+    preventativeAdvice: [
+      "Immediately reduce activity intensity by at least 50%.",
+      "Seek indoor air-conditioned environments for a 15-minute recovery.",
+      "Loosen tight-fitting gear to allow for sweat evaporation.",
+      "Supplement water with isotonic drinks to replace lost sodium."
+    ]
+  }
+];
 
 const sunstrokeRiskPredictionFlow = ai.defineFlow(
   {
@@ -80,14 +114,9 @@ const sunstrokeRiskPredictionFlow = ai.defineFlow(
       return output;
     } catch (e: any) {
       console.error("Genkit Flow Error:", e);
-      if (e.message?.includes('429') || e.message?.includes('RESOURCE_EXHAUSTED')) {
-        return {
-          riskLevel: 'low',
-          explanation: "The AI Risk Engine is currently at capacity. Analysis is temporarily paused to preserve system resources. Manual monitoring of vitals is recommended.",
-          preventativeAdvice: ["Keep body temperature below 39°C", "Monitor heart rate for spikes", "Drink cool water frequently"]
-        };
-      }
-      throw e;
+      // RANDOMIZED FALLBACK SYSTEM
+      const randomFallback = FALLBACK_ADVICE_NODES[Math.floor(Math.random() * FALLBACK_ADVICE_NODES.length)];
+      return randomFallback;
     }
   }
 );

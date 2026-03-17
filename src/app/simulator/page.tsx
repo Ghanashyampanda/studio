@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,7 +28,8 @@ import {
   AlertTriangle,
   RotateCcw,
   BrainCircuit,
-  Cpu
+  Cpu,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -73,7 +73,7 @@ export default function SimulatorPage() {
     setRiskScore(0);
 
     try {
-      // Improved Heat Index Calculation (Simplified Rothfusz regression approximation)
+      // Improved Heat Index Calculation
       const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.12 : 0);
       
       const result = await predictSunstrokeRisk({
@@ -81,11 +81,12 @@ export default function SimulatorPage() {
         heartRate: heartRate,
         activityLevel: ACTIVITY_MAPPING[activity],
         humidity: humidity,
-        heatIndex: parseFloat(heatIndex.toFixed(1))
+        heatIndex: parseFloat(heatIndex.toFixed(1)),
+        refreshNonce: Math.random().toString(36).substring(7) // Ensure fresh output
       });
       
       if (!result) {
-        throw new Error("The Neural Engine returned an empty telemetry response. Verify cloud sync.");
+        throw new Error("The Neural Engine returned an empty telemetry response.");
       }
 
       setAssessment(result);
@@ -95,7 +96,7 @@ export default function SimulatorPage() {
       setRiskScore(scoreMap[result.riskLevel]);
     } catch (err: any) {
       console.error("Simulation Node Error:", err);
-      setError(err.message || "Thermal analysis synchronization failed. Please try again.");
+      setError(err.message || "Thermal analysis synchronization failed.");
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +151,7 @@ export default function SimulatorPage() {
               Sunstroke <span className="text-primary">Simulator</span>
             </h1>
             <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest max-w-xl">
-              Simulate physiological and environmental telemetry to observe real-time neural risk analysis.
+              Adjust telemetry parameters and trigger real-time neural risk analysis.
             </p>
           </div>
           <Button 
@@ -393,9 +394,14 @@ export default function SimulatorPage() {
 
                       {/* Response Protocols */}
                       <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                          <BrainCircuit className="h-5 w-5 text-primary" />
-                          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Response Protocols</h3>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <BrainCircuit className="h-5 w-5 text-primary" />
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Response Protocols</h3>
+                          </div>
+                          <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/20 text-primary">
+                            <Sparkles className="h-3 w-3 mr-1" /> Multi-Node Tips
+                          </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {assessment.preventativeAdvice.map((advice, i) => (
@@ -407,7 +413,7 @@ export default function SimulatorPage() {
                               className="flex items-center gap-4 p-6 rounded-2xl bg-white dark:bg-background border-2 border-slate-100 dark:border-border hover:border-primary/20 transition-all group shadow-sm"
                             >
                               <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center shrink-0 text-white shadow-lg", riskBarColor)}>
-                                {i === 0 ? <Droplets className="h-6 w-6" /> : i === 1 ? <Wind className="h-6 w-6" /> : <Stethoscope className="h-6 w-6" />}
+                                {i % 3 === 0 ? <Droplets className="h-6 w-6" /> : i % 3 === 1 ? <Wind className="h-6 w-6" /> : <Stethoscope className="h-6 w-6" />}
                               </div>
                               <span className="text-sm font-black text-slate-700 dark:text-foreground leading-tight uppercase tracking-tight">{advice}</span>
                             </motion.div>
