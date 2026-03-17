@@ -210,7 +210,17 @@ export default function ContactsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
             {contacts?.map((contact) => (
-              <motion.div key={contact.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={cn("relative p-8 rounded-[2.5rem] border-2 transition-all", contact.isPrimary ? "bg-slate-900 dark:bg-card border-slate-900 dark:border-primary text-white" : "bg-card border-border")}>
+              <motion.div 
+                key={contact.id} 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className={cn(
+                  "relative p-8 rounded-[2.5rem] border-2 transition-all", 
+                  contact.isPrimary 
+                    ? "bg-slate-900 dark:bg-card border-slate-900 dark:border-primary text-white" 
+                    : "bg-card border-border"
+                )}
+              >
                 {contact.isPrimary && (
                   <Badge className="absolute -top-3 left-8 bg-primary text-primary-foreground px-4 py-1.5 text-[9px] font-black uppercase tracking-widest">
                     <Star className="h-3 w-3 mr-2 fill-primary-foreground" /> Primary Node
@@ -222,23 +232,27 @@ export default function ContactsPage() {
                     <AvatarFallback className="bg-primary/5 text-primary font-black">{contact.name[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary" onClick={() => handleOpenEdit(contact)}>
+                    <Button variant="ghost" size="icon" className={cn("h-9 w-9 hover:text-primary", contact.isPrimary ? "text-white/60" : "text-muted-foreground")} onClick={() => handleOpenEdit(contact)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(contact.id)}>
+                    <Button variant="ghost" size="icon" className={cn("h-9 w-9 hover:text-destructive", contact.isPrimary ? "text-white/60" : "text-muted-foreground")} onClick={() => handleDelete(contact.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight leading-none mb-1 text-foreground">{contact.name}</h3>
+                    <h3 className={cn("text-xl font-black uppercase tracking-tight leading-none mb-1", contact.isPrimary ? "text-white" : "text-foreground")}>
+                      {contact.name}
+                    </h3>
                     <p className={cn("text-[10px] font-black uppercase tracking-widest", contact.isPrimary ? "text-primary" : "text-muted-foreground")}>{contact.relationship}</p>
                   </div>
-                  <div className="space-y-2 pt-4 border-t border-white/10 dark:border-border">
+                  <div className={cn("space-y-2 pt-4 border-t", contact.isPrimary ? "border-white/10" : "border-border")}>
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 text-primary" />
-                      <span className="text-xs font-mono font-bold text-foreground">{contact.phoneNumber}</span>
+                      <span className={cn("text-xs font-mono font-bold", contact.isPrimary ? "text-white" : "text-foreground")}>
+                        {contact.phoneNumber}
+                      </span>
                     </div>
                   </div>
                   {!contact.isPrimary && (
