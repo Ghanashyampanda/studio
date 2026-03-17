@@ -18,7 +18,8 @@ import {
   Activity,
   Bell,
   LogOut,
-  Settings
+  Settings,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -89,6 +90,7 @@ export function Navbar() {
     { label: 'Home', href: '/', icon: Home },
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Monitor', href: '/monitor', icon: Activity },
+    { label: 'Simulator', href: '/simulator', icon: Zap },
     { label: 'Location', href: '/location', icon: MapPin },
     { label: 'Contacts', href: '/contacts', icon: Users },
     { label: 'History', href: '/alerts', icon: History },
