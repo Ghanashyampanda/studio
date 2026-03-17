@@ -46,11 +46,11 @@ import { Card } from '@/components/ui/card';
 
 const FACILITY_DATABASE = [
   { name: 'City General Medical Center', type: 'Level 1 Trauma Center', size: 'Big', specialty: 'Full Emergency' },
-  { name: 'St. Jude Trauma Hub', type: 'Regional Hospital', size: 'Big', specialty: 'Hyperthermia Unit' },
+  { name: 'St. Jude Thermal Trauma Hub', type: 'Regional Hospital', size: 'Big', specialty: 'Hyperthermia Unit' },
   { name: 'Metropolis Health Station', type: 'General Hospital', size: 'Big', specialty: '24/7 ER' },
   { name: 'Community Care Express', type: 'Urgent Care', size: 'Mini', specialty: 'Limited Services' },
-  { name: 'Metro Health Station', type: 'Community Clinic', size: 'Mini', specialty: 'Stabilization Only' },
-  { name: 'Riverbend Medical Point', type: 'Mini-Hospital', size: 'Mini', specialty: 'First Aid' }
+  { name: 'Metro Stabilization Clinic', type: 'Community Clinic', size: 'Mini', specialty: 'Stabilization Only' },
+  { name: 'Riverbend Rapid Response Point', type: 'Mini-Hospital', size: 'Mini', specialty: 'First Aid' }
 ];
 
 const MAP_LAYERS = [
@@ -91,12 +91,13 @@ export default function LocationPage() {
 
   const hospitals = useMemo(() => {
     return FACILITY_DATABASE.map((facility, index) => {
-      const offsetLat = (Math.sin(index) * 0.02);
-      const offsetLng = (Math.cos(index) * 0.02);
+      // Create geographic distribution around the current user anchor
+      const offsetLat = (Math.sin(index * 1.5) * 0.035);
+      const offsetLng = (Math.cos(index * 1.5) * 0.035);
       const hLat = coords.lat + offsetLat;
       const hLng = coords.lng + offsetLng;
       const dist = calculateDistance(coords.lat, coords.lng, hLat, hLng);
-      const timeMin = Math.round((dist / 35) * 60) + 2;
+      const timeMin = Math.max(2, Math.round((dist / 35) * 60));
 
       return {
         id: `h-${index}`,
@@ -126,15 +127,15 @@ export default function LocationPage() {
           });
           setIsLocating(false);
           toast({ 
-            title: "GPS Sync Successful", 
-            description: "Telemetry locked for rescue proximity.",
+            title: "Tactical GPS Sync Successful", 
+            description: "Surrounding medical nodes localized.",
           });
         },
         () => {
           setIsLocating(false);
-          toast({ title: "GPS Timeout", description: "Using last known coordinates.", variant: "destructive" });
+          toast({ title: "GPS Timeout", description: "Using regional tactical coordinates.", variant: "destructive" });
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 8000 }
       );
     }
   };
@@ -155,12 +156,12 @@ export default function LocationPage() {
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: coords.lat,
       locationAtAlertLongitude: coords.lng,
-      alertMessage: `User tracking destination: ${selectedHospital?.name || 'Searching...'}`,
+      alertMessage: `User tracking destination: ${selectedHospital?.name || 'Local Trauma Center'}`,
       emergencyContactIds: [] 
     });
     setTimeout(() => {
       setIsBroadcasting(false);
-      toast({ title: "Broadcast Active", description: "Rescue nodes are receiving your live route." });
+      toast({ title: "Broadcast Active", description: "Rescue nodes are receiving your live route telemetry." });
     }, 1500);
   };
 
@@ -182,8 +183,8 @@ export default function LocationPage() {
 
   return (
     <div className="min-h-screen bg-background pt-16 flex flex-col lg:flex-row font-body overflow-hidden">
-      <aside className="w-full lg:w-[420px] bg-card z-20 shadow-xl flex flex-col border-r border-border h-[50vh] lg:h-auto overflow-y-auto shrink-0">
-        <div className="p-8 border-b border-border space-y-4">
+      <aside className="w-full lg:w-[450px] bg-card z-20 shadow-xl flex flex-col border-r border-border h-[50vh] lg:h-auto overflow-y-auto shrink-0">
+        <div className="p-8 border-b border-border space-y-4 bg-muted/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-primary">
               <Navigation className="h-4 w-4" />
@@ -195,8 +196,8 @@ export default function LocationPage() {
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight leading-none">Nearby <span className="text-primary">Care</span></h1>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Discovery of High-Capacity Nodes</p>
+            <h1 className="text-3xl font-black uppercase tracking-tight leading-none text-foreground">Nearby <span className="text-primary">Care</span></h1>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Discovery of High-Capacity Trauma Nodes</p>
           </div>
         </div>
 
@@ -208,27 +209,28 @@ export default function LocationPage() {
               className={cn(
                 "w-full text-left p-6 rounded-3xl transition-all border-2 group flex items-center justify-between",
                 selectedHospitalId === hospital.id 
-                ? 'bg-primary/5 border-primary' 
+                ? 'bg-primary/5 border-primary shadow-lg' 
                 : 'bg-card border-border hover:border-primary/20 shadow-sm'
               )}
             >
               <div className="flex items-center gap-4">
-                <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", 
+                <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center transition-colors shrink-0", 
                   selectedHospitalId === hospital.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                  {hospital.size === 'Big' ? <Building2 className="h-5 w-5" /> : <Building className="h-5 w-5" />}
+                  {hospital.size === 'Big' ? <Building2 className="h-6 w-6" /> : <Building className="h-6 w-6" />}
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-black uppercase tracking-tight truncate max-w-[180px] text-foreground">{hospital.name}</p>
+                <div className="space-y-1 overflow-hidden">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs font-black uppercase tracking-tight text-foreground leading-tight">{hospital.name}</p>
                     <Badge className={cn("text-[7px] font-black uppercase px-2 py-0 border-none", 
                       hospital.size === 'Big' ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" : "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400")}>
                       {hospital.size}
                     </Badge>
                   </div>
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{hospital.distance} • {hospital.time} ETA</p>
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">{hospital.distance} • {hospital.time} ETA</p>
+                  <p className="text-[8px] font-black text-primary/60 uppercase tracking-tighter">{hospital.type}</p>
                 </div>
               </div>
-              <ChevronRight className={cn("h-4 w-4 transition-transform", selectedHospitalId === hospital.id ? "text-primary translate-x-1" : "text-muted")} />
+              <ChevronRight className={cn("h-5 w-5 shrink-0 transition-transform", selectedHospitalId === hospital.id ? "text-primary translate-x-1" : "text-muted")} />
             </button>
           ))}
         </div>
@@ -280,7 +282,7 @@ export default function LocationPage() {
                           <Badge className="bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest border-none px-2">Navigation Active</Badge>
                           <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Routing to:</span>
                         </div>
-                        <h3 className="text-xl font-black uppercase tracking-tight text-foreground">{selectedHospital.name}</h3>
+                        <h3 className="text-xl font-black uppercase tracking-tight text-foreground leading-none">{selectedHospital.name}</h3>
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{selectedHospital.specialty}</p>
                       </div>
                     </div>
@@ -311,7 +313,7 @@ export default function LocationPage() {
                       <Info className="h-5 w-5" />
                     </div>
                     <div className="space-y-0.5">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-foreground">System Ready</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Surveillance Grid Ready</p>
                       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Select a facility to begin routing.</p>
                     </div>
                   </Card>
