@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -26,7 +27,9 @@ import {
   ChevronRight,
   Heart,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  BrainCircuit,
+  Cpu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -62,11 +65,16 @@ export default function SimulatorPage() {
 
   const handleSimulate = useCallback(async () => {
     if (!user) return;
+    
+    // Reset states for fresh analysis
     setIsLoading(true);
     setError(null);
+    setAssessment(null);
+    setRiskScore(0);
+
     try {
-      // Tactical Heat Index Approximation
-      const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.15 : 0);
+      // Improved Heat Index Calculation (Simplified Rothfusz regression approximation)
+      const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.12 : 0);
       
       const result = await predictSunstrokeRisk({
         bodyTemperature: bodyTemp,
@@ -77,28 +85,21 @@ export default function SimulatorPage() {
       });
       
       if (!result) {
-        throw new Error("The AI Engine returned an empty telemetry response. Please try again.");
+        throw new Error("The Neural Engine returned an empty telemetry response. Verify cloud sync.");
       }
 
       setAssessment(result);
       
-      // Calibrate visual score
+      // Map risk levels to visual scores
       const scoreMap = { low: 15, moderate: 45, high: 75, critical: 95 };
       setRiskScore(scoreMap[result.riskLevel]);
     } catch (err: any) {
-      console.error("Neural Simulation Failed:", err);
-      setError(err.message || "An unexpected error occurred during thermal analysis. Verify system connection.");
+      console.error("Simulation Node Error:", err);
+      setError(err.message || "Thermal analysis synchronization failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }, [user, bodyTemp, outsideTemp, humidity, heartRate, activity]);
-
-  // Initial trigger
-  useEffect(() => {
-    if (user && !isUserLoading) {
-      handleSimulate();
-    }
-  }, [user, isUserLoading]);
 
   const resetToBaseline = () => {
     setBodyTemp(37.0);
@@ -109,6 +110,7 @@ export default function SimulatorPage() {
     setAssessment(null);
     setError(null);
     setRiskScore(0);
+    setIsLoading(false);
   };
 
   if (isUserLoading || !user) {
@@ -139,22 +141,22 @@ export default function SimulatorPage() {
         
         {/* Tactical Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-primary">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-2 text-primary">
               <Zap className="h-5 w-5 fill-primary/20" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Medical-Grade Simulation</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">High-Accuracy Diagnosis</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase text-slate-900 dark:text-foreground">
               Sunstroke <span className="text-primary">Simulator</span>
             </h1>
             <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest max-w-xl">
-              Adjust biological and environmental telemetry nodes to observe neural risk assessment.
+              Simulate physiological and environmental telemetry to observe real-time neural risk analysis.
             </p>
           </div>
           <Button 
             variant="ghost" 
             onClick={resetToBaseline}
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-10 px-4 rounded-xl border border-transparent hover:border-primary/20"
+            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-10 px-4 rounded-xl border border-transparent hover:border-primary/20 transition-all"
           >
             <RotateCcw className="h-3 w-3 mr-2" /> Reset Baseline
           </Button>
@@ -169,7 +171,7 @@ export default function SimulatorPage() {
                 <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
                   <Activity className="h-5 w-5 text-primary" /> Telemetry Nodes
                 </CardTitle>
-                <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Adjust physiological state</CardDescription>
+                <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Adjust physiological inputs</CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-10">
                 
@@ -177,9 +179,9 @@ export default function SimulatorPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
-                      <Thermometer className="h-4 w-4" /> Core Body Temp
+                      <Thermometer className="h-4 w-4" /> Core Temperature
                     </label>
-                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg", bodyTemp > 39 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
+                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg transition-colors", bodyTemp > 39 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
                       {bodyTemp.toFixed(1)}°C
                     </span>
                   </div>
@@ -190,9 +192,9 @@ export default function SimulatorPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
-                      <Heart className="h-4 w-4" /> Active Heart Rate
+                      <Heart className="h-4 w-4" /> Cardiac Rhythm
                     </label>
-                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg", heartRate > 140 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
+                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg transition-colors", heartRate > 140 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
                       {heartRate} BPM
                     </span>
                   </div>
@@ -209,14 +211,14 @@ export default function SimulatorPage() {
                       {outsideTemp.toFixed(1)}°C
                     </span>
                   </div>
-                  <Slider min={15} max={50} step={0.5} value={[outsideTemp]} onValueChange={([v]) => setOutsideTemp(v)} />
+                  <Slider min={15} max={55} step={0.5} value={[outsideTemp]} onValueChange={([v]) => setOutsideTemp(v)} />
                 </div>
 
                 {/* Humidity */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
-                      <Waves className="h-4 w-4" /> Humidity Index
+                      <Waves className="h-4 w-4" /> Humidity Node
                     </label>
                     <span className="text-sm font-black font-mono bg-slate-100 dark:bg-muted px-3 py-1 rounded-lg text-slate-700 dark:text-foreground">
                       {humidity}%
@@ -227,7 +229,7 @@ export default function SimulatorPage() {
 
                 {/* Activity Level Grid */}
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground block mb-2">Physiological Activity</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground block mb-2">Physiological Demand</label>
                   <div className="grid grid-cols-2 gap-2">
                     {(Object.keys(ACTIVITY_MAPPING) as ActivityLabel[]).map((act) => (
                       <button
@@ -257,16 +259,41 @@ export default function SimulatorPage() {
                   ) : (
                     <RefreshCcw className="h-5 w-5 mr-3" />
                   )}
-                  {isLoading ? 'Processing Telemetry...' : 'Trigger AI Analysis'}
+                  {isLoading ? 'Synchronizing Telemetry...' : 'Trigger Neural Analysis'}
                 </Button>
               </CardContent>
             </Card>
           </div>
 
           {/* Neural Analysis Column */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 min-h-[600px]">
             <AnimatePresence mode="wait">
-              {error ? (
+              {isLoading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  className="h-full flex flex-col items-center justify-center py-32 space-y-8 bg-white dark:bg-card rounded-[3rem] shadow-xl border border-primary/10"
+                >
+                  <div className="relative">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                      className="absolute -inset-8 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-2xl"
+                    />
+                    <div className="h-24 w-24 rounded-full bg-primary/5 flex items-center justify-center relative z-10 border border-primary/20">
+                      <Cpu className="h-10 w-10 text-primary animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-sm font-black uppercase tracking-[0.4em] text-primary">Neural Processing</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest animate-pulse">
+                      Analyzing thermal synergistic data nodes...
+                    </p>
+                  </div>
+                </motion.div>
+              ) : error ? (
                 <motion.div
                   key="error"
                   initial={{ opacity: 0, y: 20 }}
@@ -280,8 +307,8 @@ export default function SimulatorPage() {
                         <AlertTriangle className="h-10 w-10" />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-xl font-black uppercase tracking-tight text-destructive">Analysis Protocol Failed</h3>
-                        <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-sm mx-auto">
+                        <h3 className="text-xl font-black uppercase tracking-tight text-destructive">Diagnostic Link Failed</h3>
+                        <p className="text-sm text-slate-600 dark:text-muted-foreground font-medium leading-relaxed max-w-sm mx-auto">
                           {error}
                         </p>
                       </div>
@@ -290,7 +317,7 @@ export default function SimulatorPage() {
                         variant="outline"
                         className="rounded-xl border-destructive/20 text-destructive font-black uppercase tracking-widest text-[10px]"
                       >
-                        Retry Analysis Node
+                        Retry Analysis
                       </Button>
                     </div>
                   </Card>
@@ -326,15 +353,15 @@ export default function SimulatorPage() {
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <span className="text-5xl font-black tracking-tighter text-slate-900 dark:text-foreground">{riskScore}%</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Risk Coefficient</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Risk Factor</span>
                           </div>
                         </div>
 
                         <div className="flex-1 space-y-6 text-center md:text-left">
                           <div className="space-y-2">
-                            <Badge className={cn("px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border-2", riskStyles)}>
+                            <Badge className={cn("px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border-2 shadow-sm", riskStyles)}>
                               <ShieldAlert className="h-4 w-4 mr-2" />
-                              {assessment.riskLevel} STATE DETECTED
+                              {assessment.riskLevel} STATE
                             </Badge>
                             <h2 className="text-4xl font-black tracking-tighter uppercase text-slate-900 dark:text-foreground leading-tight">
                               System Status: <span className={cn(
@@ -345,11 +372,11 @@ export default function SimulatorPage() {
                             </h2>
                           </div>
                           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                <Flame className="h-3.5 w-3.5 text-orange-500" /> Thermal Index Lock
                              </div>
                              <div className="h-1 w-1 rounded-full bg-slate-300" />
-                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                <Activity className="h-3.5 w-3.5 text-primary" /> Vitals Sync Active
                              </div>
                           </div>
@@ -358,16 +385,16 @@ export default function SimulatorPage() {
 
                       {/* AI Rationale */}
                       <div className="bg-slate-50 dark:bg-muted/30 p-8 rounded-[2.5rem] border border-slate-100 dark:border-border relative">
-                        <div className="absolute -top-3 left-8 bg-white dark:bg-card px-4 text-[9px] font-black uppercase tracking-widest text-primary border rounded-full h-6 flex items-center">Neural Engine Output</div>
+                        <div className="absolute -top-3 left-8 bg-white dark:bg-card px-4 text-[9px] font-black uppercase tracking-widest text-primary border rounded-full h-6 flex items-center shadow-sm">Neural Engine Output</div>
                         <p className="text-lg text-slate-600 dark:text-muted-foreground font-medium leading-relaxed italic pt-2">
                           "{assessment.explanation}"
                         </p>
                       </div>
 
-                      {/* Protocol Recommendations */}
+                      {/* Response Protocols */}
                       <div className="space-y-6">
                         <div className="flex items-center gap-3">
-                          <PlusCircle className="h-5 w-5 text-primary" />
+                          <BrainCircuit className="h-5 w-5 text-primary" />
                           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Response Protocols</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -377,7 +404,7 @@ export default function SimulatorPage() {
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.1 }}
-                              className="flex items-center gap-4 p-6 rounded-2xl bg-white dark:bg-background border-2 border-slate-100 dark:border-border hover:border-primary/20 transition-all group"
+                              className="flex items-center gap-4 p-6 rounded-2xl bg-white dark:bg-background border-2 border-slate-100 dark:border-border hover:border-primary/20 transition-all group shadow-sm"
                             >
                               <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center shrink-0 text-white shadow-lg", riskBarColor)}>
                                 {i === 0 ? <Droplets className="h-6 w-6" /> : i === 1 ? <Wind className="h-6 w-6" /> : <Stethoscope className="h-6 w-6" />}
@@ -396,9 +423,9 @@ export default function SimulatorPage() {
                       <Info className="h-8 w-8" />
                     </div>
                     <div className="space-y-2 text-center md:text-left">
-                      <h4 className="text-sm font-black uppercase tracking-tight text-orange-700 dark:text-orange-400">Simulation Threshold Disclaimer</h4>
+                      <h4 className="text-sm font-black uppercase tracking-tight text-orange-700 dark:text-orange-400">Simulation Accuracy Disclaimer</h4>
                       <p className="text-[10px] text-orange-600/80 dark:text-orange-500/80 font-bold uppercase tracking-widest leading-relaxed">
-                        This environment utilizes neural approximations for educational and diagnostic purposes. Physiological risk is variable and influenced by hydration, metabolism, and radiant heat exposure. Always prioritize professional medical verification.
+                        This environment utilizes predictive modeling for educational verification. Physiological risk is dynamic and influenced by biological factors like hydration and metabolic rate. Always prioritize professional medical verification.
                       </p>
                     </div>
                   </div>
@@ -414,23 +441,17 @@ export default function SimulatorPage() {
                   <div className="relative">
                     <motion.div 
                       animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                      className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
+                      transition={{ repeat: Infinity, duration: 3 }}
+                      className="absolute inset-0 bg-primary/20 rounded-full blur-3xl"
                     />
                     <div className="h-24 w-24 rounded-full bg-slate-50 dark:bg-muted flex items-center justify-center relative z-10 border border-slate-100 dark:border-border text-slate-300">
-                      {isLoading ? (
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                      ) : (
-                        <RefreshCcw className="h-10 w-10 animate-pulse" />
-                      )}
+                      <BrainCircuit className="h-10 w-10 animate-pulse" />
                     </div>
                   </div>
                   <div className="text-center space-y-2">
-                    <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">
-                      {isLoading ? 'Processing Telemetry...' : 'Neural Engine Standby'}
-                    </p>
+                    <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Neural Engine Standby</p>
                     <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                      {isLoading ? 'Analyzing environmental synergies...' : 'Adjust parameters and trigger analysis to begin'}
+                      Adjust telemetry parameters and trigger analysis to begin.
                     </p>
                   </div>
                 </motion.div>
