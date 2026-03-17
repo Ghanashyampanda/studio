@@ -232,7 +232,7 @@ export default function MonitorPage() {
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl font-black text-[10px] uppercase tracking-widest">
                   Escalating in 2s
-                </motion.div>
+                </div>
               </div>
             </motion.div>
           )}
