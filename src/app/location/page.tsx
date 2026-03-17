@@ -264,7 +264,7 @@ export default function LocationPage() {
         <div className="absolute top-6 left-6 right-6 pointer-events-none z-30">
           <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
             <AnimatePresence mode="wait">
-              {selectedHospital ? (
+              {selectedHospital && (
                 <motion.div 
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -299,22 +299,6 @@ export default function LocationPage() {
                       <Button variant="ghost" size="icon" onClick={() => setSelectedHospitalId(null)} className="h-10 w-10 rounded-full hover:bg-muted">
                         <CloseIcon className="h-5 w-5 text-muted-foreground" />
                       </Button>
-                    </div>
-                  </Card>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="pointer-events-auto max-w-sm"
-                >
-                  <Card className="bg-background/90 backdrop-blur-xl p-5 rounded-[2rem] shadow-xl border border-border flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
-                      <Info className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Surveillance Grid Ready</p>
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Select a facility to begin routing.</p>
                     </div>
                   </Card>
                 </motion.div>
