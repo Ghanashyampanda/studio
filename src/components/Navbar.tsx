@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -27,7 +28,8 @@ import {
   SheetContent, 
   SheetTrigger, 
   SheetHeader, 
-  SheetTitle 
+  SheetTitle,
+  SheetClose
 } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -243,34 +245,44 @@ export function Navbar() {
                 </SheetHeader>
                 <div className="flex flex-col p-4 gap-1">
                   {menuItems.map((item) => (
-                    <Link key={item.label} href={item.href} className="w-full">
-                      <Button 
-                        variant="ghost" 
-                        className={cn(
-                          "w-full justify-start gap-4 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest",
-                          pathname === item.href ? "bg-primary/5 text-primary" : "text-muted-foreground"
-                        )}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {item.label}
-                        <ChevronRight className="ml-auto h-3 w-3 opacity-30" />
-                      </Button>
-                    </Link>
+                    <SheetClose key={item.label} asChild>
+                      <Link href={item.href} className="w-full">
+                        <Button 
+                          variant="ghost" 
+                          className={cn(
+                            "w-full justify-start gap-4 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest",
+                            pathname === item.href ? "bg-primary/5 text-primary" : "text-muted-foreground"
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                          <ChevronRight className="ml-auto h-3 w-3 opacity-30" />
+                        </Button>
+                      </Link>
+                    </SheetClose>
                   ))}
                 </div>
                 
                 <div className="absolute bottom-0 left-0 right-0 p-6 bg-muted/50 border-t">
                   {!user ? (
                     <div className="flex flex-col gap-2">
-                      <Button onClick={() => setAuthMode('login')} variant="outline" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Login</Button>
-                      <Button onClick={() => setAuthMode('signup')} className="w-full h-12 rounded-xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest">Signup</Button>
+                      <SheetClose asChild>
+                        <Button onClick={() => setAuthMode('login')} variant="outline" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Login</Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button onClick={() => setAuthMode('signup')} className="w-full h-12 rounded-xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest">Signup</Button>
+                      </SheetClose>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2">
-                      <Link href="/settings" className="w-full">
-                        <Button variant="outline" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Settings</Button>
-                      </Link>
-                      <Button onClick={handleLogout} variant="destructive" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Logout</Button>
+                      <SheetClose asChild>
+                        <Link href="/settings" className="w-full">
+                          <Button variant="outline" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Settings</Button>
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button onClick={handleLogout} variant="destructive" className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">Logout</Button>
+                      </SheetClose>
                     </div>
                   )}
                 </div>
