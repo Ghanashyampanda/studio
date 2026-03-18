@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Shield, 
@@ -24,40 +24,12 @@ import {
   Linkedin,
   Mail
 } from 'lucide-react';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useUser } from '@/firebase';
 import { AuthModals } from '@/components/auth/AuthModals';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-
-function Counter({ value, suffix = "" }: { value: number, suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (isInView) {
-      let start = 0;
-      const end = value;
-      const duration = 2000;
-      const increment = end / (duration / 16);
-      
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 16);
-      return () => clearInterval(timer);
-    }
-  }, [isInView, value]);
-
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-}
 
 export default function Home() {
   const { user } = useUser();
@@ -171,16 +143,6 @@ export default function Home() {
               description="Rescue nodes are signaled with your precise live location." 
             />
           </div>
-        </div>
-      </section>
-
-      {/* Statistics Section */}
-      <section className="py-32 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-12">
-          <StatItem label="Users Protected" value={5482} suffix="+" />
-          <StatItem label="Alerts Dispatched" value={1240} suffix="+" />
-          <StatItem label="Hospitals Linked" value={312} suffix="" />
-          <StatItem label="Detection Accuracy" value={98} suffix="%" />
         </div>
       </section>
 
@@ -456,17 +418,6 @@ function WorkflowStep({ number, icon: Icon, title, description }: { number: stri
         <h3 className="text-lg font-black uppercase tracking-tight text-foreground">{title}</h3>
         <p className="text-xs text-muted-foreground font-medium leading-relaxed">{description}</p>
       </div>
-    </div>
-  );
-}
-
-function StatItem({ label, value, suffix }: { label: string, value: number, suffix: string }) {
-  return (
-    <div className="text-center space-y-2">
-      <div className="text-5xl md:text-7xl font-black tracking-tighter text-foreground">
-        <Counter value={value} suffix={suffix} />
-      </div>
-      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{label}</p>
     </div>
   );
 }
