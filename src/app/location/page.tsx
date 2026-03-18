@@ -65,7 +65,8 @@ export default function LocationPage() {
   const { toast } = useToast();
   const router = useRouter();
   
-  const [coords, setCoords] = useState({ lat: 40.7128, lng: -74.0060 });
+  // Default centered on New Delhi, India for regional localization
+  const [coords, setCoords] = useState({ lat: 28.6139, lng: 77.2090 });
   const [hospitals, setHospitals] = useState<HospitalNode[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -140,7 +141,6 @@ export default function LocationPage() {
 
   const fetchNearbyHospitals = useCallback(async (lat: number, lng: number) => {
     setIsSearching(true);
-    // Tactical OSM query: nodes, ways, and relations within 10km with center points
     const query = `[out:json][timeout:25];(node["amenity"~"hospital|clinic|doctors"](around:10000,${lat},${lng});way["amenity"~"hospital|clinic|doctors"](around:10000,${lat},${lng});relation["amenity"~"hospital|clinic|doctors"](around:10000,${lat},${lng}););out center;`;
     const primaryUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
     const backupUrl = `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`;
@@ -163,7 +163,6 @@ export default function LocationPage() {
         description: "Failed to synchronize with live medical network. Using regional database.", 
         variant: "destructive" 
       });
-      // Last resort: Provide credible area nodes based on current coords
       setHospitals([
         {
           id: 'emergency-1',
@@ -215,7 +214,7 @@ export default function LocationPage() {
         () => {
           setIsLocating(false);
           toast({ title: "GPS Timeout", description: "Using regional tactical coordinates.", variant: "destructive" });
-          fetchNearbyHospitals(coords.lat, coords.lng); // Fallback to last known or default
+          fetchNearbyHospitals(coords.lat, coords.lng); 
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );

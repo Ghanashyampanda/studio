@@ -102,9 +102,9 @@ export function SOSPanel() {
 
     setIsDispatching(true);
     
-    // Acquire accurate position for the rescue link
-    const lat = currentCoords?.lat ?? 40.7128;
-    const lng = currentCoords?.lng ?? -74.0060;
+    // Fallback coordinates set to New Delhi, India
+    const lat = currentCoords?.lat ?? 28.6139;
+    const lng = currentCoords?.lng ?? 77.2090;
     const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=${lat},${lng}`;
 
     // SEQUENTIAL BROADCAST: Dispatch to EVERY person in the Established Nodes list

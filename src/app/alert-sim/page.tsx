@@ -72,8 +72,9 @@ export default function AlertSimPage() {
       return;
     }
     
-    const lat = currentCoords?.lat ?? 40.7128;
-    const lng = currentCoords?.lng ?? -74.0060;
+    // Default fallback coordinates set to New Delhi, India
+    const lat = currentCoords?.lat ?? 28.6139;
+    const lng = currentCoords?.lng ?? 77.2090;
     const message = `RESCUE ALERT: SunCare Alert AI detected critical thermal emergency. Location: https://www.google.com/maps?q=${lat},${lng}`;
 
     // SEQUENTIAL BROADCAST: Loop through all contacts and signal every established node
@@ -116,8 +117,8 @@ export default function AlertSimPage() {
     const primaryPhone = contacts.find(c => c.isPrimary && c.phoneNumber)?.phoneNumber || contacts.find(c => c.phoneNumber)?.phoneNumber;
     if (!primaryPhone) return;
 
-    const lat = currentCoords?.lat ?? 40.7128;
-    const lng = currentCoords?.lng ?? -74.0060;
+    const lat = currentCoords?.lat ?? 28.6139;
+    const lng = currentCoords?.lng ?? 77.2090;
     const message = `SUNCARE ALERT SOS: Critical thermal emergency. Rescue required. Live Location: https://www.google.com/maps?q=${lat},${lng}`;
     const url = `sms:${primaryPhone}?body=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -190,8 +191,8 @@ export default function AlertSimPage() {
                   <div className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-xs font-mono font-bold text-slate-600">
-                  <div>Lat: {currentCoords?.lat.toFixed(4) ?? '40.7128'}°</div>
-                  <div>Lng: {currentCoords?.lng.toFixed(4) ?? '-74.0060'}°</div>
+                  <div>Lat: {currentCoords?.lat.toFixed(4) ?? '28.6139'}°</div>
+                  <div>Lng: {currentCoords?.lng.toFixed(4) ?? '77.2090'}°</div>
                 </div>
               </div>
 

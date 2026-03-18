@@ -35,8 +35,9 @@ export function ConfigPanel() {
         outsideTemperatureC: ambientTemp,
         humidityPercentage: 50,
         heatIndexC: ambientTemp + 3,
-        latitude: 40.7128,
-        longitude: -74.0060,
+        // Simulation localized to New Delhi, India
+        latitude: 28.6139,
+        longitude: 77.2090,
         deviceType: 'AI Simulator'
       });
     }, 15000);
@@ -59,8 +60,9 @@ export function ConfigPanel() {
       outsideTemperatureC: ambient,
       humidityPercentage: 45,
       heatIndexC: ambient + 2,
-      latitude: 40.7128,
-      longitude: -74.0060,
+      // Localized manual override coordinates
+      latitude: 28.6139,
+      longitude: 77.2090,
       deviceType: 'Manual Override'
     });
   };
