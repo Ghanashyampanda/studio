@@ -10,22 +10,19 @@ import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { HabitsTracker } from '@/components/dashboard/HabitsTracker';
 import { TodoSection } from '@/components/dashboard/TodoSection';
-import { Shield, Thermometer, Activity, LayoutDashboard, Bell, Loader2 } from 'lucide-react';
+import { Shield, Thermometer, Activity, LayoutDashboard, Bell, Loader2, Zap } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
+  const [isSyncing, setIsSyncing] = useState(true);
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isUserLoading, router]);
-
+  // REAL-TIME DATA HUB: Listen for the latest biometric telemetry
   const vitalsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -36,7 +33,6 @@ export default function DashboardPage() {
   }, [db, user]);
   const { data: vitalsData, isLoading: isVitalsLoading } = useCollection(vitalsQuery);
   
-  // MERGE LOGIC: Ensure mandatory fields for AI Analysis exist via Clinical Defaults
   const defaultVitals = {
     bodyTemperatureC: 37.0,
     heartRateBPM: 72,
@@ -62,8 +58,10 @@ export default function DashboardPage() {
     hrMax: prefs?.maxHeartRateThresholdBPM || 140
   };
 
+  // AUTOMATED AI ALERT: Detect critical thresholds and escalate immediately
   useEffect(() => {
     if (latestVitals.bodyTemperatureC >= 40.0) {
+      // Trigger instant rescue protocol
       router.push('/alert-sim');
     }
   }, [latestVitals.bodyTemperatureC, router]);
@@ -98,13 +96,30 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center gap-4 bg-card p-3 rounded-2xl border shadow-sm">
             <div className="flex items-center gap-2 px-3 border-r pr-4">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">AI Link Active</span>
+              <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap">Cloud Link Active</span>
             </div>
-            <button className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
-              <Bell className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-2 px-3">
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Sync: Real-Time</span>
+            </div>
           </div>
         </header>
+
+        <AnimatePresence>
+          {latestVitals.bodyTemperatureC >= 39.5 && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-4 mb-4">
+                <Shield className="h-5 w-5 animate-pulse" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Critical Thermal Warning: Automated SOS Escalation Imminent</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <VitalsCard 
