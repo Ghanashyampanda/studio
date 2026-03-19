@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useUser, useFirestore } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { 
   MapPin, 
@@ -68,7 +69,7 @@ export default function LocationPage() {
   const { toast } = useToast();
   const router = useRouter();
   
-  // Default centered on Bhubaneswar, Odisha (Primary Hub for KIIMS/AIIMS)
+  // Default centered on Bhubaneswar, Odisha
   const [coords, setCoords] = useState({ lat: 20.3517, lng: 85.8189 });
   const [hospitals, setHospitals] = useState<HospitalNode[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
@@ -77,6 +78,26 @@ export default function LocationPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [currentLayer, setCurrentLayer] = useState('roadmap');
   const [isTacticalMode, setIsTacticalMode] = useState(false);
+
+  // REAL-TIME TELEMETRY SYNC: Follow user from Cloud data
+  const vitalsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, 'users', user.uid, 'vital_sign_data'),
+      orderBy('timestamp', 'desc'),
+      limit(1)
+    );
+  }, [db, user]);
+  const { data: latestTelemetry } = useCollection(vitalsQuery);
+
+  useEffect(() => {
+    if (latestTelemetry?.[0]?.latitude && latestTelemetry?.[0]?.longitude) {
+      setCoords({
+        lat: latestTelemetry[0].latitude,
+        lng: latestTelemetry[0].longitude
+      });
+    }
+  }, [latestTelemetry]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; 
@@ -97,14 +118,13 @@ export default function LocationPage() {
       if (!itemLat || !itemLng) return null;
 
       const dist = calculateDistance(centerLat, centerLng, itemLat, itemLng);
-      const timeMin = Math.max(2, Math.round((dist / 35) * 60)); // Standard emergency transit estimation
+      const timeMin = Math.max(2, Math.round((dist / 35) * 60)); 
       
       const name = e.tags.name || e.tags['name:en'] || 'Medical Node';
       const amenity = e.tags.amenity;
       const typeLabel = amenity === 'hospital' ? 'Trauma Hospital' : 
                         amenity === 'clinic' ? 'Urgent Care Clinic' : 'Medical Node';
 
-      // Sector identification logic
       const operatorType = e.tags['operator:type'] || e.tags.ownership || '';
       let sector: 'Government' | 'Private' | 'Unknown' = 'Unknown';
       if (
@@ -145,12 +165,6 @@ export default function LocationPage() {
     setHospitals(sortedNodes.slice(0, 15));
     
     if (sortedNodes.length === 0) {
-      toast({ 
-        title: "Limited Local Data", 
-        description: "Scanning regional tactical fallback registry.", 
-        variant: "destructive" 
-      });
-      // Comprehensive Fallback List for Bhubaneswar
       setHospitals([
         {
           id: 'fb-kiims',
@@ -177,57 +191,22 @@ export default function LocationPage() {
           specialty: 'Apex Tertiary Care',
           size: 'Regional',
           sector: 'Government'
-        },
-        {
-          id: 'fb-sum',
-          name: 'SUM Ultimate Medicare',
-          type: 'Private Super Specialty',
-          lat: 20.2961,
-          lng: 85.7756,
-          distanceVal: 6.2,
-          distance: '6.20 km',
-          time: '12 min',
-          specialty: 'Emergency Medicine',
-          size: 'Regional',
-          sector: 'Private'
-        },
-        {
-          id: 'fb-capital',
-          name: 'Capital Hospital, Bhubaneswar',
-          type: 'Main Government Hospital',
-          lat: 20.2644,
-          lng: 85.8331,
-          distanceVal: 9.8,
-          distance: '9.80 km',
-          time: '18 min',
-          specialty: 'Public Health Hub',
-          size: 'Regional',
-          sector: 'Government'
         }
       ]);
     }
-  }, [toast]);
+  }, []);
 
   const fetchNearbyHospitals = useCallback(async (lat: number, lng: number) => {
     setIsSearching(true);
     const query = `[out:json][timeout:25];(node["amenity"~"hospital|clinic|doctors"](around:10000,${lat},${lng});way["amenity"~"hospital|clinic|doctors"](around:10000,${lat},${lng});relation["amenity"~"hospital|clinic|doctors"](around:10000,${lat},${lng}););out center;`;
     const primaryUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-    const backupUrl = `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`;
     
     try {
       let response = await fetch(primaryUrl);
-      if (!response.ok) {
-        console.warn("Primary Hub Congested. Switching to Backup...");
-        response = await fetch(backupUrl);
-      }
-      
       if (!response.ok) throw new Error('Global network sync timed out.');
-      
       const data = await response.json();
       processOwmData(data, lat, lng);
     } catch (error) {
-      console.error("Discovery Error:", error);
-      // Fallback Registry (Redundant Load)
       processOwmData({ elements: [] }, lat, lng);
     } finally {
       setIsSearching(false);
@@ -246,20 +225,15 @@ export default function LocationPage() {
           setCoords(newCoords);
           setIsLocating(false);
           fetchNearbyHospitals(newCoords.lat, newCoords.lng);
-          toast({ 
-            title: "Tactical GPS Sync", 
-            description: "Medical nodes localized to current position.",
-          });
         },
         () => {
           setIsLocating(false);
-          toast({ title: "GPS Timeout", description: "Using regional tactical coordinates (Bhubaneswar).", variant: "destructive" });
           fetchNearbyHospitals(coords.lat, coords.lng); 
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     }
-  }, [coords.lat, coords.lng, fetchNearbyHospitals, toast]);
+  }, [coords.lat, coords.lng, fetchNearbyHospitals]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -17,7 +18,8 @@ import {
   History as HistoryIcon,
   TrendingUp,
   Waves,
-  Clock
+  Clock,
+  MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -49,6 +51,7 @@ export default function MonitorPage() {
 
   const [isActive, setIsActive] = useState(true);
   const [isCritical, setIsCritical] = useState(false);
+  const [currentCoords, setCurrentCoords] = useState({ lat: 20.3517, lng: 85.8189 });
   
   const [dataBuffer, setDataBuffer] = useState<DataPoint[]>([]);
   const [latestVitals, setLatestVitals] = useState({
@@ -59,6 +62,17 @@ export default function MonitorPage() {
   });
 
   const samplingInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Acquire GPS for telemetry simulation
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => setCurrentCoords({ lat: position.coords.latitude, lng: position.coords.longitude }),
+        (err) => console.warn("Monitor GPS Sync failed", err),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -112,7 +126,9 @@ export default function MonitorPage() {
             humidityPercentage: prev.humidity,
             heatIndexC: heatIndex,
             activityLevel: 'moderate',
-            deviceType: 'Live IoT Hub'
+            deviceType: 'Live IoT Hub',
+            latitude: currentCoords.lat,
+            longitude: currentCoords.lng
           });
         }
 
@@ -127,7 +143,7 @@ export default function MonitorPage() {
     return () => {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
     };
-  }, [isActive, user, db, router]);
+  }, [isActive, user, db, router, currentCoords]);
 
   if (isUserLoading || !user) {
     return (
@@ -247,10 +263,10 @@ export default function MonitorPage() {
             status={latestVitals.heartRate > 140 ? 'warning' : 'normal'}
           />
           <VitalsCard 
-            title="Ambient Thermal Index" 
-            value={latestVitals.outsideTemp} 
-            unit="°C" 
-            icon={Waves} 
+            title="Live GPS Lock" 
+            value={currentCoords.lat.toFixed(4)} 
+            unit="Lat" 
+            icon={MapPin} 
             status="normal"
           />
         </div>
@@ -267,7 +283,7 @@ export default function MonitorPage() {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-primary" />
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">Cloud Node</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">Cloud Node Active</span>
               </div>
             </div>
           </div>
