@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo } from 'react';
@@ -11,7 +10,7 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
-import { History, TrendingUp } from "lucide-react";
+import { History, TrendingUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VitalsHistoryChartProps {
