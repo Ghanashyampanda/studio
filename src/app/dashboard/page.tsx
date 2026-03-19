@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -7,9 +8,8 @@ import { RiskAssessment } from '@/components/dashboard/RiskAssessment';
 import { SOSPanel } from '@/components/dashboard/SOSPanel';
 import { GuidancePanel } from '@/components/dashboard/GuidancePanel';
 import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
-import { HabitsTracker } from '@/components/dashboard/HabitsTracker';
-import { TodoSection } from '@/components/dashboard/TodoSection';
-import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert } from 'lucide-react';
+import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
+import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert, Zap } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -65,7 +65,8 @@ export default function DashboardPage() {
   // AUTOMATED AI ALERT: Detect critical thresholds and escalate immediately
   useEffect(() => {
     if (latestVitals.bodyTemperatureC >= 40.0) {
-      router.push('/alert-sim');
+      const timer = setTimeout(() => router.push('/alert-sim'), 1000);
+      return () => clearTimeout(timer);
     }
   }, [latestVitals.bodyTemperatureC, router]);
 
@@ -77,21 +78,22 @@ export default function DashboardPage() {
     );
   }
 
+  const isCritical = latestVitals.bodyTemperatureC >= 40.0;
   const tempStatus = latestVitals.bodyTemperatureC > thresholds.tempMax ? 'critical' : latestVitals.bodyTemperatureC > thresholds.tempMax - 1 ? 'warning' : 'normal';
   const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 20 ? 'warning' : 'normal';
 
   return (
     <div className={cn(
-      "min-h-screen pt-24 pb-12 transition-colors duration-1000",
-      latestVitals.bodyTemperatureC >= 40 ? "bg-red-50 dark:bg-red-950/10" : "bg-background"
+      "min-h-screen pt-24 pb-12 transition-colors duration-700",
+      isCritical ? "bg-red-50 dark:bg-red-950/20" : "bg-background"
     )}>
       <main className="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
         
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2 text-primary">
-              <LayoutDashboard className="h-5 w-5" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Health Command Center</span>
+              <Zap className="h-5 w-5 fill-primary/20" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">IoT Monitoring Active</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase">
               Surveillance <span className="text-primary">Console</span>
@@ -105,14 +107,16 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4 bg-card p-3 rounded-2xl border shadow-sm w-full sm:w-auto">
               <div className="flex items-center gap-2 px-3 border-r pr-4">
                 <div className="relative">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <div className={cn("h-2 w-2 rounded-full animate-pulse", isCritical ? "bg-red-500" : "bg-emerald-500")} />
                   <motion.div 
                     animate={{ scale: [1, 2], opacity: [0.5, 0] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="absolute inset-0 h-2 w-2 rounded-full bg-emerald-500"
+                    className={cn("absolute inset-0 h-2 w-2 rounded-full", isCritical ? "bg-red-500" : "bg-emerald-500")}
                   />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider whitespace-nowrap text-emerald-600 dark:text-emerald-400">Live Monitoring Active</span>
+                <span className={cn("text-[10px] font-black uppercase tracking-wider whitespace-nowrap", isCritical ? "text-red-600" : "text-emerald-600")}>
+                  {isCritical ? "Critical Alert" : "System Synchronized"}
+                </span>
               </div>
               <div className="flex items-center gap-2 px-3">
                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
@@ -133,23 +137,23 @@ export default function DashboardPage() {
               className="overflow-hidden"
             >
               <div className={cn(
-                "p-6 rounded-[2rem] flex items-center justify-between mb-4 border-2 shadow-2xl",
-                latestVitals.bodyTemperatureC >= 40 
-                  ? "bg-destructive text-white border-destructive shadow-destructive/20 animate-pulse" 
+                "p-6 rounded-[2rem] flex flex-col md:flex-row items-center justify-between mb-4 border-2 shadow-2xl gap-4",
+                isCritical 
+                  ? "bg-red-600 text-white border-red-500 shadow-red-500/20" 
                   : "bg-destructive/10 border-destructive/20 text-destructive"
               )}>
                 <div className="flex items-center gap-4">
-                  <ShieldAlert className={cn("h-8 w-8", latestVitals.bodyTemperatureC >= 40 && "animate-bounce")} />
+                  <ShieldAlert className={cn("h-10 w-10", isCritical && "animate-bounce")} />
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Critical Thermal Warning</p>
-                    <h2 className="text-xl font-black uppercase tracking-tight">
-                      {latestVitals.bodyTemperatureC >= 40 ? "Automated SOS Escalation Active" : "Thermal Threshold Breached"}
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Clinical Thermal Warning</p>
+                    <h2 className="text-2xl font-black uppercase tracking-tight">
+                      {isCritical ? "CRITICAL SUNSTROKE RISK DETECTED" : "Hyperthermia Threshold Breached"}
                     </h2>
                   </div>
                 </div>
-                {latestVitals.bodyTemperatureC >= 40 && (
-                  <div className="bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                    Redirecting to Emergency Hub...
+                {isCritical && (
+                  <div className="bg-white/20 px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border border-white/30">
+                    Initializing Rescue Protocol in 2s...
                   </div>
                 )}
               </div>
@@ -173,18 +177,18 @@ export default function DashboardPage() {
             status={hrStatus}
           />
           <VitalsCard 
-            title="Ambient Temp" 
+            title="Ambient Heat" 
             value={latestVitals.outsideTemperatureC} 
             unit="°C" 
             icon={Thermometer} 
             status={latestVitals.outsideTemperatureC > 35 ? 'warning' : 'normal'}
           />
           <VitalsCard 
-            title="Heat Index" 
-            value={latestVitals.heatIndexC} 
-            unit="°C" 
-            icon={Shield} 
-            status={latestVitals.heatIndexC > 38 ? 'critical' : 'normal'}
+            title="Pulse Frequency" 
+            value={latestVitals.heartRateBPM} 
+            unit="Hz" 
+            icon={Zap} 
+            status={hrStatus}
           />
         </div>
 
@@ -195,16 +199,19 @@ export default function DashboardPage() {
               <GuidancePanel vitals={latestVitals} />
             </div>
             
+            {/* Live Data Graph */}
+            <VitalsHistoryChart data={vitalsData || []} />
+
             {/* Tactical Location Card */}
-            <Card className="rounded-[2.5rem] border-none shadow-sm bg-card overflow-hidden h-[300px] relative group">
-              <div className="absolute top-6 left-6 z-10 bg-background/90 backdrop-blur-md p-4 rounded-2xl border shadow-xl">
+            <Card className="rounded-[2.5rem] border-none shadow-sm bg-card overflow-hidden h-[400px] relative group border">
+              <div className="absolute top-6 left-6 z-10 bg-background/95 backdrop-blur-md p-4 rounded-2xl border shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                     <MapPin className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tactical Tracker</p>
-                    <p className="text-xs font-black uppercase text-foreground">Live Geofence Active</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tactical Localization</p>
+                    <p className="text-xs font-black uppercase text-foreground">Live Telemetry Linked</p>
                   </div>
                 </div>
               </div>
@@ -220,17 +227,12 @@ export default function DashboardPage() {
                   <motion.div 
                     animate={{ scale: [1, 2.5], opacity: [0.5, 0] }}
                     transition={{ repeat: Infinity, duration: 2 }}
-                    className="absolute inset-0 bg-primary rounded-full -m-4"
+                    className={cn("absolute inset-0 rounded-full -m-4", isCritical ? "bg-red-500" : "bg-primary")}
                   />
-                  <div className="h-4 w-4 bg-primary rounded-full border-2 border-white shadow-xl relative z-10" />
+                  <div className={cn("h-4 w-4 rounded-full border-2 border-white shadow-xl relative z-10", isCritical ? "bg-red-500" : "bg-primary")} />
                 </div>
               </div>
             </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <HabitsTracker />
-              <TodoSection />
-            </div>
           </div>
           
           <div className="space-y-6">

@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
 import { predictSunstrokeRisk, type SunstrokeRiskOutput } from '@/ai/flows/risk-prediction-flow';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, ShieldCheck, Zap, Activity, AlertTriangle, BrainCircuit } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Zap, Activity, AlertTriangle, BrainCircuit, Flame } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,13 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const lastVitals = useRef({ temp: 0, hr: 0 });
+
+  // Heat Index Severity Calculation
+  const getRiskLabel = (bodyTemp: number) => {
+    if (bodyTemp >= 40) return { label: 'CRITICAL', color: 'text-red-600 bg-red-50 border-red-100', icon: AlertCircle };
+    if (bodyTemp >= 38.5) return { label: 'WARNING', color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Zap };
+    return { label: 'SAFE', color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: ShieldCheck };
+  };
 
   useEffect(() => {
     const fetchRisk = async () => {
@@ -49,7 +57,7 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
         lastVitals.current = { temp: vitals.bodyTemperatureC, hr: vitals.heartRateBPM };
       } catch (err: any) {
         console.error("Risk engine error", err);
-        setError("Engine offline. Retrying...");
+        setError("Neural engine offline. Syncing...");
       } finally {
         setLoading(false);
       }
@@ -59,71 +67,71 @@ export function RiskAssessment({ vitals }: RiskAssessmentProps) {
     return () => clearTimeout(timer);
   }, [vitals.bodyTemperatureC, vitals.heartRateBPM, vitals.activityLevel]);
 
-  const riskStyles = {
-    low: 'text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800',
-    moderate: 'text-accent-foreground border-accent/20',
-    high: 'text-secondary border-secondary/20',
-    critical: 'text-destructive border-destructive/20',
-  };
-
-  const riskIcons = {
-    low: ShieldCheck,
-    moderate: Activity,
-    high: Zap,
-    critical: AlertCircle,
-  };
-
-  const Icon = assessment ? riskIcons[assessment.riskLevel] : Activity;
+  const riskInfo = getRiskLabel(vitals.bodyTemperatureC);
+  const StatusIcon = riskInfo.icon;
 
   return (
-    <div className="bg-card border rounded-[2.5rem] shadow-sm overflow-hidden border-border">
-      <div className="p-8 border-b border-border flex items-center justify-between">
+    <div className="bg-card border rounded-[2.5rem] shadow-sm overflow-hidden border-border h-full flex flex-col">
+      <div className="p-8 border-b border-border flex items-center justify-between bg-muted/10">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-primary">
             <BrainCircuit className="h-5 w-5" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Neural Engine</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Neural Risk Engine</span>
           </div>
-          <h3 className="text-xl font-black uppercase tracking-tight text-foreground">Risk <span className="text-primary">Analysis</span></h3>
+          <h3 className="text-xl font-black uppercase tracking-tight text-foreground">Health <span className="text-primary">Integrity</span></h3>
         </div>
-        {!loading && assessment && (
-          <Badge variant="outline" className={cn("px-4 py-1.5 rounded-full font-bold uppercase tracking-widest text-[10px] border", riskStyles[assessment.riskLevel])}>
-            <Icon className="h-3.5 w-3.5 mr-2" />
-            {assessment.riskLevel}
-          </Badge>
-        )}
+        <div className={cn("px-4 py-2 rounded-2xl flex items-center gap-2 border font-black text-[10px] tracking-widest uppercase transition-colors", riskInfo.color)}>
+          <StatusIcon className="h-4 w-4" />
+          {riskInfo.label}
+        </div>
       </div>
-      <div className="p-8">
+      
+      <div className="p-8 flex-1 space-y-8">
+        {/* Heat Index Meter */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <Flame className="h-4 w-4 text-orange-500" />
+              Physiological Heat Index
+            </div>
+            <span className="text-xs font-black text-foreground uppercase">{vitals.heatIndexC.toFixed(1)}°C Base</span>
+          </div>
+          <div className="h-3 w-full bg-muted rounded-full overflow-hidden flex">
+            <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: '33%' }} />
+            <div className="h-full bg-yellow-500 transition-all duration-1000" style={{ width: '33%' }} />
+            <div className="h-full bg-red-500 transition-all duration-1000" style={{ width: '34%' }} />
+            <div 
+              className="absolute h-5 w-1 bg-foreground border-2 border-background -mt-1 shadow-md transition-all duration-1000" 
+              style={{ left: `${Math.min(100, Math.max(0, (vitals.bodyTemperatureC - 36) * 20))}%`, position: 'relative' }} 
+            />
+          </div>
+        </div>
+
         {loading ? (
           <div className="space-y-4">
+            <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <Skeleton className="h-20 rounded-2xl" />
-              <Skeleton className="h-20 rounded-2xl" />
-            </div>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-10 space-y-4">
+          <div className="flex flex-col items-center justify-center py-6 space-y-4 text-center">
             <AlertTriangle className="h-10 w-10 text-secondary opacity-50" />
-            <p className="text-sm text-muted-foreground font-bold">{error}</p>
+            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest leading-relaxed">{error}</p>
           </div>
         ) : assessment ? (
           <div className="space-y-6">
-            <div className="p-5 rounded-2xl bg-muted border border-border">
-              <p className="text-sm leading-relaxed text-muted-foreground font-medium">
-                {assessment.explanation}
+            <div className="p-5 rounded-2xl bg-muted/50 border border-border">
+              <p className="text-sm leading-relaxed text-muted-foreground font-medium italic">
+                "{assessment.explanation}"
               </p>
             </div>
             
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
-                Prevention Protocol
-              </h4>
-              <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-3">
+              <h4 className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">AI Protocol Recommendations</h4>
+              <div className="grid grid-cols-1 gap-2">
                 {assessment.preventativeAdvice.slice(0, 2).map((advice, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border group hover:border-primary/30 transition-all shadow-sm">
+                  <div key={idx} className="flex items-center gap-3 p-4 rounded-xl bg-background border border-border group hover:border-primary/30 transition-all">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                    <span className="text-xs font-bold text-foreground leading-tight">{advice}</span>
+                    <span className="text-[11px] font-bold text-foreground uppercase tracking-tight leading-tight">{advice}</span>
                   </div>
                 ))}
               </div>
