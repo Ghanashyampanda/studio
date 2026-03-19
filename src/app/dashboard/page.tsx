@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -62,11 +61,12 @@ export default function DashboardPage() {
     hrMax: prefs?.maxHeartRateThresholdBPM || 140
   };
 
-  // AUTOMATED AI ALERT: Detect critical thresholds and escalate immediately
+  // AUTOMATED AI ALERT: Detect critical thresholds (>= 40.7°C) and escalate immediately
   useEffect(() => {
-    if (latestVitals.bodyTemperatureC >= 40.0) {
-      const timer = setTimeout(() => router.push('/alert-sim'), 1000);
-      return () => clearTimeout(timer);
+    if (latestVitals.bodyTemperatureC >= 40.7) {
+      // Immediate notification as requested
+      window.alert("⚠️ Sunstroke Detected! Immediate action required. SOS Protocol Initialized.");
+      router.push('/alert-sim');
     }
   }, [latestVitals.bodyTemperatureC, router]);
 
@@ -78,8 +78,8 @@ export default function DashboardPage() {
     );
   }
 
-  const isCritical = latestVitals.bodyTemperatureC >= 40.0;
-  const tempStatus = latestVitals.bodyTemperatureC > thresholds.tempMax ? 'critical' : latestVitals.bodyTemperatureC > thresholds.tempMax - 1 ? 'warning' : 'normal';
+  const isCritical = latestVitals.bodyTemperatureC >= 40.7;
+  const tempStatus = latestVitals.bodyTemperatureC >= 40.7 ? 'critical' : latestVitals.bodyTemperatureC > thresholds.tempMax ? 'warning' : 'normal';
   const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 20 ? 'warning' : 'normal';
 
   return (
@@ -93,7 +93,7 @@ export default function DashboardPage() {
           <div className="space-y-1 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2 text-primary">
               <Zap className="h-5 w-5 fill-primary/20" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">IoT Monitoring Active</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Monitoring Active</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase">
               Surveillance <span className="text-primary">Console</span>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
                   />
                 </div>
                 <span className={cn("text-[10px] font-black uppercase tracking-wider whitespace-nowrap", isCritical ? "text-red-600" : "text-emerald-600")}>
-                  {isCritical ? "Critical Alert" : "System Synchronized"}
+                  {isCritical ? "CRITICAL ALERT" : "System Synchronized"}
                 </span>
               </div>
               <div className="flex items-center gap-2 px-3">
@@ -145,15 +145,15 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4">
                   <ShieldAlert className={cn("h-10 w-10", isCritical && "animate-bounce")} />
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Clinical Thermal Warning</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Critical Health Warning</p>
                     <h2 className="text-2xl font-black uppercase tracking-tight">
-                      {isCritical ? "CRITICAL SUNSTROKE RISK DETECTED" : "Hyperthermia Threshold Breached"}
+                      {isCritical ? "⚠️ SUNSTROKE DETECTED! IMMEDIATE ACTION REQUIRED" : "Hyperthermia Threshold Breached"}
                     </h2>
                   </div>
                 </div>
                 {isCritical && (
                   <div className="bg-white/20 px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest animate-pulse border border-white/30">
-                    Initializing Rescue Protocol in 2s...
+                    SOS PROTOCOL ACTIVE - REDIRECTING...
                   </div>
                 )}
               </div>
@@ -186,7 +186,7 @@ export default function DashboardPage() {
           <VitalsCard 
             title="Pulse Frequency" 
             value={latestVitals.heartRateBPM} 
-            unit="Hz" 
+            unit="BPM" 
             icon={Zap} 
             status={hrStatus}
           />
@@ -199,7 +199,6 @@ export default function DashboardPage() {
               <GuidancePanel vitals={latestVitals} />
             </div>
             
-            {/* Live Data Graph */}
             <VitalsHistoryChart data={vitalsData || []} />
 
             {/* Tactical Location Card */}
@@ -211,7 +210,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tactical Localization</p>
-                    <p className="text-xs font-black uppercase text-foreground">Live Telemetry Linked</p>
+                    <p className="text-xs font-black uppercase text-foreground">Live GPS Tracking</p>
                   </div>
                 </div>
               </div>

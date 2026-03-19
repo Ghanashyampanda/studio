@@ -72,10 +72,11 @@ export default function MonitorPage() {
         const nextTemp = Math.min(41.5, Math.max(36.2, prev.bodyTemp + tempShift));
         const nextHR = Math.min(180, Math.max(50, prev.heartRate + hrShift));
         
-        // CRITICAL DETECTION: Automatic Escalation if > 40°C
-        if (nextTemp >= 40.0) {
+        // CRITICAL DETECTION: Automatic Escalation if >= 40.7°C
+        if (nextTemp >= 40.7) {
           setIsCritical(true);
-          setTimeout(() => router.push('/alert-sim'), 2500);
+          // Wait briefly before redirecting to allow user to see critical state
+          setTimeout(() => router.push('/alert-sim'), 2000);
         } else {
           setIsCritical(false);
         }
@@ -205,14 +206,14 @@ export default function MonitorPage() {
                     <ShieldAlert className="h-8 w-8" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-black uppercase tracking-tight">CRITICAL THERMAL EVENT</h3>
+                    <h3 className="text-xl font-black uppercase tracking-tight">⚠️ CRITICAL THERMAL EVENT</h3>
                     <p className="text-xs font-bold uppercase tracking-widest opacity-80">
-                      Core temperature exceeds 40°C threshold. Cloud rescue protocol initiated.
+                      Core temperature exceeds 40.7°C threshold. SOS protocol initiated.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl font-black text-[10px] uppercase tracking-widest">
-                  Escalating in 2s
+                  Escalating Now
                 </div>
               </div>
             </motion.div>
@@ -225,7 +226,7 @@ export default function MonitorPage() {
             value={latestVitals.bodyTemp} 
             unit="°C" 
             icon={Thermometer} 
-            status={latestVitals.bodyTemp > 39 ? 'critical' : latestVitals.bodyTemp > 38 ? 'warning' : 'normal'}
+            status={latestVitals.bodyTemp >= 40.7 ? 'critical' : latestVitals.bodyTemp > 38 ? 'warning' : 'normal'}
           />
           <VitalsCard 
             title="Pulse Frequency" 
