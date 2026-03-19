@@ -28,7 +28,9 @@ import {
   Route as RouteIcon,
   Info,
   Search,
-  AlertCircle
+  AlertCircle,
+  Landmark,
+  ShieldPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +59,7 @@ interface HospitalNode {
   time: string;
   specialty: string;
   size: string;
+  sector: 'Government' | 'Private' | 'Unknown';
 }
 
 export default function LocationPage() {
@@ -65,7 +68,7 @@ export default function LocationPage() {
   const { toast } = useToast();
   const router = useRouter();
   
-  // Default centered on Bhubaneswar, Odisha (Near KIIMS)
+  // Default centered on Bhubaneswar, Odisha (Primary Hub for KIIMS/AIIMS)
   const [coords, setCoords] = useState({ lat: 20.3517, lng: 85.8189 });
   const [hospitals, setHospitals] = useState<HospitalNode[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
@@ -96,58 +99,110 @@ export default function LocationPage() {
       const dist = calculateDistance(centerLat, centerLng, itemLat, itemLng);
       const timeMin = Math.max(2, Math.round((dist / 35) * 60)); // Standard emergency transit estimation
       
+      const name = e.tags.name || e.tags['name:en'] || 'Medical Node';
       const amenity = e.tags.amenity;
       const typeLabel = amenity === 'hospital' ? 'Trauma Hospital' : 
                         amenity === 'clinic' ? 'Urgent Care Clinic' : 'Medical Node';
 
+      // Sector identification logic
+      const operatorType = e.tags['operator:type'] || e.tags.ownership || '';
+      let sector: 'Government' | 'Private' | 'Unknown' = 'Unknown';
+      if (
+        operatorType.toLowerCase().includes('gov') || 
+        operatorType.toLowerCase().includes('public') ||
+        name.toLowerCase().includes('aiims') || 
+        name.toLowerCase().includes('government') ||
+        name.toLowerCase().includes('capital hospital')
+      ) {
+        sector = 'Government';
+      } else if (
+        operatorType.toLowerCase().includes('private') || 
+        name.toLowerCase().includes('kiims') ||
+        name.toLowerCase().includes('sum') ||
+        name.toLowerCase().includes('amri') ||
+        name.toLowerCase().includes('care') ||
+        name.toLowerCase().includes('apollo')
+      ) {
+        sector = 'Private';
+      }
+
       return {
         id: e.id.toString(),
-        name: e.tags.name || e.tags['name:en'] || `Emergency ${typeLabel}`,
+        name: name,
         type: typeLabel,
         lat: itemLat,
         lng: itemLng,
         distanceVal: dist,
         distance: dist.toFixed(2) + ' km',
         time: timeMin + ' min',
-        specialty: e.tags.specialty || (e.tags.name?.toLowerCase().includes('kiims') ? 'Multi-Specialty & Research' : 'General Emergency'),
-        size: dist < 2 ? 'Immediate' : dist < 5 ? 'Close' : 'Regional'
+        specialty: e.tags.specialty || (name.toLowerCase().includes('kiims') ? 'Multi-Specialty & Research' : 'General Emergency'),
+        size: dist < 2 ? 'Immediate' : dist < 5 ? 'Close' : 'Regional',
+        sector: sector
       };
     }).filter(Boolean);
 
     const sortedNodes = nodes.sort((a: any, b: any) => a.distanceVal - b.distanceVal);
-    setHospitals(sortedNodes.slice(0, 12));
+    setHospitals(sortedNodes.slice(0, 15));
     
     if (sortedNodes.length === 0) {
       toast({ 
         title: "Limited Local Data", 
-        description: "No registered medical facilities detected within 10km. Using tactical fallback.", 
+        description: "Scanning regional tactical fallback registry.", 
         variant: "destructive" 
       });
-      // Fallback to prominent regional nodes (KIIMS, SUM, etc.)
+      // Comprehensive Fallback List for Bhubaneswar
       setHospitals([
         {
-          id: 'fallback-kiims',
+          id: 'fb-kiims',
           name: 'Kalinga Institute of Medical Sciences (KIIMS)',
-          type: 'Primary Trauma Hospital',
+          type: 'Medical College & Trauma Center',
           lat: 20.3517,
           lng: 85.8189,
           distanceVal: 0.5,
           distance: '0.50 km',
           time: '2 min',
           specialty: 'Advanced Tertiary Care',
-          size: 'Immediate'
+          size: 'Immediate',
+          sector: 'Private'
         },
         {
-          id: 'fallback-sum',
-          name: 'SUM Hospital',
-          type: 'Trauma Hospital',
+          id: 'fb-aiims',
+          name: 'AIIMS Bhubaneswar',
+          type: 'Premier Government Institute',
+          lat: 20.2311,
+          lng: 85.7756,
+          distanceVal: 8.4,
+          distance: '8.40 km',
+          time: '15 min',
+          specialty: 'Apex Tertiary Care',
+          size: 'Regional',
+          sector: 'Government'
+        },
+        {
+          id: 'fb-sum',
+          name: 'SUM Ultimate Medicare',
+          type: 'Private Super Specialty',
           lat: 20.2961,
           lng: 85.7756,
           distanceVal: 6.2,
           distance: '6.20 km',
           time: '12 min',
           specialty: 'Emergency Medicine',
-          size: 'Regional'
+          size: 'Regional',
+          sector: 'Private'
+        },
+        {
+          id: 'fb-capital',
+          name: 'Capital Hospital, Bhubaneswar',
+          type: 'Main Government Hospital',
+          lat: 20.2644,
+          lng: 85.8331,
+          distanceVal: 9.8,
+          distance: '9.80 km',
+          time: '18 min',
+          specialty: 'Public Health Hub',
+          size: 'Regional',
+          sector: 'Government'
         }
       ]);
     }
@@ -162,51 +217,22 @@ export default function LocationPage() {
     try {
       let response = await fetch(primaryUrl);
       if (!response.ok) {
-        console.warn("Primary Overpass Hub Congested. Switching to Redundant Node...");
+        console.warn("Primary Hub Congested. Switching to Backup...");
         response = await fetch(backupUrl);
       }
       
-      if (!response.ok) throw new Error('Global medical network sync timed out.');
+      if (!response.ok) throw new Error('Global network sync timed out.');
       
       const data = await response.json();
       processOwmData(data, lat, lng);
     } catch (error) {
-      console.error("Discovery Engine Error:", error);
-      toast({ 
-        title: "Network Latency", 
-        description: "Failed to synchronize with live medical network. Using regional database.", 
-        variant: "destructive" 
-      });
-      setHospitals([
-        {
-          id: 'emergency-kiims',
-          name: 'KIIMS Hospital',
-          type: 'Primary Recovery Hub',
-          lat: lat + 0.005,
-          lng: lng + 0.005,
-          distanceVal: 0.8,
-          distance: '0.80 km',
-          time: '3 min',
-          specialty: 'Advanced Emergency',
-          size: 'Immediate'
-        },
-        {
-          id: 'emergency-sum',
-          name: 'SUM Ultimate Medicare',
-          type: 'Secondary Node',
-          lat: lat - 0.015,
-          lng: lng - 0.02,
-          distanceVal: 2.8,
-          distance: '2.80 km',
-          time: '8 min',
-          specialty: 'Critical Care',
-          size: 'Close'
-        }
-      ]);
+      console.error("Discovery Error:", error);
+      // Fallback Registry (Redundant Load)
+      processOwmData({ elements: [] }, lat, lng);
     } finally {
       setIsSearching(false);
     }
-  }, [toast, processOwmData]);
+  }, [processOwmData]);
 
   const findMe = useCallback(() => {
     setIsLocating(true);
@@ -221,8 +247,8 @@ export default function LocationPage() {
           setIsLocating(false);
           fetchNearbyHospitals(newCoords.lat, newCoords.lng);
           toast({ 
-            title: "Tactical GPS Sync Successful", 
-            description: "Surrounding medical nodes localized.",
+            title: "Tactical GPS Sync", 
+            description: "Medical nodes localized to current position.",
           });
         },
         () => {
@@ -256,17 +282,17 @@ export default function LocationPage() {
     addDocumentNonBlocking(historyRef, {
       userId: user.uid,
       triggerTimestamp: new Date().toISOString(),
-      alertType: 'Live Navigation Broadcast',
+      alertType: 'Navigation Telemetry Broadcast',
       status: 'sent',
       bodyTemperatureAtAlertC: 37.0, 
       locationAtAlertLatitude: coords.lat,
       locationAtAlertLongitude: coords.lng,
-      alertMessage: `User tracking destination: ${selectedHospital?.name || 'Local Trauma Center'}`,
+      alertMessage: `Emergency routing active. Destination: ${selectedHospital?.name} (${selectedHospital?.sector})`,
       emergencyContactIds: [] 
     });
     setTimeout(() => {
       setIsBroadcasting(false);
-      toast({ title: "Broadcast Active", description: "Rescue nodes are receiving your live route telemetry." });
+      toast({ title: "Broadcast Active", description: "Rescue nodes are receiving your live navigation telemetry." });
     }, 1500);
   };
 
@@ -304,7 +330,7 @@ export default function LocationPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black uppercase tracking-tight leading-none text-foreground">Nearby <span className="text-primary">Care</span></h1>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Discovery of High-Capacity Trauma Nodes</p>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Identification of Private & Government Nodes</p>
           </div>
         </div>
 
@@ -312,7 +338,7 @@ export default function LocationPage() {
           {isSearching && hospitals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
               <Search className="h-10 w-10 animate-pulse text-primary" />
-              <p className="text-[10px] font-black uppercase tracking-widest">Identifying closest facilities...</p>
+              <p className="text-[10px] font-black uppercase tracking-widest">Mapping medical infrastructure...</p>
             </div>
           ) : hospitals.length > 0 ? (
             hospitals.map(hospital => (
@@ -329,14 +355,16 @@ export default function LocationPage() {
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center transition-colors shrink-0", 
                     selectedHospitalId === hospital.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                    {hospital.type.includes('Trauma') ? <Building2 className="h-6 w-6" /> : <Building className="h-6 w-6" />}
+                    {hospital.sector === 'Government' ? <Landmark className="h-6 w-6" /> : <Building2 className="h-6 w-6" />}
                   </div>
                   <div className="space-y-1 overflow-hidden flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-xs font-black uppercase tracking-tight text-foreground leading-tight truncate">{hospital.name}</p>
-                      <Badge className={cn("text-[7px] font-black uppercase px-2 py-0 border-none shrink-0", 
-                        hospital.size === 'Immediate' ? "bg-red-100 text-red-600 dark:bg-red-900/40" : "bg-blue-100 text-blue-600 dark:bg-blue-900/40")}>
-                        {hospital.size}
+                      <Badge className={cn("text-[7px] font-black uppercase px-2 py-0 border-none", 
+                        hospital.sector === 'Government' ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40" : 
+                        hospital.sector === 'Private' ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40" :
+                        "bg-muted text-muted-foreground")}>
+                        {hospital.sector}
                       </Badge>
                     </div>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">{hospital.distance} • {hospital.time} ETA</p>
@@ -351,7 +379,7 @@ export default function LocationPage() {
               <AlertCircle className="h-10 w-10 text-muted-foreground" />
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-widest">No local hospitals detected</p>
-                <p className="text-[8px] font-bold text-muted-foreground uppercase">Try resyncing GPS or check connection.</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase">GPS sensor may require resync.</p>
               </div>
               <Button size="sm" variant="outline" onClick={findMe} className="mt-4 rounded-xl text-[9px] font-black uppercase">Resync Sensor</Button>
             </div>
@@ -365,7 +393,7 @@ export default function LocationPage() {
             className="w-full h-14 rounded-[2rem] bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-2xl transition-all disabled:opacity-50"
           >
             {isBroadcasting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
-            Broadcast SOS Telemetry
+            Broadcast Rescue Telemetry
           </Button>
         </div>
       </aside>
@@ -395,7 +423,7 @@ export default function LocationPage() {
                   className="pointer-events-auto"
                 >
                   <Card className="bg-background/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-border flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-1 bg-primary h-full" />
+                    <div className={cn("absolute top-0 left-0 w-1 h-full", selectedHospital.sector === 'Government' ? "bg-blue-500" : "bg-primary")} />
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="h-14 w-14 rounded-[1.5rem] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                         <RouteIcon className="h-7 w-7" />
@@ -403,7 +431,7 @@ export default function LocationPage() {
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <Badge className="bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest border-none px-2 shrink-0">Navigation Active</Badge>
-                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest truncate">Routing to:</span>
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest truncate">{selectedHospital.sector} sector routing:</span>
                         </div>
                         <h3 className="text-xl font-black uppercase tracking-tight text-foreground leading-none truncate">{selectedHospital.name}</h3>
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest truncate">{selectedHospital.specialty}</p>
