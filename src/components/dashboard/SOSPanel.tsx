@@ -102,9 +102,9 @@ export function SOSPanel() {
 
     setIsDispatching(true);
     
-    // Fallback coordinates set to New Delhi, India
-    const lat = currentCoords?.lat ?? 28.6139;
-    const lng = currentCoords?.lng ?? 77.2090;
+    // Fallback coordinates set to Bhubaneswar, India (Near KIIMS)
+    const lat = currentCoords?.lat ?? 20.3517;
+    const lng = currentCoords?.lng ?? 85.8189;
     const message = `CRITICAL SOS: SunCare Alert AI detected a thermal emergency. Rescue required immediately. Live Location: https://www.google.com/maps?q=${lat},${lng}`;
 
     // SEQUENTIAL BROADCAST: Dispatch to EVERY person in the Established Nodes list
@@ -219,7 +219,7 @@ export function SOSPanel() {
                   className="h-10 bg-muted/30 border-transparent rounded-xl text-xs font-bold focus:bg-background focus:border-primary transition-all" 
                   value={newName} 
                   onChange={e => setNewName(e.target.value)} 
-                  placeholder="Write Your Name" 
+                  placeholder="Responder Name" 
                 />
               </div>
               <div className="space-y-1">

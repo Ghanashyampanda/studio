@@ -65,8 +65,8 @@ export default function LocationPage() {
   const { toast } = useToast();
   const router = useRouter();
   
-  // Default centered on New Delhi, India for regional localization
-  const [coords, setCoords] = useState({ lat: 28.6139, lng: 77.2090 });
+  // Default centered on Bhubaneswar, Odisha (Near KIIMS)
+  const [coords, setCoords] = useState({ lat: 20.3517, lng: 85.8189 });
   const [hospitals, setHospitals] = useState<HospitalNode[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -109,13 +109,13 @@ export default function LocationPage() {
         distanceVal: dist,
         distance: dist.toFixed(2) + ' km',
         time: timeMin + ' min',
-        specialty: e.tags.specialty || 'General Emergency',
+        specialty: e.tags.specialty || (e.tags.name?.toLowerCase().includes('kiims') ? 'Multi-Specialty & Research' : 'General Emergency'),
         size: dist < 2 ? 'Immediate' : dist < 5 ? 'Close' : 'Regional'
       };
     }).filter(Boolean);
 
     const sortedNodes = nodes.sort((a: any, b: any) => a.distanceVal - b.distanceVal);
-    setHospitals(sortedNodes.slice(0, 10));
+    setHospitals(sortedNodes.slice(0, 12));
     
     if (sortedNodes.length === 0) {
       toast({ 
@@ -123,19 +123,33 @@ export default function LocationPage() {
         description: "No registered medical facilities detected within 10km. Using tactical fallback.", 
         variant: "destructive" 
       });
-      // Fallback to a single generic node to ensure routing remains possible
-      setHospitals([{
-        id: 'fallback-node',
-        name: 'Regional Emergency Center',
-        type: 'General Medical Node',
-        lat: centerLat + 0.02,
-        lng: centerLng + 0.02,
-        distanceVal: 2.5,
-        distance: '2.50 km',
-        time: '8 min',
-        specialty: 'Emergency Recovery',
-        size: 'Regional'
-      }]);
+      // Fallback to prominent regional nodes (KIIMS, SUM, etc.)
+      setHospitals([
+        {
+          id: 'fallback-kiims',
+          name: 'Kalinga Institute of Medical Sciences (KIIMS)',
+          type: 'Primary Trauma Hospital',
+          lat: 20.3517,
+          lng: 85.8189,
+          distanceVal: 0.5,
+          distance: '0.50 km',
+          time: '2 min',
+          specialty: 'Advanced Tertiary Care',
+          size: 'Immediate'
+        },
+        {
+          id: 'fallback-sum',
+          name: 'SUM Hospital',
+          type: 'Trauma Hospital',
+          lat: 20.2961,
+          lng: 85.7756,
+          distanceVal: 6.2,
+          distance: '6.20 km',
+          time: '12 min',
+          specialty: 'Emergency Medicine',
+          size: 'Regional'
+        }
+      ]);
     }
   }, [toast]);
 
@@ -165,27 +179,27 @@ export default function LocationPage() {
       });
       setHospitals([
         {
-          id: 'emergency-1',
-          name: 'Area Trauma Center',
+          id: 'emergency-kiims',
+          name: 'KIIMS Hospital',
           type: 'Primary Recovery Hub',
-          lat: lat + 0.015,
-          lng: lng + 0.01,
-          distanceVal: 1.8,
-          distance: '1.80 km',
-          time: '5 min',
-          specialty: 'Emergency Care',
+          lat: lat + 0.005,
+          lng: lng + 0.005,
+          distanceVal: 0.8,
+          distance: '0.80 km',
+          time: '3 min',
+          specialty: 'Advanced Emergency',
           size: 'Immediate'
         },
         {
-          id: 'emergency-2',
-          name: 'City Urgent Clinic',
+          id: 'emergency-sum',
+          name: 'SUM Ultimate Medicare',
           type: 'Secondary Node',
-          lat: lat - 0.01,
+          lat: lat - 0.015,
           lng: lng - 0.02,
-          distanceVal: 3.2,
-          distance: '3.20 km',
-          time: '10 min',
-          specialty: 'Rapid Response',
+          distanceVal: 2.8,
+          distance: '2.80 km',
+          time: '8 min',
+          specialty: 'Critical Care',
           size: 'Close'
         }
       ]);
@@ -213,7 +227,7 @@ export default function LocationPage() {
         },
         () => {
           setIsLocating(false);
-          toast({ title: "GPS Timeout", description: "Using regional tactical coordinates.", variant: "destructive" });
+          toast({ title: "GPS Timeout", description: "Using regional tactical coordinates (Bhubaneswar).", variant: "destructive" });
           fetchNearbyHospitals(coords.lat, coords.lng); 
         },
         { enableHighAccuracy: true, timeout: 8000 }
