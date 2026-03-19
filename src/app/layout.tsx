@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Navbar } from '@/components/Navbar';
-import { ChatWidget } from '@/components/ChatWidget';
 
 export const metadata: Metadata = {
   title: 'SunCare Alert | AI-Powered Sunstroke Detection',
@@ -25,7 +24,6 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <Navbar />
           {children}
-          <ChatWidget />
         </FirebaseClientProvider>
       </body>
     </html>

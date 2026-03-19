@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -8,12 +7,11 @@ import { RiskAssessment } from '@/components/dashboard/RiskAssessment';
 import { SOSPanel } from '@/components/dashboard/SOSPanel';
 import { GuidancePanel } from '@/components/dashboard/GuidancePanel';
 import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
-import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { HabitsTracker } from '@/components/dashboard/HabitsTracker';
 import { TodoSection } from '@/components/dashboard/TodoSection';
-import { Shield, Thermometer, Activity, LayoutDashboard, Bell, Loader2, Zap, MapPin, Clock, ShieldAlert } from 'lucide-react';
+import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -34,7 +32,7 @@ export default function DashboardPage() {
       limit(20)
     );
   }, [db, user]);
-  const { data: vitalsData, isLoading: isVitalsLoading } = useCollection(vitalsQuery);
+  const { data: vitalsData } = useCollection(vitalsQuery);
   
   const defaultVitals = {
     bodyTemperatureC: 37.0,
@@ -67,7 +65,6 @@ export default function DashboardPage() {
   // AUTOMATED AI ALERT: Detect critical thresholds and escalate immediately
   useEffect(() => {
     if (latestVitals.bodyTemperatureC >= 40.0) {
-      // Trigger instant rescue protocol
       router.push('/alert-sim');
     }
   }, [latestVitals.bodyTemperatureC, router]);
@@ -234,7 +231,6 @@ export default function DashboardPage() {
               <HabitsTracker />
               <TodoSection />
             </div>
-            <VitalsHistoryChart data={vitalsData || []} />
           </div>
           
           <div className="space-y-6">
