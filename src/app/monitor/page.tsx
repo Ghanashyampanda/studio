@@ -208,7 +208,7 @@ export default function MonitorPage() {
                   <div className="space-y-1">
                     <h3 className="text-xl font-black uppercase tracking-tight">⚠️ CRITICAL THERMAL EVENT</h3>
                     <p className="text-xs font-bold uppercase tracking-widest opacity-80">
-                      Core temperature exceeds 40.7°C threshold. SOS protocol initiated.
+                      Body temperature exceeds 40.7°C threshold. SOS protocol initiated.
                     </p>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export default function MonitorPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <VitalsCard 
-            title="Current Core Temp" 
+            title="Current Body Temp" 
             value={latestVitals.bodyTemp} 
             unit="°C" 
             icon={Thermometer} 

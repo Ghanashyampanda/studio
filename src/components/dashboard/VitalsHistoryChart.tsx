@@ -88,7 +88,7 @@ export function VitalsHistoryChart({ data }: VitalsHistoryChartProps) {
                 strokeWidth={4} 
                 fillOpacity={1} 
                 fill="url(#colorTemp)" 
-                name="Core Temperature"
+                name="Body Temperature"
                 animationDuration={1500}
               />
               <Area 

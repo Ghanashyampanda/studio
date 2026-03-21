@@ -35,9 +35,9 @@ export function ConfigPanel() {
         outsideTemperatureC: ambientTemp,
         humidityPercentage: 50,
         heatIndexC: ambientTemp + 3,
-        // Simulation localized to New Delhi, India
-        latitude: 28.6139,
-        longitude: 77.2090,
+        // Simulation localized to Bhubaneswar, India
+        latitude: 20.3517,
+        longitude: 85.8189,
         deviceType: 'AI Simulator'
       });
     }, 15000);
@@ -61,8 +61,8 @@ export function ConfigPanel() {
       humidityPercentage: 45,
       heatIndexC: ambient + 2,
       // Localized manual override coordinates
-      latitude: 28.6139,
-      longitude: 77.2090,
+      latitude: 20.3517,
+      longitude: 85.8189,
       deviceType: 'Manual Override'
     });
   };
@@ -84,7 +84,7 @@ export function ConfigPanel() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
-                <Thermometer className="h-4 w-4" /> Core Temperature
+                <Thermometer className="h-4 w-4" /> Body Temperature
               </Label>
               <span className={`text-sm font-black font-mono px-3 py-1 rounded-lg bg-muted ${currentTemp > 39 ? 'text-secondary' : 'text-primary'}`}>
                 {currentTemp.toFixed(1)}°C

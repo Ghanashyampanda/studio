@@ -198,7 +198,7 @@ export default function SimulatorPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
-                      <Thermometer className="h-4 w-4" /> Core Temperature
+                      <Thermometer className="h-4 w-4" /> Body Temperature
                     </label>
                     <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg transition-colors", bodyTemp > 39 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
                       {bodyTemp.toFixed(1)}°C
