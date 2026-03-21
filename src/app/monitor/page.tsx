@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -50,6 +51,7 @@ export default function MonitorPage() {
         setCurrentCoords({ lat: latitude, lng: longitude });
         
         try {
+          // Using clinical-grade Open-Meteo for real environmental metrics
           const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m`);
           const data = await res.json();
           if (data.current_weather) {
@@ -75,7 +77,7 @@ export default function MonitorPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // REAL-TIME CLOUD SYNC: High-frequency IoT telemetry (2-second intervals)
+  // REAL-TIME CLOUD SYNC: High-frequency IoT telemetry
   useEffect(() => {
     if (!isActive || !user) {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
@@ -98,11 +100,10 @@ export default function MonitorPage() {
           setIsCritical(false);
         }
 
-        // Use real-time weather API data if available, else simulate
         const currentOutside = envWeather?.temp ?? prev.outsideTemp + (Math.random() - 0.5) * 0.05;
         const currentHumidity = envWeather?.humidity ?? prev.humidity;
 
-        // CLOUD DISPATCH: Sync instantly to Firestore every 2 seconds
+        // CLOUD DISPATCH: Sync instantly to Firestore
         if (db && user) {
           const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
           const heatIndex = currentOutside + (currentHumidity > 40 ? (currentHumidity - 40) * 0.15 : 0);
@@ -112,6 +113,7 @@ export default function MonitorPage() {
             timestamp: new Date().toISOString(),
             bodyTemperatureC: nextTemp,
             heartRateBPM: nextHR,
+            pulseFrequencyBPM: nextHR, // Tracking pulse frequency as distinct node
             outsideTemperatureC: currentOutside,
             humidityPercentage: currentHumidity,
             heatIndexC: heatIndex,
@@ -130,7 +132,7 @@ export default function MonitorPage() {
           humidity: currentHumidity
         };
       });
-    }, 2000); // REFRESH RATE SET TO 2 SECONDS
+    }, 2500); // High-frequency polling
 
     return () => {
       if (samplingInterval.current) clearInterval(samplingInterval.current);

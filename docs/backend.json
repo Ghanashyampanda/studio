@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -55,15 +56,19 @@
     "VitalSignData": {
       "title": "VitalSignData",
       "type": "object",
-      "description": "Records vital signs data.",
+      "description": "Records vital signs and environmental telemetry.",
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
         "bodyTemperatureC": { "type": "number" },
-        "heartRateBpm": { "type": "number" }
+        "heartRateBPM": { "type": "number" },
+        "outsideTemperatureC": { "type": "number" },
+        "pulseFrequencyBPM": { "type": "number" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
       },
-      "required": ["id", "userId", "timestamp", "bodyTemperatureC", "heartRateBpm"]
+      "required": ["id", "userId", "timestamp", "bodyTemperatureC", "heartRateBPM", "outsideTemperatureC", "latitude", "longitude"]
     }
   },
   "auth": {
