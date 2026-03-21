@@ -99,7 +99,7 @@ export function VitalsHistoryChart({ data }: VitalsHistoryChartProps) {
                 strokeWidth={2} 
                 strokeDasharray="6 6"
                 fill="transparent"
-                name="Ambient Heat"
+                name="Environment Temperature"
               />
             </AreaChart>
           </ResponsiveContainer>

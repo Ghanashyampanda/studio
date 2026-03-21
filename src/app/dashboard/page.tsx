@@ -177,7 +177,7 @@ export default function DashboardPage() {
             status={hrStatus}
           />
           <VitalsCard 
-            title="Ambient Heat" 
+            title="Environment Temperature" 
             value={latestVitals.outsideTemperatureC} 
             unit="°C" 
             icon={Thermometer} 
