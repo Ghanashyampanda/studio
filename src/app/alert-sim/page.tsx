@@ -9,7 +9,6 @@ import { ShieldAlert, X, Navigation, Loader2, Zap, CheckCircle2 } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { cn } from '@/lib/utils';
 import { sendEmergencyFcm } from '@/app/actions/alerts';
 import { sendEmergencySms } from '@/app/actions/sms';
 
@@ -82,11 +81,12 @@ export default function AlertSimPage() {
     for (const contact of contacts) {
       setCurrentNodeName(contact.name);
       try {
-        if (contact.type === 'fcm' || contact.fcmToken) {
-          await sendEmergencyFcm(contact.fcmToken || 'token-placeholder', message);
+        if (contact.fcmToken) {
+          await sendEmergencyFcm(contact.fcmToken, message);
         }
-        if (contact.type === 'phone' || contact.phoneNumber) {
-          await sendEmergencySms(contact.phoneNumber || 'phone-placeholder', message);
+        if (contact.phoneNumber) {
+          // AUTOMATIC REAL DISPATCH via TWILIO
+          await sendEmergencySms(contact.phoneNumber, message);
         }
       } catch (err) {
         console.error(`Alert Sim: Failed to signal ${contact.name}`, err);
@@ -95,7 +95,7 @@ export default function AlertSimPage() {
       await new Promise(r => setTimeout(r, 400));
     }
 
-    // Standardized Data Storage as requested
+    // Standardized Data Storage
     const alertRef = collection(db, 'users', user.uid, 'alert_history');
     addDocumentNonBlocking(alertRef, {
       message: "⚠️ Sunstroke detected!",
@@ -111,7 +111,7 @@ export default function AlertSimPage() {
       locationAtAlertLatitude: lat,
       locationAtAlertLongitude: lng,
       emergencyContactIds: contacts.map(c => c.id),
-      protocol: `Multi-Node Broadcast to all ${contacts.length} Responders`
+      protocol: `Automatic Twilio Broadcast to all ${contacts.length} Responders`
     });
 
     setIsSignaling(false);
@@ -158,7 +158,7 @@ export default function AlertSimPage() {
               {!isSignaling && !isComplete ? (
                 <div className="text-center space-y-4">
                   <div className="text-8xl font-black text-red-600 tracking-tighter tabular-nums">{countdown}</div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Dispatch Sequence...</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Automatic Dispatch...</p>
                 </div>
               ) : isSignaling ? (
                 <div className="text-center space-y-6">
@@ -177,13 +177,13 @@ export default function AlertSimPage() {
                   <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-100 text-center space-y-2">
                     <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
                     <p className="text-sm font-black text-emerald-700 uppercase">SOS Dispatched</p>
-                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">Emergency contacts notified with live location.</p>
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none">Emergency contacts notified via Twilio SMS.</p>
                   </div>
                   
                   <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 text-center space-y-4">
                     <div className="space-y-1">
                       <p className="text-sm font-black text-primary uppercase">Manual Confirmation</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send a direct message to your primary contact.</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Send a secondary direct message if needed.</p>
                     </div>
                     <Button onClick={handleNativeSMSDispatch} className="w-full h-14 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl">
                       Send Primary SMS

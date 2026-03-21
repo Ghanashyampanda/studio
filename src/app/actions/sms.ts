@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -22,8 +21,8 @@ const client = (accountSid && authToken) ? twilio(accountSid, authToken) : null;
  * @returns An object indicating the dispatch status.
  */
 export async function sendEmergencySms(to: string, message: string) {
-  if (!client) {
-    console.warn("[RESCUE PROTOCOL] Twilio credentials missing. Reverting to Simulation Mode.");
+  if (!client || !fromNumber) {
+    console.warn("[RESCUE PROTOCOL] Twilio configuration incomplete. Reverting to Simulation Mode.");
     await new Promise(resolve => setTimeout(resolve, 800));
     return { 
       success: true, 
@@ -41,13 +40,14 @@ export async function sendEmergencySms(to: string, message: string) {
       to: to
     });
 
-    console.info(`[RESCUE PROTOCOL] SMS Dispatched via Twilio. SID: ${result.sid}`);
+    console.info(`[RESCUE PROTOCOL] SMS Dispatched via Twilio. SID: ${result.sid} to ${to}`);
 
     return { 
       success: true, 
       id: result.sid,
       provider: 'Twilio Cloud Dispatch',
       messagePreview: message,
+      destination: to,
       timestamp: new Date().toISOString()
     };
   } catch (error: any) {
