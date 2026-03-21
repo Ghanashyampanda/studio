@@ -91,10 +91,9 @@ export default function DashboardPage() {
   }, [db, user]);
   const { data: prefs } = useDoc(prefsRef);
   
-  // TACTICAL THRESHOLDS: Updated Heart Rate limit to 80 BPM as per user directive
+  // TACTICAL THRESHOLDS: Focused purely on temperature parameters
   const thresholds = {
     tempMax: prefs?.maxBodyTemperatureThresholdC || 39.5,
-    hrMax: 80 // OVERRIDDEN TO 80 BPM LIMIT
   };
 
   // AUTOMATED AI ALERT: Detect critical thresholds (>= 40.7°C) and escalate immediately
@@ -115,7 +114,9 @@ export default function DashboardPage() {
 
   const isCritical = latestVitals.bodyTemperatureC >= 40.7;
   const tempStatus = latestVitals.bodyTemperatureC >= 40.7 ? 'critical' : latestVitals.bodyTemperatureC > thresholds.tempMax ? 'warning' : 'normal';
-  const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 10 ? 'warning' : 'normal';
+  
+  // HEART RATE IS NOW INFORMATIONAL ONLY
+  const hrStatus = 'normal';
 
   return (
     <div className={cn(
@@ -209,7 +210,7 @@ export default function DashboardPage() {
             value={latestVitals.heartRateBPM} 
             unit="BPM" 
             icon={Activity} 
-            status={hrStatus}
+            status="normal"
           />
           <VitalsCard 
             title="Environment Temperature" 
@@ -223,7 +224,7 @@ export default function DashboardPage() {
             value={latestVitals.heartRateBPM} 
             unit="BPM" 
             icon={Zap} 
-            status={hrStatus}
+            status="normal"
           />
         </div>
 

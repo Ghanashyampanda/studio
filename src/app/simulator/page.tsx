@@ -68,20 +68,20 @@ export default function SimulatorPage() {
   /**
    * REAL-TIME RISK CALCULATION
    * Updates instantly as sliders move to provide immediate feedback.
+   * Focuses exclusively on temperature and environment.
    */
   const liveRiskData = useMemo(() => {
     // 1. Environmental Heat Index Base
     const heatIndex = outsideTemp + (humidity > 40 ? (humidity - 40) * 0.15 : 0);
     
-    // 2. Physiological Stress Calculation
+    // 2. Physiological Stress Calculation (HEART RATE REMOVED AS PER DIRECTIVE)
     const tempStress = Math.max(0, (bodyTemp - 37) * 22); // High weight for core temp
-    const hrStress = Math.max(0, (heartRate - 70) * 0.35); // Cardivascular impact
     
     const activityMultipliers = { 'Resting': 0.8, 'Light': 1.0, 'Moderate': 1.3, 'Heavy': 1.8 };
     const activityFactor = activityMultipliers[activity];
 
     const envImpact = (heatIndex - 20) * 1.4; 
-    const totalScore = Math.min(100, Math.max(5, Math.round((envImpact + tempStress + hrStress) * activityFactor)));
+    const totalScore = Math.min(100, Math.max(5, Math.round((envImpact + tempStress) * activityFactor)));
 
     // 3. Determine Risk State
     let level: 'low' | 'moderate' | 'high' | 'critical' = 'low';
@@ -90,7 +90,7 @@ export default function SimulatorPage() {
     else if (totalScore > 35) level = 'moderate';
 
     return { score: totalScore, level, heatIndex: heatIndex.toFixed(1) };
-  }, [bodyTemp, outsideTemp, humidity, heartRate, activity]);
+  }, [bodyTemp, outsideTemp, humidity, activity]);
 
   const handleSimulate = useCallback(async () => {
     if (!user) return;
@@ -101,7 +101,7 @@ export default function SimulatorPage() {
     try {
       const result = await predictSunstrokeRisk({
         bodyTemperature: bodyTemp,
-        heartRate: heartRate,
+        heartRate: heartRate, // Still passed but ignored by AI logic
         activityLevel: ACTIVITY_MAPPING[activity],
         humidity: humidity,
         heatIndex: parseFloat(liveRiskData.heatIndex),
@@ -207,13 +207,13 @@ export default function SimulatorPage() {
                   <Slider min={36} max={42} step={0.1} value={[bodyTemp]} onValueChange={([v]) => setBodyTemp(v)} />
                 </div>
 
-                {/* Heart Rate */}
+                {/* Heart Rate (Informational only) */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-muted-foreground flex items-center gap-2">
-                      <Heart className="h-4 w-4" /> Cardiac Rhythm
+                      <Heart className="h-4 w-4" /> Cardiac Rhythm (Informational)
                     </label>
-                    <span className={cn("text-sm font-black font-mono px-3 py-1 rounded-lg transition-colors", heartRate > 140 ? "bg-red-50 text-red-600" : "bg-primary/5 text-primary")}>
+                    <span className="text-sm font-black font-mono bg-primary/5 text-primary px-3 py-1 rounded-lg">
                       {heartRate} BPM
                     </span>
                   </div>
@@ -332,7 +332,7 @@ export default function SimulatorPage() {
                        </div>
                        <div className="h-1 w-1 rounded-full bg-slate-300" />
                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                         <Activity className="h-3.5 w-3.5 text-primary" /> Live Telemetry Linked
+                         <Activity className="h-3.5 w-3.5 text-primary" /> Temperature Focus Active
                        </div>
                     </div>
                   </div>
@@ -437,7 +437,7 @@ export default function SimulatorPage() {
               <div className="space-y-2 text-center md:text-left">
                 <h4 className="text-sm font-black uppercase tracking-tight text-orange-700 dark:text-orange-400">Simulation Disclaimer</h4>
                 <p className="text-[10px] text-orange-600/80 dark:text-orange-500/80 font-bold uppercase tracking-widest leading-relaxed">
-                  Real-time scoring uses heuristic stress modeling for instant feedback. For deep analysis, trigger the Neural Forensic node. Always prioritize emergency medical intervention in high-risk zones.
+                  Risk detection is focused primarily on Body Temperature and Environment. Heart rate is tracked for data context only. Always prioritize emergency medical intervention in high-risk zones.
                 </p>
               </div>
             </div>

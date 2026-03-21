@@ -252,7 +252,7 @@ export default function MonitorPage() {
             value={latestVitals.heartRate} 
             unit="BPM" 
             icon={Heart} 
-            status={latestVitals.heartRate > 80 ? 'critical' : 'normal'}
+            status="normal"
           />
           <VitalsCard 
             title="Live GPS Lock" 
