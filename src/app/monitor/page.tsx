@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -30,6 +31,7 @@ export default function MonitorPage() {
   const [isActive, setIsActive] = useState(true);
   const [isCritical, setIsCritical] = useState(false);
   const [currentCoords, setCurrentCoords] = useState({ lat: 20.3517, lng: 85.8189 });
+  const [envWeather, setEnvWeather] = useState<{ temp: number; humidity: number } | null>(null);
   
   const [latestVitals, setLatestVitals] = useState({
     bodyTemp: 37.0,
@@ -40,15 +42,32 @@ export default function MonitorPage() {
 
   const samplingInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Acquire GPS for telemetry simulation
+  // Acquire GPS and Real-time Environmental data for telemetry synchronization
   useEffect(() => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => setCurrentCoords({ lat: position.coords.latitude, lng: position.coords.longitude }),
-        (err) => console.warn("Monitor GPS Sync failed", err),
-        { enableHighAccuracy: true }
-      );
-    }
+    const fetchEnvironment = async () => {
+      if (typeof window === 'undefined' || !navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentCoords({ lat: latitude, lng: longitude });
+        
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m`);
+          const data = await res.json();
+          if (data.current_weather) {
+            setEnvWeather({
+              temp: data.current_weather.temperature,
+              humidity: data.hourly?.relative_humidity_2m?.[0] || 45
+            });
+          }
+        } catch (e) {
+          console.warn("Monitor: Weather API fail-safe engaged.");
+        }
+      }, (err) => console.warn("Monitor GPS Sync failed", err), { enableHighAccuracy: true });
+    };
+
+    fetchEnvironment();
+    const weatherSync = setInterval(fetchEnvironment, 120000);
+    return () => clearInterval(weatherSync);
   }, []);
 
   useEffect(() => {
@@ -75,19 +94,19 @@ export default function MonitorPage() {
         // CRITICAL DETECTION: Automatic Escalation if >= 40.7°C
         if (nextTemp >= 40.7) {
           setIsCritical(true);
-          // Wait briefly before redirecting to allow user to see critical state
           setTimeout(() => router.push('/alert-sim'), 2000);
         } else {
           setIsCritical(false);
         }
 
-        const outsideShift = (Math.random() - 0.5) * 0.05;
-        const currentOutside = prev.outsideTemp + outsideShift;
+        // Use real-time weather API data if available, else simulate
+        const currentOutside = envWeather?.temp ?? prev.outsideTemp + (Math.random() - 0.5) * 0.05;
+        const currentHumidity = envWeather?.humidity ?? prev.humidity;
 
         // CLOUD DISPATCH: Sync instantly to Firestore for Dashboard reactivity
         if (db && user) {
           const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
-          const heatIndex = currentOutside + (prev.humidity > 40 ? (prev.humidity - 40) * 0.15 : 0);
+          const heatIndex = currentOutside + (currentHumidity > 40 ? (currentHumidity - 40) * 0.15 : 0);
           
           addDocumentNonBlocking(vitalsRef, {
             userId: user.uid,
@@ -95,7 +114,7 @@ export default function MonitorPage() {
             bodyTemperatureC: nextTemp,
             heartRateBPM: nextHR,
             outsideTemperatureC: currentOutside,
-            humidityPercentage: prev.humidity,
+            humidityPercentage: currentHumidity,
             heatIndexC: heatIndex,
             activityLevel: 'moderate',
             deviceType: 'Live IoT Hub',
@@ -108,7 +127,8 @@ export default function MonitorPage() {
           ...prev,
           bodyTemp: nextTemp,
           heartRate: nextHR,
-          outsideTemp: currentOutside
+          outsideTemp: currentOutside,
+          humidity: currentHumidity
         };
       });
     }, 2500);
@@ -116,7 +136,7 @@ export default function MonitorPage() {
     return () => {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
     };
-  }, [isActive, user, db, router, currentCoords]);
+  }, [isActive, user, db, router, currentCoords, envWeather]);
 
   if (isUserLoading || !user) {
     return (

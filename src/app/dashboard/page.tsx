@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -10,7 +11,7 @@ import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert, Zap } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -21,6 +22,36 @@ export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
+  const [weatherData, setWeatherData] = useState<{ temp: number; humidity: number } | null>(null);
+
+  // ENVIRONMENTAL SYNC: Fetch real-time weather using GPS location
+  useEffect(() => {
+    const fetchRealTimeWeather = async () => {
+      if (typeof window === 'undefined' || !navigator.geolocation) return;
+      
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Using Open-Meteo API (Clinical-grade, no-key required for non-commercial prototype)
+          // Similar to OpenWeatherMap structure
+          const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m`);
+          const data = await response.json();
+          if (data.current_weather) {
+            setWeatherData({
+              temp: data.current_weather.temperature,
+              humidity: data.hourly?.relative_humidity_2m?.[0] || 45
+            });
+          }
+        } catch (error) {
+          console.warn("Environmental Monitoring: Weather API Sync Failed", error);
+        }
+      }, (error) => console.warn("Environmental Monitoring: Location Access Denied", error), { enableHighAccuracy: true });
+    };
+
+    fetchRealTimeWeather();
+    const weatherInterval = setInterval(fetchRealTimeWeather, 120000); // 2 minute refresh
+    return () => clearInterval(weatherInterval);
+  }, []);
 
   // REAL-TIME DATA HUB: Listen for the latest biometric telemetry
   const vitalsQuery = useMemoFirebase(() => {
@@ -47,8 +78,14 @@ export default function DashboardPage() {
 
   const latestVitals = {
     ...defaultVitals,
-    ...(vitalsData?.[0] || {})
+    ...(vitalsData?.[0] || {}),
+    // PRIORITIZE REAL-TIME API DATA for Environment if available
+    outsideTemperatureC: weatherData?.temp ?? (vitalsData?.[0]?.outsideTemperatureC || defaultVitals.outsideTemperatureC),
+    humidityPercentage: weatherData?.humidity ?? (vitalsData?.[0]?.humidityPercentage || defaultVitals.humidityPercentage),
   };
+
+  // RECALCULATE HEAT INDEX using real environmental metrics
+  latestVitals.heatIndexC = latestVitals.outsideTemperatureC + (latestVitals.humidityPercentage > 40 ? (latestVitals.humidityPercentage - 40) * 0.15 : 0);
 
   const prefsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -64,7 +101,6 @@ export default function DashboardPage() {
   // AUTOMATED AI ALERT: Detect critical thresholds (>= 40.7°C) and escalate immediately
   useEffect(() => {
     if (latestVitals.bodyTemperatureC >= 40.7) {
-      // Immediate notification as requested
       window.alert("⚠️ Sunstroke Detected! Immediate action required. SOS Protocol Initialized.");
       router.push('/alert-sim');
     }
