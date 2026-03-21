@@ -60,7 +60,7 @@ export default function SignupPage() {
         id: 'current',
         userId: user.uid,
         maxBodyTemperatureThresholdC: 39.5,
-        maxHeartRateThresholdBPM: 140,
+        maxHeartRateThresholdBPM: 80, // UPDATED TO 80 BPM LIMIT
         minHeartRateThresholdBPM: 50,
         notificationSensitivity: 'medium',
         enableAutomatedAlerts: true,
@@ -100,7 +100,7 @@ export default function SignupPage() {
         id: 'current',
         userId: user.uid,
         maxBodyTemperatureThresholdC: 39.5,
-        maxHeartRateThresholdBPM: 140,
+        maxHeartRateThresholdBPM: 80, // UPDATED TO 80 BPM LIMIT
         minHeartRateThresholdBPM: 50,
         notificationSensitivity: 'medium',
         enableAutomatedAlerts: true,

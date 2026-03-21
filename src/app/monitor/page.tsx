@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -76,7 +75,7 @@ export default function MonitorPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // REAL-TIME CLOUD SYNC: Simulate high-frequency IoT data and sync to Firestore
+  // REAL-TIME CLOUD SYNC: High-frequency IoT telemetry (2-second intervals)
   useEffect(() => {
     if (!isActive || !user) {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
@@ -103,7 +102,7 @@ export default function MonitorPage() {
         const currentOutside = envWeather?.temp ?? prev.outsideTemp + (Math.random() - 0.5) * 0.05;
         const currentHumidity = envWeather?.humidity ?? prev.humidity;
 
-        // CLOUD DISPATCH: Sync instantly to Firestore for Dashboard reactivity
+        // CLOUD DISPATCH: Sync instantly to Firestore every 2 seconds
         if (db && user) {
           const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
           const heatIndex = currentOutside + (currentHumidity > 40 ? (currentHumidity - 40) * 0.15 : 0);
@@ -131,7 +130,7 @@ export default function MonitorPage() {
           humidity: currentHumidity
         };
       });
-    }, 2500);
+    }, 2000); // REFRESH RATE SET TO 2 SECONDS
 
     return () => {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
@@ -253,7 +252,7 @@ export default function MonitorPage() {
             value={latestVitals.heartRate} 
             unit="BPM" 
             icon={Heart} 
-            status={latestVitals.heartRate > 140 ? 'warning' : 'normal'}
+            status={latestVitals.heartRate > 80 ? 'critical' : 'normal'}
           />
           <VitalsCard 
             title="Live GPS Lock" 

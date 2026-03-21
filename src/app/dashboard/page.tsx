@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -33,7 +32,6 @@ export default function DashboardPage() {
         const { latitude, longitude } = position.coords;
         try {
           // Using Open-Meteo API (Clinical-grade, no-key required for non-commercial prototype)
-          // Similar to OpenWeatherMap structure
           const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m`);
           const data = await response.json();
           if (data.current_weather) {
@@ -93,9 +91,10 @@ export default function DashboardPage() {
   }, [db, user]);
   const { data: prefs } = useDoc(prefsRef);
   
+  // TACTICAL THRESHOLDS: Updated Heart Rate limit to 80 BPM as per user directive
   const thresholds = {
     tempMax: prefs?.maxBodyTemperatureThresholdC || 39.5,
-    hrMax: prefs?.maxHeartRateThresholdBPM || 140
+    hrMax: 80 // OVERRIDDEN TO 80 BPM LIMIT
   };
 
   // AUTOMATED AI ALERT: Detect critical thresholds (>= 40.7°C) and escalate immediately
@@ -116,7 +115,7 @@ export default function DashboardPage() {
 
   const isCritical = latestVitals.bodyTemperatureC >= 40.7;
   const tempStatus = latestVitals.bodyTemperatureC >= 40.7 ? 'critical' : latestVitals.bodyTemperatureC > thresholds.tempMax ? 'warning' : 'normal';
-  const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 20 ? 'warning' : 'normal';
+  const hrStatus = latestVitals.heartRateBPM > thresholds.hrMax ? 'critical' : latestVitals.heartRateBPM > thresholds.hrMax - 10 ? 'warning' : 'normal';
 
   return (
     <div className={cn(
