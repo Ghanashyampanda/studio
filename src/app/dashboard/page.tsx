@@ -12,6 +12,7 @@ import { AIMonitoringPanel } from '@/components/dashboard/AIMonitoringPanel';
 import { AccuracyChart } from '@/components/dashboard/AccuracyChart';
 import { ConfusionMatrix } from '@/components/dashboard/ConfusionMatrix';
 import { RiskTimelineChart } from '@/components/dashboard/RiskTimelineChart';
+import { AIExplainabilityPanel } from '@/components/dashboard/AIExplainabilityPanel';
 import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert, Zap, BrainCircuit, Sparkles, Cpu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect, useState, useCallback } from 'react';
@@ -137,7 +138,7 @@ export default function DashboardPage() {
     } finally {
       setIsTraining(false);
     }
-  }, [vitalsData, latestVitals.bodyTemperatureC]);
+  }, [vitalsData, latestVitals.bodyTemperatureC, latestVitals.outsideTemperatureC, latestVitals.heartRateBPM, latestVitals.humidityPercentage, latestVitals.heatIndexC]);
 
   useEffect(() => {
     const timer = setTimeout(runLearnedPrediction, 3000);
@@ -253,6 +254,10 @@ export default function DashboardPage() {
                 prediction={learnedPrediction?.riskLevel || 'Safe'} 
                 totalRecords={vitalsData?.length || 0} 
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <AIExplainabilityPanel prediction={learnedPrediction} isLoading={isTraining} />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
