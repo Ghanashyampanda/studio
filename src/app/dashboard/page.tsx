@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -8,6 +9,8 @@ import { SOSPanel } from '@/components/dashboard/SOSPanel';
 import { GuidancePanel } from '@/components/dashboard/GuidancePanel';
 import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
+import { AIMonitoringPanel } from '@/components/dashboard/AIMonitoringPanel';
+import { AccuracyChart } from '@/components/dashboard/AccuracyChart';
 import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert, Zap, BrainCircuit, Sparkles, Cpu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect, useState, useCallback } from 'react';
@@ -64,6 +67,17 @@ export default function DashboardPage() {
     );
   }, [db, user]);
   const { data: vitalsData } = useCollection(vitalsQuery);
+
+  // ACCURACY HISTORY HUB: Listen for accuracy data points
+  const accuracyQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, 'users', user.uid, 'ai_accuracy_history'),
+      orderBy('timestamp', 'desc'),
+      limit(15)
+    );
+  }, [db, user]);
+  const { data: accuracyHistory } = useCollection(accuracyQuery);
   
   const defaultVitals = {
     bodyTemperatureC: 37.0,
@@ -142,7 +156,7 @@ export default function DashboardPage() {
 
   return (
     <div className={cn(
-      "min-h-screen pt-24 pb-12 transition-colors duration-700",
+      "min-h-screen pt-24 pb-12 transition-colors duration-700 font-body",
       isCritical ? "bg-red-50 dark:bg-red-950/20" : "bg-background"
     )}>
       <main className="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
@@ -157,7 +171,7 @@ export default function DashboardPage() {
               Surveillance <span className="text-primary">Console</span>
             </h1>
             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-              AI-Driven Biometrics for {user.displayName || 'Active User'}
+              Real-time IoT + AI Biometrics Hub
             </p>
           </div>
 
@@ -168,16 +182,16 @@ export default function DashboardPage() {
                 <div className="flex flex-col">
                   <span className="text-[8px] font-black uppercase text-muted-foreground">Neural Engine</span>
                   <span className="text-[10px] font-black uppercase text-foreground">
-                    {isTraining ? "Training..." : "System Ready"}
+                    {isTraining ? "Syncing..." : "Ready"}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 px-3">
-                <Cpu className="h-4 w-4 text-primary" />
+                <Clock className="h-4 w-4 text-primary" />
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-black uppercase text-muted-foreground">Learning Records</span>
+                  <span className="text-[8px] font-black uppercase text-muted-foreground">Last Refresh</span>
                   <span className="text-[10px] font-black uppercase text-foreground">
-                    {vitalsData?.length || 0} Nodes Synced
+                    {format(new Date(), 'HH:mm:ss')}
                   </span>
                 </div>
               </div>
@@ -211,7 +225,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <VitalsCard title="Body Temperature" value={latestVitals.bodyTemperatureC} unit="°C" icon={Thermometer} status={tempStatus} />
-          <VitalsCard title="AI Risk Confidence" value={learnedPrediction?.confidenceScore || 0} unit="%" icon={BrainCircuit} status={learnedPrediction?.riskLevel === 'low' ? 'normal' : 'warning'} />
+          <VitalsCard title="Heart Rate" value={latestVitals.heartRateBPM} unit="BPM" icon={Activity} status="normal" />
           <VitalsCard title="Environment Temp" value={latestVitals.outsideTemperatureC} unit="°C" icon={Thermometer} status={latestVitals.outsideTemperatureC > 35 ? 'warning' : 'normal'} />
           <VitalsCard title="Pulse Frequency" value={latestVitals.heartRateBPM} unit="BPM" icon={Activity} status="normal" />
         </div>
@@ -220,43 +234,21 @@ export default function DashboardPage() {
           <div className="xl:col-span-2 space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <RiskAssessment vitals={latestVitals} />
-              
-              <Card className="rounded-[2.5rem] bg-card border-none shadow-sm border p-8 flex flex-col justify-between">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                      <Sparkles className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none">Self-Learned Prediction</h3>
-                      <p className="text-lg font-black uppercase text-foreground">{learnedPrediction?.riskLevel || 'Analyzing...'}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground leading-relaxed italic">
-                    "{learnedPrediction?.explanation || 'Ingesting historical telemetry to build neural stability baseline.'}"
-                  </p>
-                </div>
-                <div className="pt-6 border-t mt-6">
-                  <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-primary">
-                    <span>Pattern Recognition</span>
-                    <span>98.2% Accurate</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-muted rounded-full mt-2 overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${learnedPrediction?.confidenceScore || 0}%` }}
-                      className="h-full bg-primary"
-                    />
-                  </div>
-                </div>
-              </Card>
+              <AIMonitoringPanel 
+                prediction={learnedPrediction?.riskLevel || 'Safe'} 
+                totalRecords={vitalsData?.length || 0} 
+              />
             </div>
             
-            <VitalsHistoryChart data={vitalsData || []} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <VitalsHistoryChart data={vitalsData || []} />
+              <AccuracyChart data={accuracyHistory || []} />
+            </div>
           </div>
           
           <div className="space-y-6">
             <SOSPanel />
+            <GuidancePanel vitals={latestVitals} />
             <ConfigPanel />
           </div>
         </div>

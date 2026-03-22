@@ -66,9 +66,30 @@
         "outsideTemperatureC": { "type": "number" },
         "pulseFrequencyBPM": { "type": "number" },
         "latitude": { "type": "number" },
-        "longitude": { "type": "number" }
+        "longitude": { "type": "number" },
+        "aiVerdict": { "type": "string" }
       },
       "required": ["id", "userId", "timestamp", "bodyTemperatureC", "heartRateBPM", "outsideTemperatureC", "latitude", "longitude"]
+    },
+    "AIMetrics": {
+      "title": "AIMetrics",
+      "type": "object",
+      "description": "Metadata for the self-learning AI model performance.",
+      "properties": {
+        "lastTrained": { "type": "string", "format": "date-time" },
+        "datasetSize": { "type": "number" },
+        "currentAccuracy": { "type": "number" },
+        "modelStatus": { "type": "string", "enum": ["Ready", "Training"] }
+      }
+    },
+    "AccuracyRecord": {
+      "title": "AccuracyRecord",
+      "type": "object",
+      "description": "Historical accuracy data point for charting.",
+      "properties": {
+        "accuracy": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -95,13 +116,13 @@
       "schema": { "$ref": "#/backend/entities/VitalSignData" },
       "description": "Historical biometric telemetry records."
     },
-    "/users/{userId}/user_settings/{settingId}": {
-      "schema": { "type": "object" },
-      "description": "User configuration and alert thresholds."
+    "/users/{userId}/ai_metrics/current": {
+      "schema": { "$ref": "#/backend/entities/AIMetrics" },
+      "description": "Active AI model performance metrics."
     },
-    "/users/{userId}/alert_history/{alertId}": {
-      "schema": { "type": "object" },
-      "description": "Audit log of triggered rescue events."
+    "/users/{userId}/ai_accuracy_history/{historyId}": {
+      "schema": { "$ref": "#/backend/entities/AccuracyRecord" },
+      "description": "Time-series data for AI accuracy visualization."
     }
   }
 }
