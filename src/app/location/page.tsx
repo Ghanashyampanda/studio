@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -406,42 +407,48 @@ export default function LocationPage() {
                   exit={{ y: -20, opacity: 0 }}
                   className="pointer-events-auto"
                 >
-                  <Card className="bg-background/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-border flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-                    <div className={cn("absolute top-0 left-0 w-1 h-full", selectedHospital.sector === 'Government' ? "bg-blue-500" : "bg-primary")} />
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="h-14 w-14 rounded-[1.5rem] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <RouteIcon className="h-7 w-7" />
+                  <Card className="bg-background/95 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-2xl border border-border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-8 overflow-hidden relative">
+                    <div className={cn("absolute top-0 left-0 w-1.5 h-full", selectedHospital.sector === 'Government' ? "bg-blue-500" : "bg-primary")} />
+                    
+                    <div className="flex items-center gap-5 flex-1 min-w-0">
+                      <div className="h-16 w-16 rounded-[1.75rem] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800 shadow-sm">
+                        <RouteIcon className="h-8 w-8" />
                       </div>
                       <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest border-none px-2 shrink-0">Navigation Active</Badge>
-                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest truncate">{selectedHospital.sector} sector routing:</span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="bg-primary/10 text-primary text-[8px] font-black uppercase tracking-[0.1em] border-none px-2.5 py-0.5 shrink-0">Navigation Active</Badge>
+                          <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest truncate">{selectedHospital.sector} sector routing</span>
                         </div>
-                        <h3 className="text-xl font-black uppercase tracking-tight text-foreground leading-none truncate">{selectedHospital.name}</h3>
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest truncate">{selectedHospital.specialty}</p>
+                        <h3 className="text-2xl font-black uppercase tracking-tighter text-foreground leading-none truncate">{selectedHospital.name}</h3>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate flex items-center gap-2 mt-1">
+                          <Stethoscope className="h-3.5 w-3.5 text-primary opacity-70" /> {selectedHospital.specialty}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 md:border-l md:pl-8 border-border">
-                      <div className="text-center md:text-left">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Ambulance</p>
-                        <p className="text-sm font-black text-foreground whitespace-nowrap bg-muted px-3 py-1.5 rounded-xl">{selectedHospital.contact}</p>
+                    <div className="flex flex-col md:flex-row items-center gap-10 md:border-l md:pl-10 border-border">
+                      <div className="flex items-center gap-10">
+                        <div className="space-y-1 text-center md:text-left">
+                          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">Ambulance</p>
+                          <p className="text-sm font-black text-foreground whitespace-nowrap tabular-nums bg-muted px-3.5 py-2 rounded-xl border border-border/50">{selectedHospital.contact}</p>
+                        </div>
+                        <div className="space-y-0 text-center md:text-left">
+                          <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">Live ETA</p>
+                          <p className="text-3xl font-black text-primary tracking-tighter whitespace-nowrap leading-none">{selectedHospital.time}</p>
+                        </div>
                       </div>
-                      <div className="text-center md:text-left">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Live ETA</p>
-                        <p className="text-2xl font-black text-primary tracking-tighter whitespace-nowrap">{selectedHospital.time}</p>
-                      </div>
-                      <div className="flex flex-col gap-2">
+
+                      <div className="flex flex-col gap-2 w-full md:w-auto min-w-[140px]">
                         <Button 
                           asChild
-                          className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[9px] px-4"
+                          className="h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[9px] px-6 shadow-xl shadow-emerald-600/20 transition-all active:scale-95"
                         >
                           <a href={`tel:${selectedHospital.contact.replace(/\s/g, '')}`}>
-                            <PhoneCall className="h-3 w-3 mr-2" />
+                            <PhoneCall className="h-3.5 w-3.5 mr-2" />
                             Call Dispatch
                           </a>
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedHospitalId(null)} className="h-8 rounded-lg text-[8px] font-black uppercase tracking-widest text-muted-foreground">
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedHospitalId(null)} className="h-9 rounded-xl text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted transition-colors">
                           Cancel Route
                         </Button>
                       </div>
