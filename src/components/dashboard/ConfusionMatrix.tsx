@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Target, AlertTriangle, ShieldCheck, Zap, Info } from 'lucide-react';
@@ -88,8 +88,8 @@ export function ConfusionMatrix({ matrix }: ConfusionMatrixProps) {
 
             {/* Matrix Rows */}
             {classes.map(actual => (
-              <>
-                <div key={`${actual}-label`} className="flex items-center justify-end pr-4 text-[8px] font-black uppercase text-muted-foreground">{actual}</div>
+              <React.Fragment key={actual}>
+                <div className="flex items-center justify-end pr-4 text-[8px] font-black uppercase text-muted-foreground">{actual}</div>
                 {classes.map(predicted => (
                   <motion.div 
                     key={`${actual}-${predicted}`}
@@ -104,7 +104,7 @@ export function ConfusionMatrix({ matrix }: ConfusionMatrixProps) {
                     <span className="text-[7px] font-bold uppercase opacity-60">Cases</span>
                   </motion.div>
                 ))}
-              </>
+              </React.Fragment>
             ))}
           </div>
         </div>
