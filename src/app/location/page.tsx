@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -31,7 +30,8 @@ import {
   Search,
   AlertCircle,
   Landmark,
-  ShieldPlus
+  ShieldPlus,
+  Phone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +61,7 @@ interface HospitalNode {
   specialty: string;
   size: string;
   sector: 'Government' | 'Private' | 'Unknown';
+  contact: string;
 }
 
 export default function LocationPage() {
@@ -146,6 +147,9 @@ export default function LocationPage() {
         sector = 'Private';
       }
 
+      // Extract Contact Data
+      const contact = e.tags['emergency:phone'] || e.tags.phone || e.tags['contact:phone'] || '108 (Dispatch)';
+
       return {
         id: e.id.toString(),
         name: name,
@@ -157,7 +161,8 @@ export default function LocationPage() {
         time: timeMin + ' min',
         specialty: e.tags.specialty || (name.toLowerCase().includes('kiims') ? 'Multi-Specialty & Research' : 'General Emergency'),
         size: dist < 2 ? 'Immediate' : dist < 5 ? 'Close' : 'Regional',
-        sector: sector
+        sector: sector,
+        contact: contact
       };
     }).filter(Boolean);
 
@@ -177,7 +182,8 @@ export default function LocationPage() {
           time: '2 min',
           specialty: 'Advanced Tertiary Care',
           size: 'Immediate',
-          sector: 'Private'
+          sector: 'Private',
+          contact: '+91 674 2725182'
         },
         {
           id: 'fb-aiims',
@@ -190,7 +196,8 @@ export default function LocationPage() {
           time: '15 min',
           specialty: 'Apex Tertiary Care',
           size: 'Regional',
-          sector: 'Government'
+          sector: 'Government',
+          contact: '+91 674 2476789'
         }
       ]);
     }
@@ -342,7 +349,10 @@ export default function LocationPage() {
                       </Badge>
                     </div>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">{hospital.distance} • {hospital.time} ETA</p>
-                    <p className="text-[8px] font-black text-primary/60 uppercase tracking-tighter truncate">{hospital.type}</p>
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <Phone className="h-2.5 w-2.5 text-primary" />
+                      <p className="text-[8px] font-black text-primary/80 uppercase tracking-tighter truncate">{hospital.contact}</p>
+                    </div>
                   </div>
                 </div>
                 <ChevronRight className={cn("h-5 w-5 shrink-0 transition-transform", selectedHospitalId === hospital.id ? "text-primary translate-x-1" : "text-muted")} />
@@ -387,7 +397,7 @@ export default function LocationPage() {
         />
 
         <div className="absolute top-6 left-6 right-6 pointer-events-none z-30">
-          <div className="max-w-3xl mx-auto w-full flex flex-col gap-4">
+          <div className="max-w-4xl mx-auto w-full flex flex-col gap-4">
             <AnimatePresence mode="wait">
               {selectedHospital && (
                 <motion.div 
@@ -412,18 +422,29 @@ export default function LocationPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-8 md:border-l md:pl-8 border-border">
+                    <div className="flex items-center gap-6 md:border-l md:pl-8 border-border">
                       <div className="text-center md:text-left">
-                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Distance</p>
-                        <p className="text-2xl font-black text-foreground tracking-tighter whitespace-nowrap">{selectedHospital.distance}</p>
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Ambulance</p>
+                        <p className="text-sm font-black text-foreground whitespace-nowrap bg-muted px-3 py-1.5 rounded-xl">{selectedHospital.contact}</p>
                       </div>
                       <div className="text-center md:text-left">
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Live ETA</p>
                         <p className="text-2xl font-black text-primary tracking-tighter whitespace-nowrap">{selectedHospital.time}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedHospitalId(null)} className="h-10 w-10 rounded-full hover:bg-muted shrink-0">
-                        <CloseIcon className="h-5 w-5 text-muted-foreground" />
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          asChild
+                          className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[9px] px-4"
+                        >
+                          <a href={`tel:${selectedHospital.contact.replace(/\s/g, '')}`}>
+                            <PhoneCall className="h-3 w-3 mr-2" />
+                            Call Dispatch
+                          </a>
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedHospitalId(null)} className="h-8 rounded-lg text-[8px] font-black uppercase tracking-widest text-muted-foreground">
+                          Cancel Route
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 </motion.div>
