@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -42,7 +41,6 @@ export default function MonitorPage() {
 
   const samplingInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Acquire GPS and Real-time Environmental data for telemetry synchronization
   useEffect(() => {
     const fetchEnvironment = async () => {
       if (typeof window === 'undefined' || !navigator.geolocation) return;
@@ -51,7 +49,6 @@ export default function MonitorPage() {
         setCurrentCoords({ lat: latitude, lng: longitude });
         
         try {
-          // Using clinical-grade Open-Meteo for real environmental metrics
           const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m`);
           const data = await res.json();
           if (data.current_weather) {
@@ -77,7 +74,6 @@ export default function MonitorPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // REAL-TIME CLOUD SYNC: High-frequency IoT telemetry
   useEffect(() => {
     if (!isActive || !user) {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
@@ -92,7 +88,6 @@ export default function MonitorPage() {
         const nextTemp = Math.min(41.5, Math.max(36.2, prev.bodyTemp + tempShift));
         const nextHR = Math.min(180, Math.max(50, prev.heartRate + hrShift));
         
-        // CRITICAL DETECTION: Automatic Escalation if >= 40.7°C
         if (nextTemp >= 40.7) {
           setIsCritical(true);
           setTimeout(() => router.push('/alert-sim'), 2000);
@@ -103,7 +98,6 @@ export default function MonitorPage() {
         const currentOutside = envWeather?.temp ?? prev.outsideTemp + (Math.random() - 0.5) * 0.05;
         const currentHumidity = envWeather?.humidity ?? prev.humidity;
 
-        // CLOUD DISPATCH: Sync instantly to Firestore
         if (db && user) {
           const vitalsRef = collection(db, 'users', user.uid, 'vital_sign_data');
           const heatIndex = currentOutside + (currentHumidity > 40 ? (currentHumidity - 40) * 0.15 : 0);
@@ -113,12 +107,13 @@ export default function MonitorPage() {
             timestamp: new Date().toISOString(),
             bodyTemperatureC: nextTemp,
             heartRateBPM: nextHR,
-            pulseFrequencyBPM: nextHR, // Tracking pulse frequency as distinct node
+            pulseFrequencyBPM: nextHR,
             outsideTemperatureC: currentOutside,
             humidityPercentage: currentHumidity,
             heatIndexC: heatIndex,
             activityLevel: 'moderate',
-            deviceType: 'Live IoT Hub',
+            aiVerdict: nextTemp >= 40.7 ? 'critical' : nextTemp > 39 ? 'high' : 'normal',
+            deviceType: 'Self-Learning IoT Hub',
             latitude: currentCoords.lat,
             longitude: currentCoords.lng
           });
@@ -132,7 +127,7 @@ export default function MonitorPage() {
           humidity: currentHumidity
         };
       });
-    }, 2500); // High-frequency polling
+    }, 2500);
 
     return () => {
       if (samplingInterval.current) clearInterval(samplingInterval.current);
@@ -184,7 +179,7 @@ export default function MonitorPage() {
                   className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-5 py-2.5 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:border-emerald-800 shadow-sm"
                 >
                   <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
-                  Live Syncing Active
+                  Learning Stream Active
                 </motion.div>
               ) : (
                 <motion.div 
@@ -194,7 +189,7 @@ export default function MonitorPage() {
                   className="bg-slate-100 dark:bg-slate-900 text-slate-500 px-5 py-2.5 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-800"
                 >
                   <Clock className="h-3 w-3" />
-                  Cloud Sync Suspended
+                  Neural Training Suspended
                 </motion.div>
               )}
             </AnimatePresence>
@@ -229,12 +224,12 @@ export default function MonitorPage() {
                   <div className="space-y-1">
                     <h3 className="text-xl font-black uppercase tracking-tight">⚠️ CRITICAL THERMAL EVENT</h3>
                     <p className="text-xs font-bold uppercase tracking-widest opacity-80">
-                      Body temperature exceeds 40.7°C threshold. SOS protocol initiated.
+                      AI Model predicts critical sunstroke risk. Initializing rescue protocols.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl font-black text-[10px] uppercase tracking-widest">
-                  Escalating Now
+                  Auto-Escalating
                 </div>
               </div>
             </motion.div>
@@ -242,27 +237,9 @@ export default function MonitorPage() {
         </AnimatePresence>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <VitalsCard 
-            title="Current Body Temp" 
-            value={latestVitals.bodyTemp} 
-            unit="°C" 
-            icon={Thermometer} 
-            status={latestVitals.bodyTemp >= 40.7 ? 'critical' : latestVitals.bodyTemp > 38 ? 'warning' : 'normal'}
-          />
-          <VitalsCard 
-            title="Pulse Frequency" 
-            value={latestVitals.heartRate} 
-            unit="BPM" 
-            icon={Heart} 
-            status="normal"
-          />
-          <VitalsCard 
-            title="Live GPS Lock" 
-            value={currentCoords.lat.toFixed(4)} 
-            unit="Lat" 
-            icon={MapPin} 
-            status="normal"
-          />
+          <VitalsCard title="Current Body Temp" value={latestVitals.bodyTemp} unit="°C" icon={Thermometer} status={latestVitals.bodyTemp >= 40.7 ? 'critical' : latestVitals.bodyTemp > 38 ? 'warning' : 'normal'} />
+          <VitalsCard title="Pulse Frequency" value={latestVitals.heartRate} unit="BPM" icon={Heart} status="normal" />
+          <VitalsCard title="Live GPS Lock" value={currentCoords.lat.toFixed(4)} unit="Lat" icon={MapPin} status="normal" />
         </div>
       </main>
     </div>

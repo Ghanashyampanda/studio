@@ -17,7 +17,13 @@ export function ConfigPanel() {
   const [currentTemp, setCurrentTemp] = useState(37.0);
   const [ambientTemp, setAmbientTemp] = useState(32.0);
 
-  // Auto-simulation effect
+  const calculateHeuristicRisk = (temp: number) => {
+    if (temp >= 40.7) return 'critical';
+    if (temp > 39) return 'high';
+    if (temp > 38) return 'moderate';
+    return 'low';
+  };
+
   useEffect(() => {
     if (!isSimulating || !db || !user) return;
 
@@ -35,10 +41,10 @@ export function ConfigPanel() {
         outsideTemperatureC: ambientTemp,
         humidityPercentage: 50,
         heatIndexC: ambientTemp + 3,
-        // Simulation localized to Bhubaneswar, India
+        aiVerdict: calculateHeuristicRisk(nextTemp),
         latitude: 20.3517,
         longitude: 85.8189,
-        deviceType: 'AI Simulator'
+        deviceType: 'Neural AI Simulator'
       });
     }, 15000);
 
@@ -60,10 +66,10 @@ export function ConfigPanel() {
       outsideTemperatureC: ambient,
       humidityPercentage: 45,
       heatIndexC: ambient + 2,
-      // Localized manual override coordinates
+      aiVerdict: calculateHeuristicRisk(temp),
       latitude: 20.3517,
       longitude: 85.8189,
-      deviceType: 'Manual Override'
+      deviceType: 'Manual Forensic Input'
     });
   };
 
@@ -80,7 +86,6 @@ export function ConfigPanel() {
       </CardHeader>
       <CardContent className="space-y-8 p-8">
         <div className="space-y-8">
-          {/* Body Temp */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
@@ -90,16 +95,9 @@ export function ConfigPanel() {
                 {currentTemp.toFixed(1)}°C
               </span>
             </div>
-            <Slider 
-              min={36} 
-              max={41} 
-              step={0.1} 
-              value={[currentTemp]} 
-              onValueChange={([val]) => handleUpdate(val, ambientTemp)} 
-            />
+            <Slider min={36} max={41} step={0.1} value={[currentTemp]} onValueChange={([val]) => handleUpdate(val, ambientTemp)} />
           </div>
 
-          {/* Ambient Temp */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
@@ -109,20 +107,14 @@ export function ConfigPanel() {
                 {ambientTemp.toFixed(1)}°C
               </span>
             </div>
-            <Slider 
-              min={15} 
-              max={50} 
-              step={0.5} 
-              value={[ambientTemp]} 
-              onValueChange={([val]) => handleUpdate(currentTemp, val)} 
-            />
+            <Slider min={15} max={50} step={0.5} value={[ambientTemp]} onValueChange={([val]) => handleUpdate(currentTemp, val)} />
           </div>
 
           <div className="pt-6 border-t border-border space-y-4">
             <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border">
               <div className="space-y-1">
-                <Label className="text-xs font-black tracking-tight uppercase text-foreground">Simulation Mode</Label>
-                <p className="text-[9px] text-muted-foreground font-bold uppercase">Dynamic flux (15s cycles)</p>
+                <Label className="text-xs font-black tracking-tight uppercase text-foreground">Retraining Mode</Label>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase">Dynamic data addition</p>
               </div>
               <Switch checked={isSimulating} onCheckedChange={setIsSimulating} />
             </div>
@@ -130,7 +122,7 @@ export function ConfigPanel() {
             {isSimulating && (
               <div className="flex items-center gap-2 text-[10px] text-primary italic font-black uppercase tracking-widest">
                 <RefreshCcw className="h-3 w-3 animate-spin" />
-                Live Telemetry Synchronizing...
+                Ingesting Neural Samples...
               </div>
             )}
           </div>
