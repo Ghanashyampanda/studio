@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useDoc, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
@@ -12,6 +11,7 @@ import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { AIMonitoringPanel } from '@/components/dashboard/AIMonitoringPanel';
 import { AccuracyChart } from '@/components/dashboard/AccuracyChart';
 import { ConfusionMatrix } from '@/components/dashboard/ConfusionMatrix';
+import { RiskTimelineChart } from '@/components/dashboard/RiskTimelineChart';
 import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert, Zap, BrainCircuit, Sparkles, Cpu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect, useState, useCallback } from 'react';
@@ -256,7 +256,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <VitalsHistoryChart data={vitalsData || []} />
+              <RiskTimelineChart data={vitalsData || []} />
               <AccuracyChart data={accuracyHistory || []} />
             </div>
 
