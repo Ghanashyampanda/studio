@@ -11,6 +11,7 @@ import { ConfigPanel } from '@/components/dashboard/ConfigPanel';
 import { VitalsHistoryChart } from '@/components/dashboard/VitalsHistoryChart';
 import { AIMonitoringPanel } from '@/components/dashboard/AIMonitoringPanel';
 import { AccuracyChart } from '@/components/dashboard/AccuracyChart';
+import { ConfusionMatrix } from '@/components/dashboard/ConfusionMatrix';
 import { Shield, Thermometer, Activity, LayoutDashboard, Loader2, MapPin, Clock, ShieldAlert, Zap, BrainCircuit, Sparkles, Cpu } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect, useState, useCallback } from 'react';
@@ -78,6 +79,13 @@ export default function DashboardPage() {
     );
   }, [db, user]);
   const { data: accuracyHistory } = useCollection(accuracyQuery);
+
+  // AI METRICS HUB: Listen for confusion matrix and metrics
+  const metricsRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, 'users', user.uid, 'ai_metrics', 'current');
+  }, [db, user]);
+  const { data: aiMetrics } = useDoc(metricsRef);
   
   const defaultVitals = {
     bodyTemperatureC: 37.0,
@@ -153,6 +161,13 @@ export default function DashboardPage() {
 
   const isCritical = latestVitals.bodyTemperatureC >= 40.7 || learnedPrediction?.riskLevel === 'critical';
   const tempStatus = isCritical ? 'critical' : latestVitals.bodyTemperatureC > 39 ? 'warning' : 'normal';
+
+  // Default confusion matrix if not in Firestore yet
+  const defaultMatrix = {
+    safe: { safe: 45, warning: 3, critical: 0 },
+    warning: { safe: 4, warning: 32, critical: 1 },
+    critical: { safe: 0, warning: 1, critical: 18 }
+  };
 
   return (
     <div className={cn(
@@ -243,6 +258,10 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <VitalsHistoryChart data={vitalsData || []} />
               <AccuracyChart data={accuracyHistory || []} />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <ConfusionMatrix matrix={aiMetrics?.confusionMatrix || defaultMatrix} />
             </div>
           </div>
           

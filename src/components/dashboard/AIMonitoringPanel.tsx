@@ -3,9 +3,9 @@
 
 import { useState } from 'react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, collection, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, collection } from 'firebase/firestore';
 import { updateDocumentNonBlocking, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -13,15 +13,12 @@ import {
   RefreshCcw, 
   Database, 
   Clock, 
-  CheckCircle2, 
-  AlertCircle, 
   Loader2, 
-  Sparkles,
-  Zap,
   Activity
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface AIMonitoringPanelProps {
   prediction: string;
@@ -48,12 +45,20 @@ export function AIMonitoringPanel({ prediction, totalRecords }: AIMonitoringPane
       const newAccuracy = Math.min(99.8, (metrics?.currentAccuracy || 85) + (Math.random() * 2));
       const now = new Date().toISOString();
 
-      // Update current metrics
+      // Generate simulated confusion matrix update
+      const newMatrix = {
+        safe: { safe: 40 + Math.floor(Math.random() * 10), warning: Math.floor(Math.random() * 5), critical: 0 },
+        warning: { safe: Math.floor(Math.random() * 5), warning: 25 + Math.floor(Math.random() * 10), critical: Math.floor(Math.random() * 3) },
+        critical: { safe: 0, warning: Math.floor(Math.random() * 2), critical: 15 + Math.floor(Math.random() * 5) }
+      };
+
+      // Update current metrics including the matrix
       setDocumentNonBlocking(metricsRef!, {
         lastTrained: now,
         datasetSize: totalRecords,
         currentAccuracy: newAccuracy,
-        modelStatus: 'Ready'
+        modelStatus: 'Ready',
+        confusionMatrix: newMatrix
       }, { merge: true });
 
       // Add to history for the chart
@@ -71,6 +76,7 @@ export function AIMonitoringPanel({ prediction, totalRecords }: AIMonitoringPane
     switch (status?.toLowerCase()) {
       case 'critical': return 'text-red-600 bg-red-50 border-red-100';
       case 'warning': return 'text-orange-600 bg-orange-50 border-orange-100';
+      case 'low':
       case 'safe': return 'text-emerald-600 bg-emerald-50 border-emerald-100';
       default: return 'text-primary bg-primary/5 border-primary/10';
     }
@@ -156,5 +162,3 @@ export function AIMonitoringPanel({ prediction, totalRecords }: AIMonitoringPane
     </Card>
   );
 }
-
-import { motion } from 'framer-motion';
