@@ -31,6 +31,12 @@ export default function DashboardPage() {
   const [weatherData, setWeatherData] = useState<{ temp: number; humidity: number } | null>(null);
   const [learnedPrediction, setLearnedPrediction] = useState<LearnedRiskOutput | null>(null);
   const [isTraining, setIsTraining] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // HYDRATION GUARD: Ensure dynamic time only renders on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ENVIRONMENTAL SYNC: Fetch real-time weather using GPS location
   useEffect(() => {
@@ -207,7 +213,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col">
                   <span className="text-[8px] font-black uppercase text-muted-foreground">Last Refresh</span>
                   <span className="text-[10px] font-black uppercase text-foreground">
-                    {format(new Date(), 'HH:mm:ss')}
+                    {mounted ? format(new Date(), 'HH:mm:ss') : '--:--:--'}
                   </span>
                 </div>
               </div>
@@ -242,7 +248,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <VitalsCard title="Body Temperature" value={latestVitals.bodyTemperatureC} unit="°C" icon={Thermometer} status={tempStatus} />
           <VitalsCard title="Heart Rate" value={latestVitals.heartRateBPM} unit="BPM" icon={Activity} status="normal" />
-          <VitalsCard title="Environment Temp" value={latestVitals.outsideTemperatureC} unit="°C" icon={Thermometer} status={latestVitals.outsideTemperatureC > 35 ? 'warning' : 'normal'} />
+          <VitalsCard title="Environment Temperature" value={latestVitals.outsideTemperatureC} unit="°C" icon={Thermometer} status={latestVitals.outsideTemperatureC > 35 ? 'warning' : 'normal'} />
           <VitalsCard title="Pulse Frequency" value={latestVitals.heartRateBPM} unit="BPM" icon={Activity} status="normal" />
         </div>
 
